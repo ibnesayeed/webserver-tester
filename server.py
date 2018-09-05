@@ -61,7 +61,7 @@ def deploy_server():
             "traefik.backend": csid,
             "traefik.docker.network": "course",
             "traefik.frontend.entryPoints": "http",
-            "traefik.frontend.rule": "Host:{}.cs518.cs.odu.edu".format(csid),
+            "traefik.frontend.rule": "Host:{}.cs531.cs.odu.edu".format(csid),
             "traefik.port": "80"
         }
         client.containers.run(imgname, detach=True, network="course", labels=deployment_labels, name=contname)
