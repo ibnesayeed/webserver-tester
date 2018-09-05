@@ -36,7 +36,8 @@ def get_authorized_repo_url(csid):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    show_deployer = True if os.environ.get("GITHUBKEY") else False
+    return render_template("index.html", show_deployer=show_deployer)
 
 
 @app.route("/server", methods=["POST"])
@@ -74,6 +75,7 @@ def deploy_server():
 @app.route("/tests", methods=["POST"])
 def run_tests():
     return "TODO: A test suite is yet to be implemented"
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5000")

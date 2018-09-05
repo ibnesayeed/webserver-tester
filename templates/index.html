@@ -6,6 +6,7 @@
   </head>
   <body>
     <h1>CS 531 WebServer Tester</h1>
+    {% if show_deployer %}
     <section>
       <h2>Deploy a Server</h2>
       <form action="/server" method="post">
@@ -13,6 +14,7 @@
         <input type="submit" value="Deploy Server">
       </form>
     </section>
+    {% endif %}
     <section>
       <h2>Test a Server</h2>
       <input type="text" name="hostport" value="">
