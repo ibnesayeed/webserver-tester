@@ -45,11 +45,16 @@ def deploy_server():
     url = get_authorized_repo_url(csid)
     if url is None:
         abort(404)
-    imgname = "cs531-" + csid
-    print("Building image {}".format(imgname))
+    imgname = "cs531/" + csid
     try:
+        print("Building image {}".format(imgname))
         client.images.build(path=url, tag=imgname)
         print("Image {} built".format(imgname))
+        client.containers.run(imgname,
+                              detach=True,
+                              network="cs531",
+                              labels={},
+                              )
     except Exception as e:
         print(e)
         abort(500)
