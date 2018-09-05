@@ -46,18 +46,25 @@ def deploy_server():
     if url is None:
         abort(404)
     imgname = "cs531/" + csid
+    contname = "cs531-" + csid
     try:
         print("Building image {}".format(imgname))
         client.images.build(path=url, tag=imgname)
-        print("Image {} built".format(imgname))
+        try:
+            print("Removing existing container {}".format(contname))
+            cont = client.containers.get(contname)
+            cont.remove(force=True)
+        except Exception as e:
+            print("Container {} does not exist".format(contname))
+        print("Running new container {} using {} image".format(contname, imgname))
         deployment_labels = {
             "traefik.backend": csid,
             "traefik.docker.network": "course",
             "traefik.frontend.entryPoints": "http",
             "traefik.frontend.rule": "Host:{}.cs518.cs.odu.edu".format(csid),
-            "traefik.port": "8080"
+            "traefik.port": "80"
         }
-        client.containers.run(imgname, detach=True, network="course", labels=deployment_labels)
+        client.containers.run(imgname, detach=True, network="course", labels=deployment_labels, name=contname)
     except Exception as e:
         print(e)
         abort(500)
