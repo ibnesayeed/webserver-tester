@@ -6,8 +6,11 @@ from flask import render_template, abort, request
 import os
 import re
 import requests
+import docker
+
 
 app = Flask(__name__)
+client = docker.from_env()
 
 
 def get_student_repo(csid):
@@ -28,7 +31,7 @@ def get_authorized_repo_url(csid):
     credential = ""
     if os.environ.get("GITHUBKEY"):
         credential = os.environ.get("GITHUBKEY") + "@"
-    return "https://{}github.com/{}".format(credential, repo)
+    return "https://{}github.com/{}.git".format(credential, repo)
 
 
 @app.route("/")
@@ -42,8 +45,15 @@ def deploy_server():
     url = get_authorized_repo_url(csid)
     if url is None:
         abort(404)
-    print("TODO: Deploying from {}".format(url))
-    abort(501)
+    imgname = "cs531-" + csid
+    print("Building image {}".format(imgname))
+    try:
+        client.images.build(path=url, tag=imgname)
+        print("Image {} built".format(imgname))
+    except Exception as e:
+        print(e)
+        abort(500)
+    return "Image built!"
 
 
 if __name__ == "__main__":
