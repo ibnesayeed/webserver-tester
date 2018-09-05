@@ -34,7 +34,7 @@ Then access it from http://localhost:5000 and provide the `<host>:<port>` inform
 
 A machine is configured to build Docker images from students' private GitHub repositories that contain a `Dockerfile`. Go to http://cs531.cs.odu.edu/ and provide your CS ID in the appropriate form field then click "Deploy Server" button. Depending on the network speed and complexity of the image, it might take some time to pull the source code and build and image. If an image is built successfully then it will automatically remove any existing containers of the corresponding student and deploy a new one. This newly deployed server will be accessible from `http://<cs-id>.cs531.cs.odu.edu/`.
 
-**It is important that your `Dockerfile` is setup in a way that it runs the server on port `80` by default.**
+**It is important that your `Dockerfile` is setup in a way that it runs the server on the network interface `0.0.0.0` and port `80` by default.**
 
 Once your server is deployed, you can test it from the http://cs531.cs.odu.edu/ page using the appropriate form.
 
