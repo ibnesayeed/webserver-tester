@@ -71,5 +71,9 @@ def deploy_server():
     return "Service deployed successfully"
 
 
+@app.route("/tests", methods=["POST"])
+def run_tests():
+    return "TODO: A test suite is yet to be implemented"
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5000")
