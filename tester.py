@@ -2,7 +2,6 @@
 
 import subprocess
 import time
-import os
 import sys
 
 host = "localhost"
@@ -15,7 +14,7 @@ def make_request(msg_file):
         tfn = "/tmp/" + str(time.time_ns())
         with open(tfn, "w") as tf:
             tf.write(reqdata)
-        output = os.check_output("cat {} | nc -q 1 -w 10 {} {}".format(tfn, host, port), shell=True)
+        output = subprocess.check_output("cat {} | nc -q 1 -w 10 {} {}".format(tfn, host, port), shell=True)
         print(output)
         return output
 
