@@ -55,7 +55,7 @@ def make_request(msg_file):
                 print("\033[92m[PASSED]\033[0m")
             except AssertionError as e:
                 failed_count += 1
-                print("\033[91m[FAILED]\033[0m: {}".format(e))
+                print(": ".join(filter(None, ["\033[91m[FAILED]\033[0m", str(e)])))
             print()
             print(req["raw"])
             print(res["raw_headers"])
@@ -79,7 +79,7 @@ def test_1_2_bar(req, res):
 @make_request("server-root.http")
 def test_1_3_baz(req, res):
     """Assignment 1, Test 3"""
-    assert True
+    assert False
 
 
 @make_request("server-root.http")
