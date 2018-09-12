@@ -17,12 +17,13 @@ MSGDIR = os.path.join(os.path.dirname(__file__), "messages")
 tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+)_.+")
 test_buckets = collections.defaultdict(dict)
 
+
 def netcat(msg_file):
     req = {
         "raw": ""
     }
     res = {
-        "raw": "",
+        "raw_headers": "",
         "http_version": "",
         "status_code": 0,
         "headers": {},
@@ -35,9 +36,10 @@ def netcat(msg_file):
         tf.seek(0)
         cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
     if cmd.returncode == 0:
-        # TODO: Handle binary and text payloads differently
-        res["raw"] = cmd.stdout.decode("utf-8")
+        hdrs, _, res["payload"] = cmd.stdout.partition(b"\r\n\r\n")
+        res["raw_headers"] = hdrs.decode("utf-8")
     return req, res
+
 
 def make_request(msg_file):
     def test_decorator(func):
@@ -56,7 +58,7 @@ def make_request(msg_file):
                 print("\033[91m[FAILED]\033[0m: {}".format(e))
             print()
             print(req["raw"])
-            print(res["raw"])
+            print(res["raw_headers"])
             return func.__name__, func.__doc__, req, res
         return wrapper
     return test_decorator
