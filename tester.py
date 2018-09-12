@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import os
 import re
 import tempfile
 import inspect
@@ -9,36 +10,80 @@ import collections
 
 host = "localhost"
 port = "80"
+passed_count = failed_count = 0
+
+MSGDIR = os.path.join(os.path.dirname(__file__), "messages")
 
 tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+)_.+")
 test_buckets = collections.defaultdict(dict)
 
-
-def make_request(msg_file):
-    with open("messages/{}.http".format(msg_file)) as f:
-        reqdata = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
+def netcat(msg_file):
+    req = {
+        "raw": ""
+    }
+    res = {
+        "raw": "",
+        "http_version": "",
+        "status_code": 0,
+        "headers": {},
+        "payload": None
+    }
+    with open(os.path.join(MSGDIR, msg_file)) as f:
+        req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
     with tempfile.TemporaryFile() as tf:
-        tf.write(reqdata.encode('utf-8'))
+        tf.write(req["raw"].encode("utf-8"))
         tf.seek(0)
         cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
-    print(cmd)
-    return cmd.stdout
+    if cmd.returncode == 0:
+        # TODO: Handle binary and text payloads differently
+        res["raw"] = cmd.stdout.decode("utf-8")
+    return req, res
+
+def make_request(msg_file):
+    def test_decorator(func):
+        def wrapper():
+            global passed_count, failed_count
+            print("=" * 79)
+            print("Running: {}".format(func.__name__))
+            print(func.__doc__)
+            req, res = netcat(msg_file)
+            try:
+                func(req, res)
+                passed_count += 1
+                print("\033[92m[PASSED]\033[0m")
+            except AssertionError as e:
+                failed_count += 1
+                print("\033[91m[FAILED]\033[0m: {}".format(e))
+            print()
+            print(req["raw"])
+            print(res["raw"])
+            return func.__name__, func.__doc__, req, res
+        return wrapper
+    return test_decorator
 
 
-def test_1_1_foo():
-    print("Assignment 1, Test 1")
+@make_request("server-root.http")
+def test_1_1_foo(req, res):
+    """Assignment 1, Test 1"""
+    assert True
 
 
-def test_1_2_foo():
-    print("Assignment 1, Test 2")
+@make_request("server-root.http")
+def test_1_2_bar(req, res):
+    """Assignment 1, Test 2"""
+    assert True
 
 
-def test_1_3_foo():
-    print("Assignment 1, Test 3")
+@make_request("server-root.http")
+def test_1_3_baz(req, res):
+    """Assignment 1, Test 3"""
+    assert True
 
 
-def test_2_1_foo():
-    print("Assignment 2, Test 1")
+@make_request("server-root.http")
+def test_2_1_blah(req, res):
+    """Assignment 2, Test 1"""
+    assert False, "Placeholder test (not implemented yet!)"
 
 
 def run_single_test(test_id):
@@ -102,3 +147,9 @@ if __name__ == "__main__":
     else:
         for bucket in buckets:
             run_bucket_tests(bucket)
+
+    print("#" * 35, "SUMMARY", "#" * 35)
+    print("Server => {}:{}".format(host, port))
+    print("\033[92mPASSED\033[0m =>", passed_count)
+    print("\033[91mFAILED\033[0m =>", failed_count)
+    print("#" * 79)
