@@ -95,6 +95,8 @@ if __name__ == "__main__":
         if re.match("^[\d,]+$", sys.argv[2]):
             buckets = sys.argv[2].split(",")
 
+    print("Testing {}:{}".format(host, port))
+
     if test_id:
         run_single_test(test_id)
     else:
