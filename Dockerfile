@@ -1,7 +1,9 @@
 FROM    python
 LABEL   maintainer="Sawood Alam <@ibnesayeed>"
 
-RUN     apt update && apt install -y netcat \
+RUN     apt update && apt install -y \
+          netcat \
+          telnet \
         && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
