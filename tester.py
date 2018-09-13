@@ -26,20 +26,24 @@ def make_test_buckets():
 
 
 def run_single_test(test_id):
+    err = "Test {} not valid".format(test_id)
     m = tfunc_pattern.match(test_id)
     if m:
         try:
-            test_buckets[m['bucket']][test_id]()
+            return test_buckets[m['bucket']][test_id]()
         except KeyError as e:
-            print("Test {} not implemented".format(test_id))
+            err = "Test {} not implemented".format(test_id)
+            print(err)
+    raise Exception(err)
 
 
 def run_bucket_tests(bucket):
     if not test_buckets.get(bucket):
-        print("No tests in bucket {}".format(bucket))
-        return
+        err = "Test bucket {} not implemented".format(bucket)
+        print(err)
+        raise Exception(err)
     for fname, func in test_buckets[bucket].items():
-        func()
+        yield func()
 
 
 def netcat(msg_file):
@@ -181,7 +185,7 @@ if __name__ == "__main__":
         run_single_test(test_id)
     else:
         for bucket in buckets:
-            run_bucket_tests(bucket)
+            for _ in run_bucket_tests(bucket): pass
 
     print("#" * 35, "SUMMARY", "#" * 35)
     print("Server => {}:{}".format(host, port))
