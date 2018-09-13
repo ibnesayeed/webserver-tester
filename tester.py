@@ -116,6 +116,9 @@ def make_request(msg_file):
             print()
             print(req["raw"])
             print(res["raw_headers"])
+            if res["payload"]:
+                print()
+                print("[Payload redacted ({} bytes)]".format(len(res["payload"])))
             print()
             return func.__name__, func.__doc__, errors , req, res
         return wrapper
