@@ -29,6 +29,7 @@ def netcat(msg_file):
         "headers": {},
         "payload": None
     }
+    errors = []
     with open(os.path.join(MSGDIR, msg_file)) as f:
         req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
     with tempfile.TemporaryFile() as tf:
@@ -36,9 +37,25 @@ def netcat(msg_file):
         tf.seek(0)
         cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
     if cmd.returncode == 0:
-        hdrs, _, res["payload"] = cmd.stdout.partition(b"\r\n\r\n")
-        res["raw_headers"] = hdrs.decode("utf-8")
-    return req, res
+        hdrs, sep, res["payload"] = cmd.stdout.partition(b"\r\n\r\n")
+        if not sep:
+            errors.append("Missing empty line after headers")
+        hdrs = hdrs.decode("utf-8")
+        res["raw_headers"] = hdrs
+        hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
+        lines = hdrs.split("\n")
+        status_line = lines.pop(0)
+        m = re.match("^([\w\/\.]+)\s+(\d+)\s.*", status_line)
+        if m:
+            res["http_version"] = m[1]
+            res["status_code"] = int(m[2])
+        for line in lines:
+            kv = line.split(":", 1)
+            if len(kv) < 2:
+                errors.append("Malformed header line => {}".format(line))
+            else:
+                res["headers"][kv[0].lower()] = kv[1].strip()
+    return req, res, errors
 
 
 def make_request(msg_file):
@@ -48,18 +65,22 @@ def make_request(msg_file):
             print("=" * 79)
             print("Running: {}".format(func.__name__))
             print(func.__doc__)
-            req, res = netcat(msg_file)
+            req, res, errors = netcat(msg_file)
             try:
+                if errors:
+                    print("\n".join(errors))
+                    raise AssertionError("Malformed response")
                 func(req, res)
                 passed_count += 1
                 print("\033[92m[PASSED]\033[0m")
             except AssertionError as e:
                 failed_count += 1
+                errors.append("Assertion failed: {}".format(e))
                 print(": ".join(filter(None, ["\033[91m[FAILED]\033[0m", str(e)])))
             print()
             print(req["raw"])
             print(res["raw_headers"])
-            return func.__name__, func.__doc__, req, res
+            return func.__name__, func.__doc__, errors , req, res
         return wrapper
     return test_decorator
 
