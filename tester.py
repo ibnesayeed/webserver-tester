@@ -14,7 +14,7 @@ passed_count = failed_count = 0
 
 MSGDIR = os.path.join(os.path.dirname(__file__), "messages")
 
-tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+).*")
+tfunc_pattern = re.compile("^test_(\d+)_(\d+).*")
 test_buckets = collections.defaultdict(dict)
 
 
@@ -22,7 +22,7 @@ def make_test_buckets():
     for (fname, func) in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
         m = tfunc_pattern.match(fname)
         if m:
-            test_buckets[m['bucket']][fname] = func
+            test_buckets[m[1]][fname] = func
 
 
 def run_single_test(test_id):
@@ -30,7 +30,7 @@ def run_single_test(test_id):
     m = tfunc_pattern.match(test_id)
     if m:
         try:
-            return test_buckets[m['bucket']][test_id]()
+            return test_buckets[m[1]][test_id]()
         except KeyError as e:
             err = "Test {} not implemented".format(test_id)
             print(err)
