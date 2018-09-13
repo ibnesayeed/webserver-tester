@@ -50,6 +50,8 @@ def netcat(msg_file):
     req = {
         "raw": ""
     }
+    res = {}
+    errors = []
     with open(os.path.join(MSGDIR, msg_file)) as f:
         req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
     with tempfile.TemporaryFile() as tf:
@@ -120,7 +122,7 @@ def make_request(msg_file):
                 print()
                 print("[Payload redacted ({} bytes)]".format(len(res["payload"])))
             print()
-            return func.__name__, func.__doc__, errors , req, res
+            return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
         return wrapper
     return test_decorator
 
