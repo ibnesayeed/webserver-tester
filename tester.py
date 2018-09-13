@@ -51,7 +51,7 @@ def netcat(msg_file):
     with tempfile.TemporaryFile() as tf:
         tf.write(req["raw"].encode("utf-8"))
         tf.seek(0)
-        cmd = subprocess.run("nc -w 5 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
+        cmd = subprocess.run("nc -w 3 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
     if cmd.returncode == 0:
         res, errors = parse_response(cmd.stdout)
     return req, res, errors
@@ -121,21 +121,21 @@ def make_request(msg_file):
 @make_request("server-root.http")
 def test_1_1(req, res):
     """Server root is healthy"""
-    assert res["status_code"] == 200
-    assert "date" in res["headers"]
+    assert res["status_code"] == 200, "Retunrs 200"
+    assert "date" in res["headers"], "Date header is present"
 
 
 @make_request("server-root.http")
 def test_1_2(req, res):
     """Server root returns a text response"""
-    assert "content-type" in res["headers"]
-    assert res["headers"]["content-type"].startswith("text/")
+    assert "content-type" in res["headers"], "Content-Type header is present"
+    assert res["headers"]["content-type"].startswith("text/"), "Content-Type starts with text/"
 
 
 @make_request("server-root.http")
 def test_1_3(req, res):
     """HTTP version is 1.1"""
-    assert res["http_version"] == "HTTP/1.1"
+    assert res["http_version"] == "HTTP/1.1", "HTTP version is exactly HTTP/1.1"
 
 
 @make_request("server-root.http")
