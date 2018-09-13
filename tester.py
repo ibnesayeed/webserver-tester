@@ -22,6 +22,18 @@ def netcat(msg_file):
     req = {
         "raw": ""
     }
+    with open(os.path.join(MSGDIR, msg_file)) as f:
+        req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
+    with tempfile.TemporaryFile() as tf:
+        tf.write(req["raw"].encode("utf-8"))
+        tf.seek(0)
+        cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
+    if cmd.returncode == 0:
+        res, errors = parse_response(cmd.stdout)
+    return req, res, errors
+
+
+def parse_response(res_bytes):
     res = {
         "raw_headers": "",
         "http_version": "",
@@ -30,32 +42,25 @@ def netcat(msg_file):
         "payload": None
     }
     errors = []
-    with open(os.path.join(MSGDIR, msg_file)) as f:
-        req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(host, port))
-    with tempfile.TemporaryFile() as tf:
-        tf.write(req["raw"].encode("utf-8"))
-        tf.seek(0)
-        cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
-    if cmd.returncode == 0:
-        hdrs, sep, res["payload"] = cmd.stdout.partition(b"\r\n\r\n")
-        if not sep:
-            errors.append("Missing empty line after headers")
-        hdrs = hdrs.decode("utf-8")
-        res["raw_headers"] = hdrs
-        hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
-        lines = hdrs.split("\n")
-        status_line = lines.pop(0)
-        m = re.match("^([\w\/\.]+)\s+(\d+)\s.*", status_line)
-        if m:
-            res["http_version"] = m[1]
-            res["status_code"] = int(m[2])
-        for line in lines:
-            kv = line.split(":", 1)
-            if len(kv) < 2:
-                errors.append("Malformed header line => {}".format(line))
-            else:
-                res["headers"][kv[0].lower()] = kv[1].strip()
-    return req, res, errors
+    hdrs, sep, res["payload"] = res_bytes.partition(b"\r\n\r\n")
+    if not sep:
+        errors.append("Missing empty line after headers")
+    hdrs = hdrs.decode("utf-8")
+    res["raw_headers"] = hdrs
+    hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
+    lines = hdrs.split("\n")
+    status_line = lines.pop(0)
+    m = re.match("^([\w\/\.]+)\s+(\d+)\s.*", status_line)
+    if m:
+        res["http_version"] = m[1]
+        res["status_code"] = int(m[2])
+    for line in lines:
+        kv = line.split(":", 1)
+        if len(kv) < 2:
+            errors.append("Malformed header line => {}".format(line))
+        else:
+            res["headers"][kv[0].lower()] = kv[1].strip()
+    return res, errors
 
 
 def make_request(msg_file):
