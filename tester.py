@@ -14,7 +14,7 @@ passed_count = failed_count = 0
 
 MSGDIR = os.path.join(os.path.dirname(__file__), "messages")
 
-tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+)_.+")
+tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+).*")
 test_buckets = collections.defaultdict(dict)
 
 
@@ -27,7 +27,7 @@ def netcat(msg_file):
     with tempfile.TemporaryFile() as tf:
         tf.write(req["raw"].encode("utf-8"))
         tf.seek(0)
-        cmd = subprocess.run("nc -q 1 -w 10 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
+        cmd = subprocess.run("nc -w 5 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
     if cmd.returncode == 0:
         res, errors = parse_response(cmd.stdout)
     return req, res, errors
@@ -42,6 +42,9 @@ def parse_response(res_bytes):
         "payload": None
     }
     errors = []
+    if not res_bytes.strip():
+        errors.append("Empty response")
+        return res, errors
     hdrs, sep, res["payload"] = res_bytes.partition(b"\r\n\r\n")
     if not sep:
         errors.append("Missing empty line after headers")
@@ -91,25 +94,27 @@ def make_request(msg_file):
 
 
 @make_request("server-root.http")
-def test_1_1_foo(req, res):
-    """Assignment 1, Test 1"""
-    assert True
+def test_1_1(req, res):
+    """Server root is healthy"""
+    assert res["status_code"] == 200
+    assert "date" in res["headers"]
 
 
 @make_request("server-root.http")
-def test_1_2_bar(req, res):
-    """Assignment 1, Test 2"""
-    assert True
+def test_1_2(req, res):
+    """Server root returns a text response"""
+    assert "content-type" in res["headers"]
+    assert res["headers"]["content-type"].startswith("text/")
 
 
 @make_request("server-root.http")
-def test_1_3_baz(req, res):
-    """Assignment 1, Test 3"""
-    assert False
+def test_1_3(req, res):
+    """HTTP version is 1.1"""
+    assert res["http_version"] == "HTTP/1.1"
 
 
 @make_request("server-root.http")
-def test_2_1_blah(req, res):
+def test_2_1(req, res):
     """Assignment 2, Test 1"""
     assert False, "Placeholder test (not implemented yet!)"
 
@@ -125,7 +130,7 @@ def run_single_test(test_id):
 
 def run_bucket_tests(bucket):
     if not test_buckets.get(bucket):
-        print("No tests is bucket {}".format(bucket))
+        print("No tests in bucket {}".format(bucket))
         return
     for fname, func in test_buckets[bucket].items():
         func()
