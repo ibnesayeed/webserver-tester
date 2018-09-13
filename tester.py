@@ -152,20 +152,21 @@ if __name__ == "__main__":
     test_id = None
 
     if {"-h", "--help"}.intersection(sys.argv):
-        print()
-        print("{} [<host>[:<port>] [<test-id>|<bucket-numbers>]]".format(sys.argv[0]))
+        print("Usage:")
+        print("{} [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]".format(sys.argv[0]))
         print()
         print("<host>           : Hostname or IP address of the server to be tested (default: localhost)")
         print("<port>           : Port number of the server to be tested (default: 80)")
-        print("<test-id>        : Name of an individual test function (e.g., test_1_1_foo)")
+        print("<test-id>        : Name of an individual test function (e.g., test_1_1)")
         print("<bucket-numbers> : Comma separated list of bucket numbers (default: {})".format(",".join(buckets)))
         print()
         sys.exit(0)
 
     if len(sys.argv) > 1:
         parts = sys.argv[1].split(":")
-        host = parts[0]
-        if len(parts) > 1:
+        if parts[0]:
+            host = parts[0]
+        if len(parts) > 1 and parts[1]:
             port = int(parts[0])
 
     if len(sys.argv) > 2:

@@ -10,14 +10,21 @@ To test your server, run your server first, note down the host and port of the s
 $ git clone https://github.com/ibnesayeed/webserver-tester.git
 $ cd webserver-tester
 $ pip install -r requirements.txt
-$ ./tester.py <host>:<port>
+$ ./tester.py -h
+Usage:
+./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
+
+<host>           : Hostname or IP address of the server to be tested (default: localhost)
+<port>           : Port number of the server to be tested (default: 80)
+<test-id>        : Name of an individual test function (e.g., test_1_1)
+<bucket-numbers> : Comma separated list of bucket numbers (default: 1,2)
 ```
 
 Alternatively, build a Docker image from the source to ensure all the dependencies are available and run tester script inside.
 
 ```
 $ docker image build -t webserver-tester .
-$ docker container run --rm -it webserver-tester ./tester.py <host>:<port>
+$ docker container run --rm -it webserver-tester ./tester.py -h
 ```
 
 Be aware that the `localhost` inside of the container refers to the container itself and not the host machine, so use a host that is reachable from inside of the container.
