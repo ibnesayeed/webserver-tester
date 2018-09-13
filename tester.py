@@ -18,6 +18,30 @@ tfunc_pattern = re.compile("^test_(?P<bucket>\d+)_(\d+).*")
 test_buckets = collections.defaultdict(dict)
 
 
+def make_test_buckets():
+    for (fname, func) in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
+        m = tfunc_pattern.match(fname)
+        if m:
+            test_buckets[m['bucket']][fname] = func
+
+
+def run_single_test(test_id):
+    m = tfunc_pattern.match(test_id)
+    if m:
+        try:
+            test_buckets[m['bucket']][test_id]()
+        except KeyError as e:
+            print("Test {} not implemented".format(test_id))
+
+
+def run_bucket_tests(bucket):
+    if not test_buckets.get(bucket):
+        print("No tests in bucket {}".format(bucket))
+        return
+    for fname, func in test_buckets[bucket].items():
+        func()
+
+
 def netcat(msg_file):
     req = {
         "raw": ""
@@ -88,6 +112,7 @@ def make_request(msg_file):
             print()
             print(req["raw"])
             print(res["raw_headers"])
+            print()
             return func.__name__, func.__doc__, errors , req, res
         return wrapper
     return test_decorator
@@ -117,30 +142,6 @@ def test_1_3(req, res):
 def test_2_1(req, res):
     """Assignment 2, Test 1"""
     assert False, "Placeholder test (not implemented yet!)"
-
-
-def run_single_test(test_id):
-    m = tfunc_pattern.match(test_id)
-    if m:
-        try:
-            test_buckets[m['bucket']][test_id]()
-        except KeyError as e:
-            print("Test {} not implemented".format(test_id))
-
-
-def run_bucket_tests(bucket):
-    if not test_buckets.get(bucket):
-        print("No tests in bucket {}".format(bucket))
-        return
-    for fname, func in test_buckets[bucket].items():
-        func()
-
-
-def make_test_buckets():
-    for (fname, func) in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
-        m = tfunc_pattern.match(fname)
-        if m:
-            test_buckets[m['bucket']][fname] = func
 
 
 make_test_buckets()
