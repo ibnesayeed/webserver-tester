@@ -25,11 +25,11 @@ class Tester():
         parts = hostport.split(":")
         self.host = parts[0] or "localhost"
         self.port = 80
-        if len(parts) > 1:
+        if len(parts) > 1 and parts[1]:
             try:
                 self.port = int(parts[1])
             except ValueError as e:
-                raise ValueError("Invalid port number supplied")
+                raise ValueError("Invalid port number supplied: '{}'".format(parts[1]))
 
         # Create buckets of defined test methods
         self.test_buckets = collections.defaultdict(dict)
@@ -185,7 +185,11 @@ if __name__ == "__main__":
     hostport = "localhost:80"
     if len(sys.argv) > 1:
         hostport = sys.argv[1]
-    t = Tester(hostport)
+    try:
+        t = Tester(hostport)
+    except ValueError as e:
+        print(e)
+        sys.exit(1)
 
     buckets = list(t.test_buckets.keys())
     test_id = None

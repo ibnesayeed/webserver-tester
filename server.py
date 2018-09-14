@@ -82,7 +82,10 @@ def deploy_server(csid):
 
 @app.route("/tests/<hostport>/test_<int:bucket>_<int:tid>")
 def run_test(hostport, bucket, tid):
-    t = Tester(hostport)
+    try:
+        t = Tester(hostport)
+    except ValueError as e:
+        abort(400, e)
     test_id = "test_{}_{}".format(bucket, tid)
     try:
         result = t.run_single_test(test_id)
@@ -93,7 +96,10 @@ def run_test(hostport, bucket, tid):
 
 @app.route("/tests/<hostport>/<int:bucket>")
 def run_tests(hostport, bucket):
-    t = Tester(hostport)
+    try:
+        t = Tester(hostport)
+    except ValueError as e:
+        abort(400, e)
     bucket = str(bucket)
     if bucket not in t.test_buckets.keys():
         abort(404, "Test bucket {} not implemented".format(bucket))
