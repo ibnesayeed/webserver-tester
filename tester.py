@@ -120,25 +120,12 @@ class Tester():
 
         def test_decorator(func):
             def wrapper(self):
-                print("-" * 79)
-                print("Running: {}".format(func.__name__))
-                print(func.__doc__)
                 req, res, errors = self.netcat(msg_file)
                 try:
                     if not errors:
                         func(self, req, res)
-                        print("\033[92m[PASSED]\033[0m")
                 except AssertionError as e:
                     errors.append("Assertion failed => {}".format(e))
-                if errors:
-                    print("\033[91m[FAILED]\033[0m: {}".format("; ".join(errors)))
-                print()
-                print(req["raw"])
-                print(res["raw_headers"])
-                if res["payload"]:
-                    print()
-                    print("[Payload redacted ({} bytes)]".format(len(res["payload"])))
-                print()
                 return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
             return wrapper
         return test_decorator
@@ -216,10 +203,23 @@ if __name__ == "__main__":
             passed_count = failed_count = 0
             for bucket in buckets:
                 for result in t.run_bucket_tests(bucket):
+                    print("-" * 79)
+                    print("Running: {}".format(result["id"]))
+                    print(result["description"])
                     if result["errors"]:
                         failed_count += 1
+                        print(colorize("[FAILED]: {}".format("; ".join(result["errors"]))))
                     else:
                         passed_count += 1
+                        print(colorize("[PASSED]", 92))
+                    print()
+                    print("> " + result["req"]["raw"].replace("\n", "\n> ")[:-2])
+                    if result["res"]["raw_headers"]:
+                        print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
+                    if result["res"]["payload"]:
+                        print("< ")
+                        print("< [Payload redacted ({} bytes)]".format(len(result["res"]["payload"])))
+                    print()
             print("=" * 35, "SUMMARY", "=" * 35)
             print("Server => {}:{}".format(t.host, t.port))
             print(colorize("PASSED => {}".format(passed_count), 92))
