@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
-from flask import Flask
+from flask import Flask, Response
 from flask import render_template, abort, request
 
 import os
 import re
 import requests
 import docker
+import json
+import base64
 
+import tester
 
 app = Flask(__name__)
 client = docker.from_env()
@@ -32,6 +35,12 @@ def get_authorized_repo_url(csid):
     if os.environ.get("GITHUBKEY"):
         credential = os.environ.get("GITHUBKEY") + "@"
     return "https://{}github.com/{}.git".format(credential, repo)
+
+
+def jsonify_result(result):
+    if result["res"]["payload"]:
+        result["res"]["payload"] = base64.b64encode(result["res"]["payload"]).decode("utf-8")
+    return json.dumps(result) + "\n"
 
 
 @app.route("/")
@@ -72,9 +81,30 @@ def deploy_server():
     return "Service deployed successfully"
 
 
-@app.route("/tests", methods=["POST"])
-def run_tests():
-    return "TODO: A test suite is yet to be implemented"
+@app.route("/tests/<hostport>/test_<int:bucket>_<int:tid>")
+def run_test(hostport, bucket, tid):
+    tester.update_hostport(hostport)
+    test_id = "test_{}_{}".format(bucket, tid)
+    try:
+        result = tester.run_single_test(test_id)
+        return Response(jsonify_result(result), mimetype="application/json")
+    except Exception as e:
+        abort(404, e)
+
+
+@app.route("/tests/<hostport>/<int:bucket>")
+def run_tests(hostport, bucket):
+    bucket = str(bucket)
+    if bucket not in tester.test_buckets.keys():
+        abort(404, "Test bucket {} not implemented".format(bucket))
+
+    tester.update_hostport(hostport)
+
+    def generate():
+        for result in tester.run_bucket_tests(bucket):
+            yield jsonify_result(result)
+
+    return Response(generate(), mimetype="application/ors")
 
 
 if __name__ == "__main__":
