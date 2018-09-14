@@ -49,9 +49,8 @@ def home():
     return render_template("index.html", show_deployer=show_deployer)
 
 
-@app.route("/server", methods=["POST"])
-def deploy_server():
-    csid = request.form["student"]
+@app.route("/server/<csid>")
+def deploy_server(csid):
     url = get_authorized_repo_url(csid)
     if url is None:
         abort(404)
