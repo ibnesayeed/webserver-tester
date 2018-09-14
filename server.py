@@ -10,7 +10,7 @@ import docker
 import json
 import base64
 
-import tester
+from tester import Tester
 
 app = Flask(__name__)
 client = docker.from_env()
@@ -82,10 +82,10 @@ def deploy_server(csid):
 
 @app.route("/tests/<hostport>/test_<int:bucket>_<int:tid>")
 def run_test(hostport, bucket, tid):
-    tester.update_hostport(hostport)
+    t = Tester(hostport)
     test_id = "test_{}_{}".format(bucket, tid)
     try:
-        result = tester.run_single_test(test_id)
+        result = t.run_single_test(test_id)
         return Response(jsonify_result(result), mimetype="application/json")
     except Exception as e:
         abort(404, e)
@@ -93,14 +93,13 @@ def run_test(hostport, bucket, tid):
 
 @app.route("/tests/<hostport>/<int:bucket>")
 def run_tests(hostport, bucket):
+    t = Tester(hostport)
     bucket = str(bucket)
-    if bucket not in tester.test_buckets.keys():
+    if bucket not in t.test_buckets.keys():
         abort(404, "Test bucket {} not implemented".format(bucket))
 
-    tester.update_hostport(hostport)
-
     def generate():
-        for result in tester.run_bucket_tests(bucket):
+        for result in t.run_bucket_tests(bucket):
             yield jsonify_result(result)
 
     return Response(generate(), mimetype="application/ors")
