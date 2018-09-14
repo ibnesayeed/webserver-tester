@@ -188,8 +188,8 @@ if __name__ == "__main__":
         else:
             passed_count = failed_count = 0
             for bucket in buckets:
-                for test in run_bucket_tests(bucket):
-                    if test["errors"]:
+                for result in run_bucket_tests(bucket):
+                    if result["errors"]:
                         failed_count += 1
                     else:
                         passed_count += 1
