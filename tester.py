@@ -57,6 +57,8 @@ def netcat(msg_file):
     with tempfile.TemporaryFile() as tf:
         tf.write(req["raw"].encode("utf-8"))
         tf.seek(0)
+        # TODO: Remove netcat dependency and use pure Python
+        # https://stackoverflow.com/questions/8918350/getting-a-raw-unparsed-http-response
         cmd = subprocess.run("nc -w 3 {} {}".format(host, port), stdin=tf, shell=True, capture_output=True)
     if cmd.returncode == 0:
         res, errors = parse_response(cmd.stdout)
