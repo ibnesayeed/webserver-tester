@@ -102,7 +102,7 @@ def make_request(msg_file):
     def test_decorator(func):
         def wrapper():
             global passed_count, failed_count
-            print("=" * 79)
+            print("-" * 79)
             print("Running: {}".format(func.__name__))
             print(func.__doc__)
             req, res, errors = netcat(msg_file)
@@ -194,8 +194,8 @@ if __name__ == "__main__":
         for bucket in buckets:
             for _ in run_bucket_tests(bucket): pass
 
-    print("#" * 35, "SUMMARY", "#" * 35)
+    print("=" * 35, "SUMMARY", "=" * 35)
     print("Server => {}:{}".format(host, port))
     print("\033[92mPASSED\033[0m =>", passed_count)
     print("\033[91mFAILED\033[0m =>", failed_count)
-    print("#" * 79)
+    print("=" * 79)
