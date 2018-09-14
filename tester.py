@@ -17,6 +17,15 @@ tfunc_pattern = re.compile("^test_(\d+)_(\d+).*")
 test_buckets = collections.defaultdict(dict)
 
 
+def update_hostport(hostport):
+    global host, port
+    parts = hostport.split(":")
+    if parts[0]:
+        host = parts[0]
+    if len(parts) > 1 and parts[1]:
+        port = int(parts[0])
+
+
 def make_test_buckets():
     for (fname, func) in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
         m = tfunc_pattern.match(fname)
@@ -168,11 +177,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if len(sys.argv) > 1:
-        parts = sys.argv[1].split(":")
-        if parts[0]:
-            host = parts[0]
-        if len(parts) > 1 and parts[1]:
-            port = int(parts[0])
+        update_hostport(sys.argv[1])
 
     if len(sys.argv) > 2:
         if tfunc_pattern.match(sys.argv[2]):
