@@ -23,7 +23,7 @@ def update_hostport(hostport):
     if parts[0]:
         host = parts[0]
     if len(parts) > 1 and parts[1]:
-        port = int(parts[0])
+        port = int(parts[1])
 
 
 def make_test_buckets():
