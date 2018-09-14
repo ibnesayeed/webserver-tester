@@ -194,36 +194,42 @@ if __name__ == "__main__":
         if re.match("^[\d,]+$", sys.argv[2]):
             buckets = sys.argv[2].split(",")
 
+    def print_result(result):
+        print("-" * 79)
+        print("Running: {}".format(result["id"]))
+        print(result["description"])
+        if result["errors"]:
+            print(colorize("[FAILED]: {}".format("; ".join(result["errors"]))))
+        else:
+            print(colorize("[PASSED]", 92))
+        print()
+        print("> " + result["req"]["raw"].replace("\n", "\n> ")[:-2])
+        if result["res"]["raw_headers"]:
+            print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
+        if result["res"]["payload"]:
+            print("< ")
+            print("< [Payload redacted ({} bytes)]".format(len(result["res"]["payload"])))
+        print()
+
     print("Testing {}:{}".format(t.host, t.port))
 
     try:
         if test_id:
-            t.run_single_test(test_id)
+            result = t.run_single_test(test_id)
+            print_result(result)
         else:
             passed_count = failed_count = 0
             for bucket in buckets:
                 for result in t.run_bucket_tests(bucket):
-                    print("-" * 79)
-                    print("Running: {}".format(result["id"]))
-                    print(result["description"])
                     if result["errors"]:
                         failed_count += 1
-                        print(colorize("[FAILED]: {}".format("; ".join(result["errors"]))))
                     else:
                         passed_count += 1
-                        print(colorize("[PASSED]", 92))
-                    print()
-                    print("> " + result["req"]["raw"].replace("\n", "\n> ")[:-2])
-                    if result["res"]["raw_headers"]:
-                        print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
-                    if result["res"]["payload"]:
-                        print("< ")
-                        print("< [Payload redacted ({} bytes)]".format(len(result["res"]["payload"])))
-                    print()
+                    print_result(result)
             print("=" * 35, "SUMMARY", "=" * 35)
             print("Server => {}:{}".format(t.host, t.port))
             print(colorize("PASSED => {}".format(passed_count), 92))
             print(colorize("FAILED => {}".format(failed_count)))
             print("=" * 79)
     except Exception as e:
-        print(e)
+        print(colorize(e))
