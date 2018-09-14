@@ -158,20 +158,22 @@ class Tester():
 
 
 if __name__ == "__main__":
-    help_text = """Usage:
-    {} [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
-
-    <host>           : Hostname or IP address of the server to be tested (default: 'localhost')
-    <port>           : Port number of the server to be tested (default: '80')
-    <test-id>        : Name of an individual test function (e.g., 'test_1_1')
-    <bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)
-    """.format(sys.argv[0])
+    def print_help():
+        print("")
+        print("Usage:")
+        print("./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]")
+        print("")
+        print("<host>           : Hostname or IP address of the server to be tested (default: 'localhost')")
+        print("<port>           : Port number of the server to be tested (default: '80')")
+        print("<test-id>        : Name of an individual test function (e.g., 'test_1_1')")
+        print("<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)")
+        print("")
 
     def colorize(str, code=91):
         return "\033[{}m{}\033[0m".format(code, str)
 
     if {"-h", "--help"}.intersection(sys.argv):
-        print(help_text)
+        print_help()
         sys.exit(0)
 
     hostport = "localhost:80"
@@ -181,8 +183,7 @@ if __name__ == "__main__":
         t = Tester(hostport)
     except ValueError as e:
         print(colorize(e))
-        print()
-        print(help_text)
+        print_help()
         sys.exit(1)
 
     buckets = list(t.test_buckets.keys())
