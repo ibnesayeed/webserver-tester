@@ -180,6 +180,9 @@ if __name__ == "__main__":
     <bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)
     """.format(sys.argv[0])
 
+    def colorize(str, code=91):
+        return "\033[{}m{}\033[0m".format(code, str)
+
     if {"-h", "--help"}.intersection(sys.argv):
         print(help_text)
         sys.exit(0)
@@ -190,9 +193,9 @@ if __name__ == "__main__":
     try:
         t = Tester(hostport)
     except ValueError as e:
-        print(e)
+        print(colorize(e))
         print()
-        print("For help, run: '{} -h'".format(sys.argv[0]))
+        print(help_text)
         sys.exit(1)
 
     buckets = list(t.test_buckets.keys())
@@ -219,8 +222,8 @@ if __name__ == "__main__":
                         passed_count += 1
             print("=" * 35, "SUMMARY", "=" * 35)
             print("Server => {}:{}".format(t.host, t.port))
-            print("\033[92mPASSED\033[0m =>", passed_count)
-            print("\033[91mFAILED\033[0m =>", failed_count)
+            print(colorize("PASSED => {}".format(passed_count), 92))
+            print(colorize("FAILED => {}".format(failed_count)))
             print("=" * 79)
     except Exception as e:
         print(e)
