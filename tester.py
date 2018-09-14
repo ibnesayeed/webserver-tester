@@ -10,7 +10,6 @@ import collections
 
 host = "localhost"
 port = "80"
-passed_count = failed_count = 0
 
 MSGDIR = os.path.join(os.path.dirname(__file__), "messages")
 
@@ -33,14 +32,12 @@ def run_single_test(test_id):
             return test_buckets[m[1]][test_id]()
         except KeyError as e:
             err = "Test {} not implemented".format(test_id)
-            print(err)
     raise Exception(err)
 
 
 def run_bucket_tests(bucket):
     if not test_buckets.get(bucket):
         err = "Test bucket {} not implemented".format(bucket)
-        print(err)
         raise Exception(err)
     for fname, func in test_buckets[bucket].items():
         yield func()
@@ -101,7 +98,6 @@ def parse_response(res_bytes):
 def make_request(msg_file):
     def test_decorator(func):
         def wrapper():
-            global passed_count, failed_count
             print("-" * 79)
             print("Running: {}".format(func.__name__))
             print(func.__doc__)
@@ -111,10 +107,8 @@ def make_request(msg_file):
                     print("\n".join(errors))
                     raise AssertionError("Malformed response")
                 func(req, res)
-                passed_count += 1
                 print("\033[92m[PASSED]\033[0m")
             except AssertionError as e:
-                failed_count += 1
                 errors.append("Assertion failed: {}".format(e))
                 print(": ".join(filter(None, ["\033[91m[FAILED]\033[0m", str(e)])))
             print()
@@ -188,14 +182,21 @@ if __name__ == "__main__":
 
     print("Testing {}:{}".format(host, port))
 
-    if test_id:
-        run_single_test(test_id)
-    else:
-        for bucket in buckets:
-            for _ in run_bucket_tests(bucket): pass
-
-    print("=" * 35, "SUMMARY", "=" * 35)
-    print("Server => {}:{}".format(host, port))
-    print("\033[92mPASSED\033[0m =>", passed_count)
-    print("\033[91mFAILED\033[0m =>", failed_count)
-    print("=" * 79)
+    try:
+        if test_id:
+            run_single_test(test_id)
+        else:
+            passed_count = failed_count = 0
+            for bucket in buckets:
+                for test in run_bucket_tests(bucket):
+                    if test["errors"]:
+                        failed_count += 1
+                    else:
+                        passed_count += 1
+            print("=" * 35, "SUMMARY", "=" * 35)
+            print("Server => {}:{}".format(host, port))
+            print("\033[92mPASSED\033[0m =>", passed_count)
+            print("\033[91mFAILED\033[0m =>", failed_count)
+            print("=" * 79)
+    except Exception as e:
+        print(e)
