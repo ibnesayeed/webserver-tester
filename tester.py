@@ -7,6 +7,7 @@ import re
 import tempfile
 import inspect
 import collections
+import functools
 
 
 class HTTPTester():
@@ -119,6 +120,7 @@ class HTTPTester():
         Intended to be used as a decorator from within this class."""
 
         def test_decorator(func):
+            @functools.wraps(func)
             def wrapper(self):
                 req, res, errors = self.netcat(msg_file)
                 try:
