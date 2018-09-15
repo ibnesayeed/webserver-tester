@@ -18,7 +18,7 @@ class HTTPTester():
         # Directory where sample HTTP Message files are stored
         self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "messages")
         # Test function name pattern
-        self.TFPATTERN = re.compile("^test_(\d+)_(\d+).*")
+        self.TFPATTERN = re.compile("^test_(\d+)_(.+)")
 
         # Identify host and port of the server to be tested
         self.host = "localhost"
@@ -94,14 +94,14 @@ class HTTPTester():
         return res, errors
 
 
-    def run_single_test(self, test_id):
-        err = "Test {} not valid".format(test_id)
-        m = self.TFPATTERN.match(test_id)
+    def run_single_test(self, test_name):
+        err = "Test {} not valid".format(test_name)
+        m = self.TFPATTERN.match(test_name)
         if m:
             try:
-                return self.test_buckets[m[1]][test_id]()
+                return self.test_buckets[m[1]][test_name]()
             except KeyError as e:
-                err = "Test {} not implemented".format(test_id)
+                err = "Test {} not implemented".format(test_name)
         raise Exception(err)
 
 
@@ -132,21 +132,21 @@ class HTTPTester():
 
 
     @make_request("server-root.http")
-    def test_1_1(self, req, res):
+    def test_1_healthy_server(self, req, res):
         """Test healthy server root"""
         assert res["status_code"] == 200, "Status expected '200', returned '{}'".format(res["status_code"])
         assert "date" in res["headers"], "Date header should be present"
 
 
     @make_request("server-root.http")
-    def test_1_2(self, req, res):
+    def test_1_text_response(self, req, res):
         """Test server root returns a text response"""
         assert "content-type" in res["headers"], "Content-Type header should be present"
         assert res["headers"]["content-type"].startswith("text/"), "Content-Type should start with 'text/', returned '{}'".format(res["headers"]["content-type"])
 
 
     @make_request("server-root.http")
-    def test_1_3(self, req, res):
+    def test_1_http_version(self, req, res):
         """Test HTTP version"""
         assert res["http_version"] == "HTTP/1.1", "HTTP version expected 'HTTP/1.1', returned '{}'".format(res["http_version"])
 
@@ -161,11 +161,11 @@ if __name__ == "__main__":
     def print_help():
         print("")
         print("Usage:")
-        print("./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]")
+        print("./tester.py [[<host>]:[<port>] [<test-name>|<bucket-numbers>]]")
         print("")
         print("<host>           : Hostname or IP address of the server to be tested (default: 'localhost')")
         print("<port>           : Port number of the server to be tested (default: '80')")
-        print("<test-id>        : Name of an individual test function (e.g., 'test_1_1')")
+        print("<test-name>      : Name of an individual test function (e.g., 'test_1_1')")
         print("<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)")
         print("")
 
@@ -188,11 +188,10 @@ if __name__ == "__main__":
     hostport = "{}:{}".format(t.host, t.port)
 
     buckets = list(t.test_buckets.keys())
-    test_id = None
-
+    test_name = None
     if len(sys.argv) > 2:
         if t.TFPATTERN.match(sys.argv[2]):
-            test_id = sys.argv[2]
+            test_name = sys.argv[2]
         if re.match("^[\d,]+$", sys.argv[2]):
             buckets = sys.argv[2].split(",")
 
@@ -222,14 +221,14 @@ if __name__ == "__main__":
             counts[r] += 1
             print("{}: {}".format(colorize(r, colors[r]), t))
         print("-" * 79)
-        print("TOTAL => {}: {}, {}: {}".format(colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
+        print("TOTAL: {}, {}: {}, {}: {}".format(sum(counts.values()), colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
         print("=" * 79)
 
     print("Testing {}".format(hostport))
 
     try:
-        if test_id:
-            result = t.run_single_test(test_id)
+        if test_name:
+            result = t.run_single_test(test_name)
             print_result(result)
         else:
             test_results = {}

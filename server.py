@@ -80,15 +80,15 @@ def deploy_server(csid):
     return "Service deployed successfully"
 
 
-@app.route("/tests/<hostport>/test_<int:bucket>_<int:tid>")
+@app.route("/tests/<hostport>/test_<int:bucket>_<tid>")
 def run_test(hostport, bucket, tid):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         abort(400, e)
-    test_id = "test_{}_{}".format(bucket, tid)
+    test_name = "test_{}_{}".format(bucket, tid)
     try:
-        result = t.run_single_test(test_id)
+        result = t.run_single_test(test_name)
         return Response(jsonify_result(result), mimetype="application/json")
     except Exception as e:
         abort(404, e)
