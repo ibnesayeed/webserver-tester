@@ -9,11 +9,11 @@ import inspect
 import collections
 
 
-class Tester():
-    """Tester is a special purpose HTTP tester made for CS531 (Web Server Design) course"""
+class HTTPTester():
+    """HTTPTester is a special purpose HTTP tester made for CS531 (Web Server Design) course"""
 
     def __init__(self, hostport="localhost:80"):
-        """Initialize a Tester instance for a server specified by the hostport"""
+        """Initialize an HTTPTester instance for a server specified by the hostport"""
 
         # Directory where sample HTTP Message files are stored
         self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "messages")
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         hostport = sys.argv[1]
     try:
-        t = Tester(hostport)
+        t = HTTPTester(hostport)
     except ValueError as e:
         print(colorize(e))
         print_help()

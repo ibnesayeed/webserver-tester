@@ -10,7 +10,7 @@ import docker
 import json
 import base64
 
-from tester import Tester
+from tester import HTTPTester
 
 app = Flask(__name__)
 client = docker.from_env()
@@ -83,7 +83,7 @@ def deploy_server(csid):
 @app.route("/tests/<hostport>/test_<int:bucket>_<int:tid>")
 def run_test(hostport, bucket, tid):
     try:
-        t = Tester(hostport)
+        t = HTTPTester(hostport)
     except ValueError as e:
         abort(400, e)
     test_id = "test_{}_{}".format(bucket, tid)
@@ -97,7 +97,7 @@ def run_test(hostport, bucket, tid):
 @app.route("/tests/<hostport>/<int:bucket>")
 def run_tests(hostport, bucket):
     try:
-        t = Tester(hostport)
+        t = HTTPTester(hostport)
     except ValueError as e:
         abort(400, e)
     bucket = str(bucket)
