@@ -185,6 +185,7 @@ if __name__ == "__main__":
         print(colorize(e))
         print_help()
         sys.exit(1)
+    hostport = "{}:{}".format(t.host, t.port)
 
     buckets = list(t.test_buckets.keys())
     test_id = None
@@ -197,8 +198,7 @@ if __name__ == "__main__":
 
     def print_result(result):
         print("-" * 79)
-        print("Running: {}".format(result["id"]))
-        print(result["description"])
+        print("{}: {}".format(result["id"], colorize(result["description"], 96)))
         if result["errors"]:
             print(colorize("[FAILED]: {}".format("; ".join(result["errors"]))))
         else:
@@ -212,25 +212,31 @@ if __name__ == "__main__":
             print("< [Payload redacted ({} bytes)]".format(len(result["res"]["payload"])))
         print()
 
-    print("Testing {}:{}".format(t.host, t.port))
+    def print_summary(hostport, test_results):
+        counts = {"PASSED": 0, "FAILED": 0}
+        colors = {"PASSED": 92, "FAILED": 91}
+        print("=" * 35, "SUMMARY", "=" * 35)
+        print("Server: {}".format(colorize(hostport, 96)))
+        print("Test Case Results:")
+        for t, r in test_results.items():
+            counts[r] += 1
+            print("{}: {}".format(colorize(r, colors[r]), t))
+        print("-" * 79)
+        print("TOTAL => {}: {}, {}: {}".format(colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
+        print("=" * 79)
+
+    print("Testing {}".format(hostport))
 
     try:
         if test_id:
             result = t.run_single_test(test_id)
             print_result(result)
         else:
-            passed_count = failed_count = 0
+            test_results = {}
             for bucket in buckets:
                 for result in t.run_bucket_tests(bucket):
-                    if result["errors"]:
-                        failed_count += 1
-                    else:
-                        passed_count += 1
+                    test_results[result["id"]] = "FAILED" if result["errors"] else "PASSED"
                     print_result(result)
-            print("=" * 35, "SUMMARY", "=" * 35)
-            print("Server => {}:{}".format(t.host, t.port))
-            print(colorize("PASSED => {}".format(passed_count), 92))
-            print(colorize("FAILED => {}".format(failed_count)))
-            print("=" * 79)
+            print_summary(hostport, test_results)
     except Exception as e:
         print(colorize(e))
