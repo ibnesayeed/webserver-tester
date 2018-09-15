@@ -59,7 +59,7 @@ def home():
     return render_template("index.html", show_deployer=DEPLOYER)
 
 
-@app.route("/server/<csid>")
+@app.route("/servers/<csid>")
 def deploy_server(csid):
     url = get_authorized_repo_url(csid)
     if url is None:

@@ -51,11 +51,23 @@ Alternatively, you can use command line to both deploy and test your server on t
 To deploy your instance:
 
 ```
-$ curl -i -X POST -F 'student=<cs-id>' http://cs531.cs.odu.edu/server
+$ curl -i http://cs531.cs.odu.edu/servers/<cs-id>
 ```
 
-And to run tests:
+To run a specific test:
 
 ```
-$ curl -i -X POST -F 'hostport=<host>:<port>' http://cs531.cs.odu.edu/tests
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<test-name>
+```
+
+To run all tests in a bucket:
+
+```
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<bucket-number>
+```
+
+To run all tests:
+
+```
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>
 ```
