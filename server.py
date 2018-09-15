@@ -94,19 +94,21 @@ def run_test(hostport, bucket, tid):
         abort(404, e)
 
 
+@app.route("/tests/<hostport>", strict_slashes=False, defaults={"bucket": None})
 @app.route("/tests/<hostport>/<int:bucket>")
 def run_tests(hostport, bucket):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         abort(400, e)
-    bucket = str(bucket)
-    if bucket not in t.test_buckets.keys():
+    if bucket and str(bucket) not in t.test_buckets.keys():
         abort(404, "Test bucket {} not implemented".format(bucket))
+    buckets = [str(bucket)] if bucket else t.test_buckets.keys()
 
     def generate():
-        for result in t.run_bucket_tests(bucket):
-            yield jsonify_result(result)
+        for bucket in buckets:
+            for result in t.run_bucket_tests(bucket):
+                yield jsonify_result(result)
 
     return Response(generate(), mimetype="application/ors")
 
