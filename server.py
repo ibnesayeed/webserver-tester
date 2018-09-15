@@ -12,12 +12,16 @@ import base64
 
 from tester import HTTPTester
 
+# This should be changed inline or supplied via the environment variable each semester the course is offered
+COURSEREPO = os.environ.get("COURSEREPO") or "phonedude/cs531-f18"
+# This is needed if student repos are kept private (ideally, supply it via the environment variable)
+CREDENTIALS = os.environ.get("GITHUBKEY") or ""
+
 app = Flask(__name__)
 client = docker.from_env()
 
-
 def get_student_repo(csid):
-    url = "https://raw.githubusercontent.com/phonedude/cs531-f18/master/users/" + csid.strip()
+    url = "https://raw.githubusercontent.com/{}/master/users/{}".format(COURSE_REPO, csid.strip())
     req = requests.get(url)
     if req.status_code == 200:
         repo = req.text.strip().rstrip('.git')
@@ -31,10 +35,8 @@ def get_authorized_repo_url(csid):
     repo = get_student_repo(csid)
     if repo is None:
         return None
-    credential = ""
-    if os.environ.get("GITHUBKEY"):
-        credential = os.environ.get("GITHUBKEY") + "@"
-    return "https://{}github.com/{}.git".format(credential, repo)
+    cred = CREDENTIALS + "@" if CREDENTIALS else ""
+    return "https://{}github.com/{}.git".format(cred, repo)
 
 
 def jsonify_result(result):
@@ -45,7 +47,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    show_deployer = True if os.environ.get("GITHUBKEY") else False
+    show_deployer = True if CREDENTIALS else False
     return render_template("index.html", show_deployer=show_deployer)
 
 
@@ -53,7 +55,7 @@ def home():
 def deploy_server(csid):
     url = get_authorized_repo_url(csid)
     if url is None:
-        abort(404)
+        abort(404, "User record '{}' not present in https://github.com/{}/tree/master/users".format(csid, COURSEREPO))
     imgname = "cs531/" + csid
     contname = "cs531-" + csid
     try:
