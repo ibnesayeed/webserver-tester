@@ -20,8 +20,17 @@ CREDENTIALS = os.environ.get("GITHUBKEY") or ""
 app = Flask(__name__)
 client = docker.from_env()
 
+try:
+    client.ping()
+    DEPLOYER = True
+    print("Docker daemon is connected, enabling deployment")
+except Exception as e:
+    DEPLOYER = False
+    print("Docker daemon is not reachable, disabling deployment")
+
+
 def get_student_repo(csid):
-    url = "https://raw.githubusercontent.com/{}/master/users/{}".format(COURSE_REPO, csid.strip())
+    url = "https://raw.githubusercontent.com/{}/master/users/{}".format(COURSEREPO, csid.strip())
     req = requests.get(url)
     if req.status_code == 200:
         repo = req.text.strip().rstrip('.git')
@@ -47,8 +56,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    show_deployer = True if CREDENTIALS else False
-    return render_template("index.html", show_deployer=show_deployer)
+    return render_template("index.html", show_deployer=DEPLOYER)
 
 
 @app.route("/server/<csid>")
