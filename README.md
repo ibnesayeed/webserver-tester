@@ -11,13 +11,14 @@ $ git clone https://github.com/ibnesayeed/webserver-tester.git
 $ cd webserver-tester
 $ pip install -r requirements.txt
 $ ./tester.py -h
-Usage:
-./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
 
-<host>           : Hostname or IP address of the server to be tested (default: localhost)
-<port>           : Port number of the server to be tested (default: 80)
-<test-id>        : Name of an individual test function (e.g., test_1_1)
-<bucket-numbers> : Comma separated list of bucket numbers (default: 1,2)
+Usage:
+./tester.py [[<host>]:[<port>] [<test-name>|<bucket-numbers>]]
+
+<host>           : Hostname or IP address of the server to be tested (default: 'localhost')
+<port>           : Port number of the server to be tested (default: '80')
+<test-name>      : Name of an individual test function (e.g., 'test_1_1')
+<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)
 ```
 
 Alternatively, build a Docker image from the source to ensure all the dependencies are available and run tester script inside.
