@@ -12,6 +12,9 @@ import base64
 
 from tester import HTTPTester
 
+default_tester = HTTPTester()
+test_buckets = default_tester.test_buckets
+
 # This should be changed inline or supplied via the environment variable each semester the course is offered
 COURSEREPO = os.environ.get("COURSEREPO") or "phonedude/cs531-f18"
 # This is needed if student repos are kept private (ideally, supply it via the environment variable)
@@ -56,7 +59,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", show_deployer=DEPLOYER)
+    return render_template("index.html", test_buckets=test_buckets, show_deployer=DEPLOYER)
 
 
 @app.route("/servers/<csid>")

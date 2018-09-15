@@ -18,7 +18,15 @@
     <section>
       <h2>Test a Server</h2>
       <input type="text" name="hostport" value="" placeholder="host:port">
-      <button type="button" name="button">Run Tests</button>
+      <button type="button" name="button">Run All Tests</button>
+      {% for bucket, tests in test_buckets.items() %}
+        <h3>Bucket {{ bucket }}</h3>
+        <ul>
+        {% for fname, func in tests.items() %}
+          <li>{{ fname }}: {{ func.__doc__ }}</li>
+        {% endfor %}
+        </ul>
+      {% endfor %}
     </section>
   </body>
 </html>
