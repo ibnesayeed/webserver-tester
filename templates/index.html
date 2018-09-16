@@ -47,12 +47,15 @@
         border: 3px solid #333;
         border-radius: 20px;
       }
-      .intro p {
+      .box.intro p {
         margin: 15px;
         text-align: justify;
       }
-      .testcase p {
+      .box p {
         margin: 0;
+      }
+      .results {
+        margin-top: 10px;
       }
       button {
         background: #337ab7;
@@ -104,7 +107,7 @@
           <option value="{{ bucket }}">Bucket {{ bucket }}</option>
           {%- endfor %}
         </select>
-        <button id="run-all-tests">Run Tests</button>
+        <button id="run-batch-tests">Run Tests</button>
         <div class="results" id="test-summary"></div>
       </section>
 
@@ -113,8 +116,14 @@
 
     <script type="text/javascript">
       const testCases = {{ test_cases|safe }};
+
       const testCaseContainer = document.getElementById('testcases');
       const bucketSelector = document.getElementById('bucket-selector');
+      const csidInp = document.getElementById('csid');
+      const deployerBtn = document.getElementById('deploy-server');
+      const deployerResDiv = document.getElementById('deployment-results');
+      const testBatchRunnerBtn = document.getElementById('run-batch-tests');
+      const testSummaryDiv = document.getElementById('test-summary');
 
       testCases.forEach(tc => {
         let markup = `
@@ -136,6 +145,20 @@
         });
       }
       bucketSelector.onchange = showBucketTestCases;
+
+      function deployServer() {
+        let csid = csidInp.value;
+        let state = msg = '';
+        if (csid) {
+          deployerResDiv.innerHTML = `<p>Deploying server for ${csid}...</p>`;
+          // TODO: Make server request
+        } else {
+          state = 'failure';
+          msg = 'Enter a valid CS-ID (e.g., mln).';
+        }
+        deployerResDiv.innerHTML = `<p class="${state}">${msg}</p>`;
+      }
+      deployerBtn.onclick = deployServer;
     </script>
   </body>
 </html>
