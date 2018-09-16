@@ -49,7 +49,8 @@ class HTTPTester():
             "http_version": "",
             "status_code": 0,
             "headers": {},
-            "payload": None
+            "payload": None,
+            "payload_size": 0
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file)) as f:
@@ -77,6 +78,8 @@ class HTTPTester():
         hdrs, sep, res["payload"] = res_bytes.partition(b"\r\n\r\n")
         if not sep:
             errors.append("Missing empty line after headers")
+        if res["payload"]:
+            res["payload_size"] = len(res["payload"])
         hdrs = hdrs.decode("utf-8")
         res["raw_headers"] = hdrs
         hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
@@ -210,7 +213,7 @@ if __name__ == "__main__":
             print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
         if result["res"]["payload"]:
             print("< ")
-            print("< [Payload redacted ({} bytes)]".format(len(result["res"]["payload"])))
+            print("< [Payload redacted ({} bytes)]".format(result["res"]["payload_size"]))
         print()
 
     def print_summary(hostport, test_results):
