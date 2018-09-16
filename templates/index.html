@@ -57,12 +57,15 @@
       .box p {
         margin: 0;
       }
-      .box p.description {
+      .box .description {
         font-style: italic;
         color: #337ab7;
       }
       .results {
         margin-top: 10px;
+      }
+      .box ul.summary-list {
+        font-family: monospace;
       }
       button {
         background: #337ab7;
@@ -80,10 +83,10 @@
       .hidden {
         display: none;
       }
-      .success {
+      .success, li.PASSED {
         color: #398439;
       }
-      .failure {
+      .failure, li.FAILED {
         color: #d9534f;
       }
       .PASSED h3 {
@@ -146,6 +149,8 @@
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
       const testSummaryDiv = document.getElementById('test-summary');
 
+      let testResults = {};
+
       testCases.forEach(tc => {
         let markup = `
         <section class="testcase box bucket-${tc.bucket}" id="box-${tc.id}">
@@ -195,10 +200,20 @@
       }
       deployerBtn.onclick = deployServer;
 
+      function showTestSummary(hostport) {
+        let markup = `
+        <h4>Server: <span class="description">${hostport}</span></h4>
+        <ul class="summary-list">
+          ${Object.entries(testResults).map(r => `<li class="${r[1]}">[${r[1]}]: ${r[0]}</li>`).join('')}
+        </ul>`;
+        testSummaryDiv.innerHTML = markup;
+      }
+
       function showTestResult(result) {
         let r = JSON.parse(result);
         let err = r.errors.join('; ');
         let state = err ? 'FAILED' : 'PASSED';
+        testResults[r.id] = state;
         document.getElementById(`box-${r.id}`).classList.add(state);
         let markup = `
         ${err ? '<p class="failure">' + err + '</p>' : ''}
@@ -213,30 +228,29 @@
         let bucket = bucketSelector.value;
         let hostport = hostportInp.value;
         let state = msg = '';
+        testResults = {};
         if (hostport) {
           msg = `Testing server ${hostport} with all test cases${bucket ? ' of Bucket ' + bucket : ''}...`;
           let selector = bucket ? `.bucket-${bucket}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
             box.classList.remove('FAILED', 'PASSED');
-            box.querySelector('.results').innerHTML = '<p>Running this test...</p>';
+            ShowResMsg(box.querySelector('.results'), `Running this test against the server ${hostport}...`, '');
           });
           fetch(`/tests/${hostport}/${bucket}`).then(r => {
             state = r.ok ? '' : 'failure';
             return r.text();
           }).then(text => {
             if (state) {
-              msg = text;
+              ShowResMsg(testSummaryDiv, text, state);
               Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
                 box.querySelector('.results').innerHTML = '';
               });
             } else {
               text.trim().split('\n').forEach(line => showTestResult(line));
+              showTestSummary(hostport);
             }
           }).catch(e => {
-            state = 'failure';
-            msg = e;
-          }).finally(() => {
-            ShowResMsg(testSummaryDiv, msg, state);
+            ShowResMsg(testSummaryDiv, e, 'failure');
           });
         } else {
           state = 'failure';
@@ -261,8 +275,7 @@
               return r.text();
             }).then(text => {
               if (state) {
-                msg = text;
-                ShowResMsg(testResDiv, msg, state);
+                ShowResMsg(testResDiv, text, state);
               } else {
                 showTestResult(text.trim());
               }
