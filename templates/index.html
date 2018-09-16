@@ -216,11 +216,14 @@
         testResults[r.id] = state;
         document.getElementById(`box-${r.id}`).classList.add(state);
         let markup = `
-        ${err ? '<p class="failure">' + err + '</p>' : ''}
+        ${err ? `<p class="failure">${err}</p>` : ''}
         <h4>Original Request</h4>
-        <pre><code>${r.req.raw}</code></pre>
-        <h4>Original Response</h4>
-        <pre><code>${r.res.raw_headers}${r.res.payload_size ? '\r\n\r\n' + '[Payload redacted (' + r.res.payload_size + ' bytes)]' : ''}</code></pre>`;
+        <pre><code>${r.req.raw}</code></pre>`;
+        if (r.res.raw_headers) {
+          markup += `
+          <h4>Original Response</h4>
+          <pre><code>${r.res.raw_headers}${r.res.payload_size ? `\r\n\r\n[Payload redacted (${r.res.payload_size} bytes)]` : ''}</code></pre>`;
+        }
         document.getElementById(`result-${r.id}`).innerHTML = markup;
       }
 
