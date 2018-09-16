@@ -193,7 +193,6 @@
 
       function showTestResult(result) {
         let r = JSON.parse(result);
-        console.log(r);
         let err = r.errors.join('; ');
         let state = err ? 'FAILED' : 'PASSED';
         document.getElementById(`box-${r.id}`).classList.add(state);
