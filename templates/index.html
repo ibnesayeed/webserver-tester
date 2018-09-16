@@ -25,11 +25,18 @@
         margin: 0;
         text-align: center;
       }
-      h2 {
+      .box h2 {
         background: #333;
         color: #ccc;
         padding: 5px;
         margin: -10px -10px 10px -10px;
+      }
+      .box h3 {
+        background: #888;
+        color: #fff;
+        padding: 5px;
+        margin: -10px -10px 10px -10px;
+        overflow-wrap: break-word;
       }
       .box {
         border: 1px solid #333;
@@ -44,6 +51,9 @@
         margin: 15px;
         text-align: justify;
       }
+      .testcase p {
+        margin: 0;
+      }
       button {
         background: #337ab7;
         border: 1px solid #2e6da4;
@@ -52,6 +62,19 @@
         padding: 2px 4px;
         border-radius: 4px;
         cursor: pointer;
+        user-select: none;
+      }
+      button.run-single-test {
+        float: right;
+      }
+      .hidden {
+        display: none;
+      }
+      .success {
+        color: #398439;
+      }
+      .failure {
+        color: #d9534f;
       }
     </style>
   </head>
@@ -75,7 +98,7 @@
       <section class="testing box">
         <h2>Test a Web Server</h2>
         <input id="hostport" value="" placeholder="host:port">
-        <select id="bucket">
+        <select id="bucket-selector">
           <option value="">All Test Cases</option>
           {%- for bucket in test_buckets %}
           <option value="{{ bucket }}">Bucket {{ bucket }}</option>
@@ -84,9 +107,35 @@
         <button id="run-all-tests">Run Tests</button>
         <div class="results" id="test-summary"></div>
       </section>
+
+      <section class="testcases" id="testcases"></section>
     </div>
+
     <script type="text/javascript">
       const testCases = {{ test_cases|safe }};
+      const testCaseContainer = document.getElementById('testcases');
+      const bucketSelector = document.getElementById('bucket-selector');
+
+      testCases.forEach(tc => {
+        let markup = `
+        <section class="testcase box bucket-${tc.bucket}" id="testcase-${tc.id}">
+          <h3>
+            <button class="run-single-test" id="${tc.id}">Run This Test</button>
+            <span>${tc.id}</span>
+          </h3>
+          <p>${tc.description}</p>
+          <div class="results" id="result_${tc.id}"></div>
+        </section>`;
+        testCaseContainer.innerHTML += markup;
+      });
+
+      function showBucketTestCases() {
+        let bucket = bucketSelector.value;
+        Array.from(testCaseContainer.querySelectorAll('.testcase')).forEach(box => {
+          box.classList.toggle('hidden', bucket && !box.classList.contains('bucket-' + bucket));
+        });
+      }
+      bucketSelector.onchange = showBucketTestCases;
     </script>
   </body>
 </html>
