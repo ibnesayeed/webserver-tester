@@ -186,6 +186,10 @@
             return r.text();
           }).then(text => {
             msg = text;
+            m = msg.match(/the service ([\w\-]+) is deployed successfully/);
+            if (m) {
+              hostportInp.value = m[1];
+            }
           }).catch(e => {
             state = 'failure';
             msg = e;
