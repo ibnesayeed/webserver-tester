@@ -245,6 +245,39 @@
         ShowResMsg(testSummaryDiv, msg, state);
       }
       testBatchRunnerBtn.onclick = runTestBatch;
+
+      function runSingleTest(e) {
+        if (e.target.matches('button.run-single-test')) {
+          let testId = e.target.value;
+          let box = document.getElementById(`box-${testId}`);
+          let testResDiv = document.getElementById(`result-${testId}`);
+          let hostport = hostportInp.value;
+          let state = msg = '';
+          if (hostport) {
+            msg = `Running this test against the server ${hostport}...`;
+            box.classList.remove('FAILED', 'PASSED');
+            fetch(`/tests/${hostport}/${testId}`).then(r => {
+              state = r.ok ? '' : 'failure';
+              return r.text();
+            }).then(text => {
+              if (state) {
+                msg = text;
+                ShowResMsg(testResDiv, msg, state);
+              } else {
+                showTestResult(text.trim());
+              }
+            }).catch(e => {
+              state = 'failure';
+              msg = e;
+            });
+          } else {
+            state = 'failure';
+            msg = 'Provide a valid host and port combination above (e.g., localhost:80)';
+          }
+          ShowResMsg(testResDiv, msg, state);
+        }
+      }
+      testCaseContainer.onclick = runSingleTest;
     </script>
   </body>
 </html>
