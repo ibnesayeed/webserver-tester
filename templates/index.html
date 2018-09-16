@@ -131,6 +131,7 @@
           {%- endfor %}
         </select>
         <button id="run-batch-tests">Run Tests</button>
+        <button id="test-resetter">Reset Tests</button>
         <div class="results" id="test-summary"></div>
       </section>
 
@@ -147,12 +148,13 @@
       const deployerBtn = document.getElementById('deploy-server');
       const deployerResDiv = document.getElementById('deployment-results');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
+      const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
 
       let testResults = {};
 
-      testCases.forEach(tc => {
-        let markup = `
+      function renderTestCases() {
+        let markup = testCases.map(tc => `
         <section class="testcase box bucket-${tc.bucket}" id="box-${tc.id}">
           <h3>
             <button class="run-single-test" value="${tc.id}" id="run-${tc.id}">Run This Test</button>
@@ -160,9 +162,10 @@
           </h3>
           <p class="description">${tc.description}</p>
           <div class="results" id="result-${tc.id}"></div>
-        </section>`;
-        testCaseContainer.innerHTML += markup;
-      });
+        </section>`).join('');
+        testCaseContainer.innerHTML = markup;
+      }
+      renderTestCases();
 
       function showBucketTestCases() {
         let bucket = bucketSelector.value;
@@ -298,6 +301,14 @@
         }
       }
       testCaseContainer.onclick = runSingleTest;
+
+      function resetTests() {
+        testResults = {};
+        testSummaryDiv.innerHTML = '';
+        renderTestCases();
+        showBucketTestCases();
+      }
+      testResetterBtn.onclick = resetTests;
     </script>
   </body>
 </html>
