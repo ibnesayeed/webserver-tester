@@ -61,8 +61,7 @@ def get_authorized_repo_url(csid):
 
 
 def jsonify_result(result):
-    if result["res"]["payload"]:
-        result["res"]["payload"] = base64.b64encode(result["res"]["payload"]).decode("utf-8")
+    result["res"]["payload"] = base64.b64encode(result["res"]["payload"]).decode("utf-8") if result["res"]["payload"] else ''
     return json.dumps(result) + "\n"
 
 
