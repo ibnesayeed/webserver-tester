@@ -146,17 +146,31 @@
       }
       bucketSelector.onchange = showBucketTestCases;
 
+      function ShowResMsg(target, msg, state) {
+        target.innerHTML = `<p class="${state}">${msg}</p>`;
+      }
+
       function deployServer() {
         let csid = csidInp.value;
         let state = msg = '';
         if (csid) {
-          deployerResDiv.innerHTML = `<p>Deploying server for ${csid}...</p>`;
-          // TODO: Make server request
+          msg = `Deploying server for ${csid}...`;
+          fetch(`/servers/${csid}`).then(r => {
+            state = r.ok ? 'success' : 'failure';
+            return r.text();
+          }).then(text => {
+            msg = text;
+          }).catch(e => {
+            state = 'failure';
+            msg = e;
+          }).finally(() => {
+            ShowResMsg(deployerResDiv, msg, state);
+          });
         } else {
           state = 'failure';
-          msg = 'Enter a valid CS-ID (e.g., mln).';
+          msg = 'Enter a valid CS-ID (e.g., mln)';
         }
-        deployerResDiv.innerHTML = `<p class="${state}">${msg}</p>`;
+        ShowResMsg(deployerResDiv, msg, state);
       }
       deployerBtn.onclick = deployServer;
     </script>

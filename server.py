@@ -75,18 +75,28 @@ def home():
 def deploy_server(csid):
     url = get_authorized_repo_url(csid)
     if url is None:
-        abort(404, "User record '{}' not present in https://github.com/{}/tree/master/users".format(csid, COURSEREPO))
+        return Response("User record '{}' not present in https://github.com/{}/tree/master/users".format(csid, COURSEREPO), status=404)
+
+    repo = get_student_repo(csid)
     imgname = "cs531/" + csid
     contname = "cs531-" + csid
+    msgs = []
+
     try:
         print("Building image {}".format(imgname))
         client.images.build(path=url, tag=imgname)
-        try:
-            print("Removing existing container {}".format(contname))
-            cont = client.containers.get(contname)
-            cont.remove(force=True)
-        except Exception as e:
-            print("Container {} does not exist".format(contname))
+        msgs.append("Image {} built from the latest code of the {} repo.".format(imgname, repo))
+    except Exception as e:
+        return Response("Building image {} from the {} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {}".format(imgname, repo, e), status=500)
+
+    try:
+        print("Removing existing container {}".format(contname))
+        client.containers.get(contname).remove(force=True)
+        msgs.append("Related existing container removed.")
+    except Exception as e:
+        print("Container {} does not exist".format(contname))
+
+    try:
         print("Running new container {} using {} image".format(contname, imgname))
         deployment_labels = {
             "traefik.backend": csid,
@@ -96,10 +106,11 @@ def deploy_server(csid):
             "traefik.port": "80"
         }
         client.containers.run(imgname, detach=True, network="course", labels=deployment_labels, name=contname)
+        msgs.append("A new container is created and the service {} is deployed successfully.".format(contname))
     except Exception as e:
-        print(e)
-        abort(500)
-    return "Service deployed successfully"
+        return Response("Service deployment failed. Response from the Docker daemon: {}".format(e), status=500)
+
+    return Response(" ".join(msgs), status=200)
 
 
 @app.route("/tests/<hostport>/test_<int:bucket>_<tid>")
