@@ -3,30 +3,90 @@
   <head>
     <meta charset="utf-8">
     <title>CS 531 WebServer Deployer and Tester</title>
+    <style media="screen">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      a {
+        color: #337ab7;
+      }
+      #wrapper {
+        max-width: 800px;
+        margin: 10px auto;
+      }
+      h1.branding {
+        background: #000;
+        color: #fff;
+        font-size: 40px;
+        line-height: 50px;
+        padding: 5px;
+        margin: 0;
+        text-align: center;
+      }
+      h2 {
+        background: #333;
+        color: #ccc;
+        padding: 5px;
+        margin: -10px -10px 10px -10px;
+      }
+      .box {
+        border: 1px solid #333;
+        margin-bottom: 15px;
+        padding: 10px;
+      }
+      .box.intro {
+        border: 3px solid #333;
+        border-radius: 20px;
+      }
+      .intro p {
+        margin: 15px;
+        text-align: justify;
+      }
+      button {
+        background: #337ab7;
+        border: 1px solid #2e6da4;
+        color: #fff;
+        font-size: 14px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <h1>CS 531 WebServer Deployer and Tester</h1>
-    {% if show_deployer %}
-    <section>
-      <h2>Deploy a Server</h2>
-      <form action="/server" method="post">
-        <input type="text" name="student" value="" placeholder="Enter CS-ID">
-        <input type="submit" value="Deploy Server">
-      </form>
-    </section>
-    {% endif %}
-    <section>
-      <h2>Test a Server</h2>
-      <input type="text" name="hostport" value="" placeholder="host:port">
-      <button type="button" name="button">Run All Tests</button>
-      {% for bucket, tests in test_buckets.items() %}
-        <h3>Bucket {{ bucket }}</h3>
-        <ul>
-        {% for fname, func in tests.items() %}
-          <li>{{ fname }}: {{ func.__doc__ }}</li>
-        {% endfor %}
-        </ul>
-      {% endfor %}
-    </section>
+    <h1 class="branding">CS 531 WebServer Deployer and Tester</h1>
+
+    <div id="wrapper">
+      <section class="intro box">
+        <p>A deployment and testing system for the <a href="https://phonedude.github.io/cs531-f18/">CS 531 (Web Server Design) course</a> projects. The system utilizes a <a href="https://www.docker.com/">Docker</a>-based setup for both, this testing/deployment system as well as deploying students' projects. The code behind this system is available at <a href="https://github.com/ibnesayeed/webserver-tester">github.com/ibnesayeed/webserver-tester</a> and contributions are welcome.</p>
+      </section>
+
+      {%- if show_deployer %}
+      <section class="deployment box">
+        <h2>Deploy a Web Server</h2>
+        <input id="csid" value="" placeholder="Enter CS-ID">
+        <button id="deploy-server">Deploy the Web Server</button>
+        <div class="results" id="deployment-results"></div>
+      </section>
+      {%- endif %}
+
+      <section class="testing box">
+        <h2>Test a Web Server</h2>
+        <input id="hostport" value="" placeholder="host:port">
+        <select id="bucket">
+          <option value="">All Test Cases</option>
+          {%- for bucket in test_buckets %}
+          <option value="{{ bucket }}">Bucket {{ bucket }}</option>
+          {%- endfor %}
+        </select>
+        <button id="run-all-tests">Run Tests</button>
+        <div class="results" id="test-summary"></div>
+      </section>
+    </div>
+    <script type="text/javascript">
+      const testCases = {{ test_cases|safe }};
+    </script>
   </body>
 </html>
