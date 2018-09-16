@@ -38,6 +38,9 @@
         margin: -10px -10px 10px -10px;
         overflow-wrap: break-word;
       }
+      .box h4, pre {
+        margin: 5px 0 0 0;
+      }
       .box {
         border: 1px solid #333;
         margin-bottom: 15px;
@@ -78,6 +81,19 @@
       }
       .failure {
         color: #d9534f;
+      }
+      .PASSED h3 {
+        background-color: #398439;
+      }
+      .FAILED h3 {
+        background-color: #d9534f;
+      }
+      .box pre {
+        overflow: auto;
+        background: #ccc;
+        padding: 5px;
+        border: 1px dotted #999;
+        max-height: 100px;
       }
     </style>
   </head>
@@ -120,6 +136,7 @@
       const testCaseContainer = document.getElementById('testcases');
       const bucketSelector = document.getElementById('bucket-selector');
       const csidInp = document.getElementById('csid');
+      const hostportInp = document.getElementById('hostport');
       const deployerBtn = document.getElementById('deploy-server');
       const deployerResDiv = document.getElementById('deployment-results');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
@@ -127,13 +144,13 @@
 
       testCases.forEach(tc => {
         let markup = `
-        <section class="testcase box bucket-${tc.bucket}" id="testcase-${tc.id}">
+        <section class="testcase box bucket-${tc.bucket}" id="box-${tc.id}">
           <h3>
-            <button class="run-single-test" id="${tc.id}">Run This Test</button>
+            <button class="run-single-test" value="${tc.id}" id="run-${tc.id}">Run This Test</button>
             <span>${tc.id}</span>
           </h3>
           <p>${tc.description}</p>
-          <div class="results" id="result_${tc.id}"></div>
+          <div class="results" id="result-${tc.id}"></div>
         </section>`;
         testCaseContainer.innerHTML += markup;
       });
@@ -173,6 +190,58 @@
         ShowResMsg(deployerResDiv, msg, state);
       }
       deployerBtn.onclick = deployServer;
+
+      function showTestResult(result) {
+        let r = JSON.parse(result);
+        console.log(r);
+        let err = r.errors.join('; ');
+        let state = err ? 'FAILED' : 'PASSED';
+        document.getElementById(`box-${r.id}`).classList.add(state);
+        let markup = `
+        ${err ? '<p class="failure">' + err + '</p>' : ''}
+        <h4>Original Request</h4>
+        <pre><code>${r.req.raw}</code></pre>
+        <h4>Original Response</h4>
+        <pre><code>${r.res.raw_headers}${r.res.payload_size ? '\r\n\r\n' + '[Payload redacted (' + r.res.payload_size + ' bytes)]' : ''}</code></pre>`;
+        document.getElementById(`result-${r.id}`).innerHTML = markup;
+      }
+
+      function runTestBatch() {
+        let bucket = bucketSelector.value;
+        let hostport = hostportInp.value;
+        let state = msg = '';
+        if (hostport) {
+          msg = `Testing server ${hostport} with all test cases${bucket ? ' of Bucket ' + bucket : ''}...`;
+          let selector = bucket ? `.bucket-${bucket}` : '.testcase';
+          Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
+            box.classList.remove('FAILED', 'PASSED');
+            box.querySelector('.results').innerHTML = '<p>Running this test...</p>';
+          });
+          fetch(`/tests/${hostport}/${bucket}`).then(r => {
+            state = r.ok ? '' : 'failure';
+            return r.text();
+          }).then(text => {
+            if (state) {
+              msg = text;
+              Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
+                box.querySelector('.results').innerHTML = '';
+              });
+            } else {
+              text.trim().split('\n').forEach(line => showTestResult(line));
+            }
+          }).catch(e => {
+            state = 'failure';
+            msg = e;
+          }).finally(() => {
+            ShowResMsg(testSummaryDiv, msg, state);
+          });
+        } else {
+          state = 'failure';
+          msg = 'Enter a valid host and port combination (e.g., localhost:80)';
+        }
+        ShowResMsg(testSummaryDiv, msg, state);
+      }
+      testBatchRunnerBtn.onclick = runTestBatch;
     </script>
   </body>
 </html>
