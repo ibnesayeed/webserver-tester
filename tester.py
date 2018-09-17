@@ -107,14 +107,14 @@ class HTTPTester():
         return res, errors
 
 
-    def run_single_test(self, test_name):
-        err = "Test {} not valid".format(test_name)
-        m = self.TFPATTERN.match(test_name)
+    def run_single_test(self, test_id):
+        err = "Test {} not valid".format(test_id)
+        m = self.TFPATTERN.match(test_id)
         if m:
             try:
-                return self.test_buckets[m[1]][test_name]()
+                return self.test_buckets[m[1]][test_id]()
             except KeyError as e:
-                err = "Test {} not implemented".format(test_name)
+                err = "Test {} not implemented".format(test_id)
         raise Exception(err)
 
 
@@ -175,11 +175,11 @@ if __name__ == "__main__":
     def print_help():
         print("")
         print("Usage:")
-        print("./tester.py [[<host>]:[<port>] [<test-name>|<bucket-numbers>]]")
+        print("./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]")
         print("")
         print("<host>           : Hostname or IP address of the server to be tested (default: 'localhost')")
         print("<port>           : Port number of the server to be tested (default: '80')")
-        print("<test-name>      : Name of an individual test function (e.g., 'test_1_1')")
+        print("<test-id>        : ID of an individual test function (e.g., 'test_1_healthy_server')")
         print("<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)")
         print("")
 
@@ -202,10 +202,10 @@ if __name__ == "__main__":
     hostport = "{}:{}".format(t.host, t.port)
 
     buckets = list(t.test_buckets.keys())
-    test_name = None
+    test_id = None
     if len(sys.argv) > 2:
         if t.TFPATTERN.match(sys.argv[2]):
-            test_name = sys.argv[2]
+            test_id = sys.argv[2]
         if re.match("^[\d,]+$", sys.argv[2]):
             buckets = sys.argv[2].split(",")
 
@@ -240,8 +240,8 @@ if __name__ == "__main__":
     print("Testing {}".format(hostport))
 
     try:
-        if test_name:
-            result = t.run_single_test(test_name)
+        if test_id:
+            result = t.run_single_test(test_id)
             print_result(result)
         else:
             test_results = {}

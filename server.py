@@ -118,9 +118,9 @@ def run_test(hostport, bucket, tid):
         t = HTTPTester(hostport)
     except ValueError as e:
         return Response("{}".format(e), status=400)
-    test_name = "test_{}_{}".format(bucket, tid)
+    test_id = "test_{}_{}".format(bucket, tid)
     try:
-        result = t.run_single_test(test_name)
+        result = t.run_single_test(test_id)
         return Response(jsonify_result(result), mimetype="application/json")
     except Exception as e:
         return Response("{}".format(e), status=404)

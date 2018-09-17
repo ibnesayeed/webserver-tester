@@ -1,10 +1,12 @@
 # WebServer Tester
 
-A testing system for CS531 web server design course projects.
+An HTTP testing and deployment system for CS 531 (Web Server Design) course projects.
 
 ## Test Locally
 
 To test your server, run your server first, note down the host and port of the server (which can be on the local machine or on a remote machine), then execute the tester script against that `<host>` and `<port>`.
+
+Currently, the testing script has an external dependency on NetCat (`nc`) utility for making requests. However, we plan to eliminate this dependency.
 
 ```
 $ git clone https://github.com/ibnesayeed/webserver-tester.git
@@ -13,11 +15,11 @@ $ pip install -r requirements.txt
 $ ./tester.py -h
 
 Usage:
-./tester.py [[<host>]:[<port>] [<test-name>|<bucket-numbers>]]
+./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
 
 <host>           : Hostname or IP address of the server to be tested (default: 'localhost')
 <port>           : Port number of the server to be tested (default: '80')
-<test-name>      : Name of an individual test function (e.g., 'test_1_1')
+<test-id>        : ID of an individual test function (e.g., 'test_1_healthy_server')
 <bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)
 ```
 
@@ -40,7 +42,7 @@ Then access it from http://localhost:5000 and provide the `<host>:<port>` inform
 
 ## Deploy and Test on Course's Test Machine
 
-A machine is configured to build Docker images from students' private GitHub repositories that contain a `Dockerfile`. Go to http://cs531.cs.odu.edu/ and provide your CS ID in the appropriate form field then click "Deploy Server" button. Depending on the network speed and complexity of the image, it might take some time to pull the source code and build and image. If an image is built successfully then it will automatically remove any existing containers of the corresponding student and deploy a new one. This newly deployed server will be accessible from `http://<cs-id>.cs531.cs.odu.edu/`.
+A machine is configured to build Docker images from students' private GitHub repositories that contain a `Dockerfile`. Go to http://cs531.cs.odu.edu/ and provide your CS ID in the appropriate form field then click "Deploy the Web Server" button. Depending on the network speed and complexity of the image, it might take some time to pull the source code and build an image. If an image is built successfully then it will automatically remove any existing containers of the corresponding student and deploy a new one. This newly deployed server will be accessible from `http://<cs-id>.cs531.cs.odu.edu/`.
 
 **It is important that your `Dockerfile` is setup in a way that it runs the server on the network interface `0.0.0.0` and port `80` by default.**
 
@@ -57,7 +59,7 @@ $ curl -i http://cs531.cs.odu.edu/servers/<cs-id>
 To run a specific test:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<test-name>
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<test-id>
 ```
 
 To run all tests in a bucket:
