@@ -213,6 +213,7 @@
             m = msg.match(/the service ([\w\-]+) is deployed successfully/);
             if (m) {
               hostportInp.value = m[1];
+              resetTests();
             }
           }).catch(e => {
             state = 'failure';
