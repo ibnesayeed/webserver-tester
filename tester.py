@@ -139,7 +139,7 @@ class HTTPTester():
                     if not errors:
                         func(self, req, res)
                 except AssertionError as e:
-                    errors.append("Assertion failed => {}".format(e))
+                    errors.append("ASSERTION: {}".format(e))
                 return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
             return wrapper
         return test_decorator
@@ -222,7 +222,8 @@ if __name__ == "__main__":
         print("-" * 79)
         print("{}: {}".format(result["id"], colorize(result["description"], 96)))
         if result["errors"]:
-            print(colorize("[FAILED]: {}".format("; ".join(result["errors"]))))
+            for err in result["errors"]:
+                print(colorize("[FAILED] {}".format(err)))
         else:
             print(colorize("[PASSED]", 92))
         print()

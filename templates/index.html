@@ -68,7 +68,7 @@
       .results:not(:empty) {
         margin-top: 10px;
       }
-      .box ul.summary-list, .box p.counts {
+      .box ul.summary-list, .box p.counts, .failure.reason {
         font-family: monospace;
         font-weight: bold;
       }
@@ -246,12 +246,12 @@
 
       function showTestResult(result) {
         let r = JSON.parse(result);
-        let err = r.errors.join('; ');
+        let err = r.errors.map(e => `<li>${e}</li>`).join('')
         let state = err ? 'FAILED' : 'PASSED';
         testResults[r.id] = state;
         document.getElementById(`box-${r.id}`).classList.add(state);
         let markup = `
-        ${err ? `<p class="failure">${err}</p>` : ''}
+        ${err ? `<h4>Failures</h4><ul class="failure reason">${err}</ul>` : ''}
         <h4>Original Request</h4>
         <pre><code>${r.req.raw}</code></pre>`;
         if (r.res.raw_headers) {
