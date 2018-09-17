@@ -14,7 +14,9 @@
       }
       #wrapper {
         max-width: 800px;
-        margin: 10px auto;
+        min-height: calc(100vh - 110px);
+        margin: 0 auto;
+        padding: 10px;
       }
       h1.branding {
         background: #000;
@@ -30,6 +32,7 @@
         color: #ccc;
         padding: 5px;
         margin: -10px -10px 10px -10px;
+        line-height: 30px;
       }
       .box h3 {
         background: #888;
@@ -37,6 +40,7 @@
         padding: 5px;
         margin: -10px -10px 10px -10px;
         overflow-wrap: break-word;
+        line-height: 30px;
       }
       .box h4, pre {
         margin: 5px 0 0 0;
@@ -61,18 +65,26 @@
         font-style: italic;
         color: #337ab7;
       }
-      .results {
+      .results:not(:empty) {
         margin-top: 10px;
       }
       .box ul.summary-list {
         font-family: monospace;
+      }
+      .text-input {
+        padding: 4px;
+        width: 300px;
+        margin-bottom: 4px;
+      }
+      select {
+        padding: 4px;
       }
       button {
         background: #337ab7;
         border: 1px solid #2e6da4;
         color: #fff;
         font-size: 14px;
-        padding: 2px 4px;
+        padding: 5px 10px;
         border-radius: 4px;
         cursor: pointer;
         user-select: none;
@@ -102,6 +114,12 @@
         border: 1px dotted #999;
         max-height: 100px;
       }
+      footer {
+        text-align: center;
+        background: #000;
+        color: #fff;
+        padding: 6px;
+      }
     </style>
   </head>
   <body>
@@ -109,13 +127,13 @@
 
     <div id="wrapper">
       <section class="intro box">
-        <p>A deployment and testing system for the <a href="https://phonedude.github.io/cs531-f18/">CS 531 (Web Server Design) course</a> projects. The system utilizes a <a href="https://www.docker.com/">Docker</a>-based setup for both, this testing/deployment system as well as deploying students' projects. The code behind this system is available at <a href="https://github.com/ibnesayeed/webserver-tester">github.com/ibnesayeed/webserver-tester</a> and contributions are welcome.</p>
+        <p>A deployment and testing system for the <a href="https://phonedude.github.io/cs531-f18/">CS 531 (Web Server Design) course</a> projects. The system utilizes a <a href="https://www.docker.com/">Docker</a>-based setup for both, this testing/deployment system as well as deploying students' projects. The code behind this system is available at <a href="https://github.com/ibnesayeed/webserver-tester">github.com/ibnesayeed/webserver-tester</a>. Please feel free to report issues and contribute.</p>
       </section>
 
       {%- if show_deployer %}
       <section class="deployment box">
         <h2>Deploy a Web Server</h2>
-        <input id="csid" value="" placeholder="Enter CS-ID">
+        <input id="csid" class="text-input" value="" placeholder="Enter CS-ID">
         <button id="deploy-server">Deploy the Web Server</button>
         <div class="results" id="deployment-results"></div>
       </section>
@@ -123,7 +141,7 @@
 
       <section class="testing box">
         <h2>Test a Web Server</h2>
-        <input id="hostport" value="" placeholder="host:port">
+        <input id="hostport" class="text-input" value="" placeholder="<host>[:<port>]">
         <select id="bucket-selector">
           <option value="">All Test Cases</option>
           {%- for bucket in test_buckets %}
@@ -137,6 +155,8 @@
 
       <section class="testcases" id="testcases"></section>
     </div>
+
+    <footer><a href="https://github.com/ibnesayeed/webserver-tester">WebServer Tester</a> by <a href="https://twitter.com/ibnesayeed">Sawood Alam</a></footer>
 
     <script type="text/javascript">
       const testCases = {{ test_cases|safe }};
@@ -264,7 +284,7 @@
           });
         } else {
           state = 'failure';
-          msg = 'Enter a valid host and port combination (e.g., localhost:80)';
+          msg = 'Enter a valid host and port combination (e.g., localhost:8080)';
         }
         ShowResMsg(testSummaryDiv, msg, state);
       }
