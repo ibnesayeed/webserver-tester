@@ -257,7 +257,7 @@
         if (r.res.raw_headers) {
           let ctype = r.res.headers["content-type"] || 'text/html';
           markup += `
-          <h4>Original Response ${r.res.payload ? `(<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open Payload</a>)` : ''}</h4>
+          <h4>Original Response${r.res.payload ? ` [<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open Payload</a>]` : ''}</h4>
           <pre><code>${r.res.raw_headers}${r.res.payload_size ? `\r\n\r\n[Payload redacted (${r.res.payload_size} bytes)]` : ''}</code></pre>`;
         }
         document.getElementById(`result-${r.id}`).innerHTML = markup;
