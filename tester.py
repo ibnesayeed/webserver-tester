@@ -48,6 +48,7 @@ class HTTPTester():
             "raw_headers": "",
             "http_version": "",
             "status_code": 0,
+            "status_text": "",
             "headers": {},
             "payload": None,
             "payload_size": 0
@@ -75,9 +76,16 @@ class HTTPTester():
         if not res_bytes.strip():
             errors.append("Empty response")
             return res, errors
-        hdrs, sep, res["payload"] = res_bytes.partition(b"\r\n\r\n")
-        if not sep:
+        hdrs = sep = res["payload"] = b""
+        m = re.search(b"\r?\n\r?\n", res_bytes)
+        if m:
+            hdrs = res_bytes[:m.start()]
+            sep = res_bytes[slice(*m.span())]
+            res["payload"] = res_bytes[m.end():]
+        else:
             errors.append("Missing empty line after headers")
+        if sep == b"\n\n":
+            errors.append("Using LF as header separator instead of CRLF")
         if res["payload"]:
             res["payload_size"] = len(res["payload"])
         hdrs = hdrs.decode("utf-8")
@@ -85,10 +93,11 @@ class HTTPTester():
         hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
         lines = hdrs.split("\n")
         status_line = lines.pop(0)
-        m = re.match("^([\w\/\.]+)\s+(\d+)\s.*", status_line)
+        m = re.match("^([\w\/\.]+)\s+(\d+)\s+(.*)$", status_line)
         if m:
             res["http_version"] = m[1]
             res["status_code"] = int(m[2])
+            res["status_text"] = m[3]
         for line in lines:
             kv = line.split(":", 1)
             if len(kv) < 2:
