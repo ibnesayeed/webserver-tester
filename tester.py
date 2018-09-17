@@ -226,16 +226,15 @@ if __name__ == "__main__":
         print()
 
     def print_summary(hostport, test_results):
-        counts = {"PASSED": 0, "FAILED": 0}
+        counts = collections.Counter(test_results.values())
         colors = {"PASSED": 92, "FAILED": 91}
         print("=" * 35, "SUMMARY", "=" * 35)
         print("Server: {}".format(colorize(hostport, 96)))
         print("Test Case Results:")
         for t, r in test_results.items():
-            counts[r] += 1
             print("{}: {}".format(colorize(r, colors[r]), t))
         print("-" * 79)
-        print("TOTAL: {}, {}: {}, {}: {}".format(sum(counts.values()), colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
+        print("TOTAL: {}, {}: {}, {}: {}".format(len(test_results), colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
         print("=" * 79)
 
     print("Testing {}".format(hostport))
