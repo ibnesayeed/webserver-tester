@@ -112,6 +112,11 @@ def deploy_server(csid):
     return Response(" ".join(msgs), status=200)
 
 
+@app.route("/tests", strict_slashes=False)
+def list_tests():
+    return Response(test_cases, mimetype="application/json")
+
+
 @app.route("/tests/<hostport>/test_<int:bucket>_<tid>")
 def run_test(hostport, bucket, tid):
     try:
