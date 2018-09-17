@@ -17,7 +17,7 @@ $ ./tester.py -h
 Usage:
 ./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
 
-<host>           : Hostname or IP address of the server to be tested (default: 'localhost')
+<host>           : Hostname or IP address of the server to be tested (e.g., 'localhost')
 <port>           : Port number of the server to be tested (default: '80')
 <test-id>        : ID of an individual test function (e.g., 'test_1_healthy_server')
 <bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)

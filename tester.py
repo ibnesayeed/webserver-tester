@@ -190,11 +190,20 @@ if __name__ == "__main__":
         print_help()
         sys.exit(0)
 
-    hostport = "localhost:80"
-    if len(sys.argv) > 1:
-        hostport = sys.argv[1]
+    if len(sys.argv) < 2:
+        print()
+        print("Following test cases are available:")
+        print()
+        for bucket, tests in HTTPTester().test_buckets.items():
+            for fname, func in tests.items():
+                print("[Bucket {}] {}: {}".format(bucket, colorize(fname), colorize(func.__doc__, 96)))
+        print()
+        print("For help run: {}".format(colorize("./tester.py -h")))
+        print()
+        sys.exit(0)
+
     try:
-        t = HTTPTester(hostport)
+        t = HTTPTester(sys.argv[1])
     except ValueError as e:
         print(colorize(e))
         print_help()
