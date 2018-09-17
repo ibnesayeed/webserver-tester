@@ -68,8 +68,9 @@
       .results:not(:empty) {
         margin-top: 10px;
       }
-      .box ul.summary-list {
+      .box ul.summary-list, .box p.counts {
         font-family: monospace;
+        font-weight: bold;
       }
       .text-input {
         padding: 4px;
@@ -228,11 +229,17 @@
       deployerBtn.onclick = deployServer;
 
       function showTestSummary(hostport) {
+        var counts = Object.values(testResults).reduce((c, r) => {c[r]++; return c;}, {'PASSED': 0, 'FAILED': 0})
         let markup = `
         <h4>Server: <span class="description">${hostport}</span></h4>
         <ul class="summary-list">
           ${Object.entries(testResults).map(r => `<li class="${r[1]}">[${r[1]}]: ${r[0]}</li>`).join('')}
-        </ul>`;
+        </ul>
+        <p class="counts">
+          <span class="total">TOTAL:</span> <span>${Object.keys(testResults).length}</span>,
+          <span class="success">PASSED:</span> <span>${counts['PASSED']}</span>,
+          <span class="failure">FAILED:</span> <span>${counts['FAILED']}</span>
+        </p>`;
         testSummaryDiv.innerHTML = markup;
       }
 
