@@ -30,7 +30,7 @@ class HTTPTester():
             try:
                 self.port = int(parts[1])
             except ValueError as e:
-                raise ValueError("Invalid port number supplied: '{}'".format(parts[1]))
+                raise ValueError(f"Invalid port number supplied: '{parts[1]}'")
 
         # Create buckets of defined test methods
         self.test_buckets = collections.defaultdict(dict)
@@ -55,13 +55,13 @@ class HTTPTester():
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file)) as f:
-            req["raw"] = f.read().replace("<SERVERHOST>", "{}:{}".format(self.host, self.port))
+            req["raw"] = f.read().replace("<SERVERHOST>", f"{self.host}:{self.port}")
         with tempfile.TemporaryFile() as tf:
             tf.write(req["raw"].encode("utf-8"))
             tf.seek(0)
             # TODO: Remove netcat dependency and use pure Python
             # https://stackoverflow.com/questions/8918350/getting-a-raw-unparsed-http-response
-            cmd = subprocess.run("nc -w 3 {} {}".format(self.host, self.port), stdin=tf, shell=True, capture_output=True)
+            cmd = subprocess.run(f"nc -w 3 {self.host} {self.port}", stdin=tf, shell=True, capture_output=True)
         if cmd.returncode == 0:
             pres, errors = self.parse_response(cmd.stdout)
             res = {**res, **pres}
@@ -99,30 +99,30 @@ class HTTPTester():
             res["status_code"] = int(m[2])
             res["status_text"] = m[3]
         else:
-            errors.append("Malformed status line: {}".format(status_line))
+            errors.append(f"Malformed status line: {status_line}")
         for line in lines:
             kv = line.split(":", 1)
             if len(kv) < 2:
-                errors.append("Malformed header line: {}".format(line))
+                errors.append(f"Malformed header line: {line}")
             else:
                 res["headers"][kv[0].lower()] = kv[1].strip()
         return res, errors
 
 
     def run_single_test(self, test_id):
-        err = "Test {} not valid".format(test_id)
+        err = f"Test {test_id} not valid"
         m = self.TFPATTERN.match(test_id)
         if m:
             try:
                 return self.test_buckets[m[1]][test_id]()
             except KeyError as e:
-                err = "Test {} not implemented".format(test_id)
+                err = f"Test {test_id} not implemented"
         raise Exception(err)
 
 
     def run_bucket_tests(self, bucket):
         if not self.test_buckets.get(bucket):
-            err = "Test bucket {} not implemented".format(bucket)
+            err = f"Test bucket {bucket} not implemented"
             raise Exception(err)
         for fname, func in self.test_buckets[bucket].items():
             yield func()
@@ -141,7 +141,7 @@ class HTTPTester():
                     if not errors:
                         func(self, req, res)
                 except AssertionError as e:
-                    errors.append("ASSERTION: {}".format(e))
+                    errors.append(f"ASSERTION: {e}")
                 return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
             return wrapper
         return test_decorator
@@ -150,7 +150,7 @@ class HTTPTester():
     @make_request("server-root.http")
     def test_1_healthy_server(self, req, res):
         """Test healthy server root"""
-        assert res["status_code"] == 200, "Status expected '200', returned '{}'".format(res["status_code"])
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         assert "date" in res["headers"], "Date header should be present"
 
 
@@ -158,13 +158,13 @@ class HTTPTester():
     def test_1_text_response(self, req, res):
         """Test server root returns a text response"""
         assert "content-type" in res["headers"], "Content-Type header should be present"
-        assert res["headers"]["content-type"].startswith("text/"), "Content-Type should start with 'text/', returned '{}'".format(res["headers"]["content-type"])
+        assert res["headers"]["content-type"].startswith("text/"), f"Content-Type should start with 'text/', returned '{res['headers']['content-type']}'"
 
 
     @make_request("server-root.http")
     def test_1_http_version(self, req, res):
         """Test HTTP version"""
-        assert res["http_version"] == "HTTP/1.1", "HTTP version expected 'HTTP/1.1', returned '{}'".format(res["http_version"])
+        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
 
 
     @make_request("server-root.http")
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         print("")
 
     def colorize(str, code=91):
-        return "\033[{}m{}\033[0m".format(code, str)
+        return f"\033[{code}m{str}\033[0m"
 
     if {"-h", "--help"}.intersection(sys.argv):
         print_help()
@@ -198,9 +198,9 @@ if __name__ == "__main__":
         print()
         for bucket, tests in HTTPTester().test_buckets.items():
             for fname, func in tests.items():
-                print("[Bucket {}] {}: {}".format(bucket, colorize(fname), colorize(func.__doc__, 96)))
+                print(f"[Bucket {bucket}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
-        print("For help run: {}".format(colorize("./tester.py -h")))
+        print(f"For help run: {colorize('./tester.py -h')}")
         print()
         sys.exit(0)
 
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         print(colorize(e))
         print_help()
         sys.exit(1)
-    hostport = "{}:{}".format(t.host, t.port)
+    hostport = f"{t.host}:{t.port}"
 
     buckets = list(t.test_buckets.keys())
     test_id = None
@@ -222,10 +222,10 @@ if __name__ == "__main__":
 
     def print_result(result):
         print("-" * 79)
-        print("{}: {}".format(result["id"], colorize(result["description"], 96)))
+        print(f"{result['id']}: {colorize(result['description'], 96)}")
         if result["errors"]:
             for err in result["errors"]:
-                print(colorize("[FAILED] {}".format(err)))
+                print(colorize(f"[FAILED] {err}"))
         else:
             print(colorize("[PASSED]", 92))
         print()
@@ -234,22 +234,22 @@ if __name__ == "__main__":
             print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
         if result["res"]["payload"]:
             print("< ")
-            print("< [Payload redacted ({} bytes)]".format(result["res"]["payload_size"]))
+            print(f"< [Payload redacted ({result['res']['payload_size']} bytes)]")
         print()
 
     def print_summary(hostport, test_results):
         counts = collections.Counter(test_results.values())
         colors = {"PASSED": 92, "FAILED": 91}
         print("=" * 35, "SUMMARY", "=" * 35)
-        print("Server: {}".format(colorize(hostport, 96)))
+        print(f"Server: {colorize(hostport, 96)}")
         print("Test Case Results:")
         for t, r in test_results.items():
-            print("{}: {}".format(colorize(r, colors[r]), t))
+            print(f"{colorize(r, colors[r])}: {t}")
         print("-" * 79)
-        print("TOTAL: {}, {}: {}, {}: {}".format(len(test_results), colorize("PASSED", 92), counts["PASSED"], colorize("FAILED", 91), counts["FAILED"]))
+        print(f"TOTAL: {len(test_results)}, {colorize('PASSED', 92)}: {counts['PASSED']}, {colorize('FAILED', 91)}: {counts['FAILED']}")
         print("=" * 79)
 
-    print("Testing {}".format(hostport))
+    print(f"Testing {hostport}")
 
     try:
         if test_id:

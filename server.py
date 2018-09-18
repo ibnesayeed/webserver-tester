@@ -42,13 +42,13 @@ test_cases = generate_test_cases_json(default_tester.test_buckets)
 
 
 def get_student_repo(csid):
-    url = "https://raw.githubusercontent.com/{}/master/users/{}".format(COURSEREPO, csid.strip())
+    url = f"https://raw.githubusercontent.com/{COURSEREPO}/master/users/{csid.strip()}"
     req = requests.get(url)
     if req.status_code == 200:
         repo = req.text.strip().rstrip('.git')
         match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
         if match is not None:
-            return "{}/{}".format(match[1], match[2])
+            return f"{match[1]}/{match[2]}"
     return None
 
 
@@ -57,7 +57,7 @@ def get_authorized_repo_url(csid):
     if repo is None:
         return None
     cred = CREDENTIALS + "@" if CREDENTIALS else ""
-    return "https://{}github.com/{}.git".format(cred, repo)
+    return f"https://{cred}github.com/{repo}.git"
 
 
 def jsonify_result(result):
@@ -74,7 +74,7 @@ def home():
 def deploy_server(csid):
     url = get_authorized_repo_url(csid)
     if url is None:
-        return Response("User record '{}' not present in https://github.com/{}/tree/master/users".format(csid, COURSEREPO), status=404)
+        return Response(f"User record '{csid}' not present in https://github.com/{COURSEREPO}/tree/master/users", status=404)
 
     repo = get_student_repo(csid)
     imgname = "cs531/" + csid
@@ -82,32 +82,32 @@ def deploy_server(csid):
     msgs = []
 
     try:
-        print("Building image {}".format(imgname))
+        print(f"Building image {imgname}")
         client.images.build(path=url, tag=imgname)
-        msgs.append("Image {} built from the latest code of the {} repo.".format(imgname, repo))
+        msgs.append(f"Image {imgname} built from the latest code of the {repo} repo.")
     except Exception as e:
-        return Response("Building image {} from the {} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {}".format(imgname, repo, e), status=500)
+        return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {e}", status=500)
 
     try:
-        print("Removing existing container {}".format(contname))
+        print(f"Removing existing container {contname}")
         client.containers.get(contname).remove(force=True)
         msgs.append("Related existing container removed.")
     except Exception as e:
-        print("Container {} does not exist".format(contname))
+        print(f"Container {contname} does not exist")
 
     try:
-        print("Running new container {} using {} image".format(contname, imgname))
+        print(f"Running new container {contname} using {imgname} image")
         deployment_labels = {
             "traefik.backend": csid,
             "traefik.docker.network": "course",
             "traefik.frontend.entryPoints": "http",
-            "traefik.frontend.rule": "Host:{}.cs531.cs.odu.edu".format(csid),
+            "traefik.frontend.rule": f"Host:{csid}.cs531.cs.odu.edu",
             "traefik.port": "80"
         }
         client.containers.run(imgname, detach=True, network="course", labels=deployment_labels, name=contname)
-        msgs.append("A new container is created and the service {} is deployed successfully.".format(contname))
+        msgs.append(f"A new container is created and the service {contname} is deployed successfully.")
     except Exception as e:
-        return Response("Service deployment failed. Response from the Docker daemon: {}".format(e), status=500)
+        return Response(f"Service deployment failed. Response from the Docker daemon: {e}", status=500)
 
     return Response(" ".join(msgs), status=200)
 
@@ -122,13 +122,13 @@ def run_test(hostport, bucket, tid):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
-        return Response("{}".format(e), status=400)
-    test_id = "test_{}_{}".format(bucket, tid)
+        return Response(f"{e}", status=400)
+    test_id = f"test_{bucket}_{tid}"
     try:
         result = t.run_single_test(test_id)
         return Response(jsonify_result(result), mimetype="application/json")
     except Exception as e:
-        return Response("{}".format(e), status=404)
+        return Response(f"{e}", status=404)
 
 
 @app.route("/tests/<hostport>", strict_slashes=False, defaults={"bucket": None})
@@ -137,9 +137,9 @@ def run_tests(hostport, bucket):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
-        return Response("{}".format(e), status=400)
+        return Response(f"{e}", status=400)
     if bucket and str(bucket) not in t.test_buckets.keys():
-        return Response("Test bucket {} not implemented".format(bucket), status=404)
+        return Response(f"Test bucket {bucket} not implemented", status=404)
     buckets = [str(bucket)] if bucket else t.test_buckets.keys()
 
     def generate():
