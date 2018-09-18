@@ -243,8 +243,8 @@ if __name__ == "__main__":
         print("=" * 35, "SUMMARY", "=" * 35)
         print(f"Server: {colorize(hostport, 96)}")
         print("Test Case Results:")
-        for t, r in test_results.items():
-            print(f"{colorize(r, colors[r])}: {t}")
+        for test, result in test_results.items():
+            print(f"{colorize(result, colors[result])}: {test}")
         print("-" * 79)
         print(f"TOTAL: {len(test_results)}, {colorize('PASSED', 92)}: {counts['PASSED']}, {colorize('FAILED', 91)}: {counts['FAILED']}")
         print("=" * 79)
