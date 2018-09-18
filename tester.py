@@ -55,7 +55,7 @@ class HTTPTester():
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file)) as f:
-            req["raw"] = f.read().replace("<SERVERHOST>", f"{self.host}:{self.port}")
+            req["raw"] = f.read().replace("<HOST>", self.host).replace("<PORT>", str(self.port))
         with tempfile.TemporaryFile() as tf:
             tf.write(req["raw"].encode("utf-8"))
             tf.seek(0)

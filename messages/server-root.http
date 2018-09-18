@@ -1,4 +1,4 @@
 GET / HTTP/1.1
-Host: <SERVERHOST>
+Host: <HOST>:<PORT>
 Connection: close
 
