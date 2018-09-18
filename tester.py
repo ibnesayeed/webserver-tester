@@ -98,10 +98,12 @@ class HTTPTester():
             res["http_version"] = m[1]
             res["status_code"] = int(m[2])
             res["status_text"] = m[3]
+        else:
+            errors.append("Malformed status line: {}".format(status_line))
         for line in lines:
             kv = line.split(":", 1)
             if len(kv) < 2:
-                errors.append("Malformed header line => {}".format(line))
+                errors.append("Malformed header line: {}".format(line))
             else:
                 res["headers"][kv[0].lower()] = kv[1].strip()
         return res, errors
