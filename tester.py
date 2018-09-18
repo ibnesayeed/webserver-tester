@@ -55,7 +55,7 @@ class HTTPTester():
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file)) as f:
-            req["raw"] = f.read().replace("<HOST>", self.host).replace("<PORT>", str(self.port))
+            req["raw"] = self.replace_placeholders(f.read())
         with tempfile.TemporaryFile() as tf:
             tf.write(req["raw"].encode("utf-8"))
             tf.seek(0)
@@ -68,6 +68,16 @@ class HTTPTester():
         else:
             errors.append(cmd.stderr.strip().decode("utf-8"))
         return req, res, errors
+
+
+    def replace_placeholders(self, msg):
+        replacements = {
+            "<HOST>": self.host,
+            "<PORT>": str(self.port)
+        }
+        for placeholder, replacement in replacements.items():
+            msg = msg.replace(placeholder, replacement)
+        return msg
 
 
     def parse_response(self, res_bytes):
