@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import subprocess
 import sys
 import os
 import re
@@ -8,6 +7,7 @@ import tempfile
 import inspect
 import collections
 import functools
+import socket
 
 
 class HTTPTester():
@@ -52,22 +52,35 @@ class HTTPTester():
             "status_text": "",
             "headers": {},
             "payload": None,
-            "payload_size": 0
+            "payload_size": 0,
+            "connection": "closed"
         }
         errors = []
-        with open(os.path.join(self.MSGDIR, msg_file)) as f:
-            req["raw"] = self.replace_placeholders(f.read())
-        with tempfile.TemporaryFile() as tf:
-            tf.write(req["raw"].encode("utf-8"))
-            tf.seek(0)
-            # TODO: Remove netcat dependency and use pure Python
-            # https://stackoverflow.com/questions/8918350/getting-a-raw-unparsed-http-response
-            cmd = subprocess.run(f"nc -w 3 {self.host} {self.port}", stdin=tf, shell=True, capture_output=True)
-        if cmd.returncode == 0:
-            pres, errors = self.parse_response(cmd.stdout)
+        with open(os.path.join(self.MSGDIR, msg_file), "rb") as f:
+            msg = self.replace_placeholders(f.read())
+            hdrs, sep, pld = self.split_http_message(msg)
+            msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
+            req["raw"] = msg.decode()
+            sock = socket.socket()
+            sock.settimeout(3)
+            try:
+                sock.connect((self.host, self.port))
+            except Exception as e:
+                errors.append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
+                return req, res, errors
+            try:
+                sock.sendall(msg)
+                data = b""
+                buf = sock.recv(4096)
+                while buf:
+                    data += buf
+                    buf = sock.recv(4096)
+            except socket.timeout as e:
+                res["connection"] = "alive"
+            except Exception as e:
+                errors.append(f"Communication failed: {e}")
+            pres, errors = self.parse_response(data)
             res = {**res, **pres}
-        else:
-            errors.append(cmd.stderr.strip().decode("utf-8"))
         return req, res, errors
 
 
@@ -78,7 +91,7 @@ class HTTPTester():
             "<HOSTPORT>": self.hostport
         }
         for placeholder, replacement in replacements.items():
-            msg = msg.replace(placeholder, replacement)
+            msg = msg.replace(placeholder.encode(), replacement.encode())
         return msg
 
 
