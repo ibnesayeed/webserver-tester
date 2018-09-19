@@ -31,6 +31,7 @@ class HTTPTester():
                 self.port = int(parts[1])
             except ValueError as e:
                 raise ValueError(f"Invalid port number supplied: '{parts[1]}'")
+        self.hostport = self.host if self.port == 80 else f"{self.host}:{self.port}"
 
         # Create buckets of defined test methods
         self.test_buckets = collections.defaultdict(dict)
@@ -73,7 +74,8 @@ class HTTPTester():
     def replace_placeholders(self, msg):
         replacements = {
             "<HOST>": self.host,
-            "<PORT>": str(self.port)
+            "<PORT>": str(self.port),
+            "<HOSTPORT>": self.hostport
         }
         for placeholder, replacement in replacements.items():
             msg = msg.replace(placeholder, replacement)
