@@ -82,19 +82,22 @@ class HTTPTester():
         return msg
 
 
-    def parse_response(self, res_bytes):
+    def split_http_message(self, msg):
+        m = re.search(b"\r?\n\r?\n", msg)
+        if m:
+            return msg[:m.start()], msg[slice(*m.span())], msg[m.end():]
+        else:
+            return msg, b"", b""
+
+
+    def parse_response(self, msg):
         res = {"headers": {}}
         errors = []
-        if not res_bytes.strip():
+        if not msg.strip():
             errors.append("Empty response")
             return res, errors
-        hdrs = sep = res["payload"] = b""
-        m = re.search(b"\r?\n\r?\n", res_bytes)
-        if m:
-            hdrs = res_bytes[:m.start()]
-            sep = res_bytes[slice(*m.span())]
-            res["payload"] = res_bytes[m.end():]
-        else:
+        hdrs, sep, res["payload"] = self.split_http_message(msg)
+        if not sep:
             errors.append("Missing empty line after headers")
         if sep == b"\n\n":
             errors.append("Using LF as header separator instead of CRLF")
