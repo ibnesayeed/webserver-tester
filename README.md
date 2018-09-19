@@ -6,8 +6,6 @@ An HTTP testing and deployment system for CS 531 (Web Server Design) course proj
 
 To test your server, run your server first, note down the host and port of the server (which can be on the local machine or on a remote machine), then execute the tester script against that `<host>` and `<port>`.
 
-Currently, the testing script has an external dependency on NetCat (`nc`) utility for making requests. However, we plan to eliminate this dependency.
-
 ```
 $ git clone https://github.com/ibnesayeed/webserver-tester.git
 $ cd webserver-tester
