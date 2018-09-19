@@ -175,6 +175,9 @@ class HTTPTester():
         return test_decorator
 
 
+############################### BEGIN TEST CASES ###############################
+
+
     @make_request("server-root.http")
     def test_1_healthy_server(self, req, res):
         """Test healthy server root"""
@@ -199,6 +202,9 @@ class HTTPTester():
     def test_2_1(self, req, res):
         """Assignment 2, Test 1"""
         assert False, "Placeholder test (not implemented yet!)"
+
+
+################################ END TEST CASES ################################
 
 
 if __name__ == "__main__":
