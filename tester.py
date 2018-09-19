@@ -116,7 +116,7 @@ class HTTPTester():
             errors.append("Using LF as header separator instead of CRLF")
         if res["payload"]:
             res["payload_size"] = len(res["payload"])
-        hdrs = hdrs.decode("utf-8")
+        hdrs = hdrs.decode()
         res["raw_headers"] = hdrs
         hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
         lines = hdrs.split("\n")
