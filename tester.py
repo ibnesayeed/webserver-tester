@@ -198,6 +198,12 @@ class HTTPTester():
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
 
 
+    @make_request("malformed-header.http")
+    def test_1_bad_request_header(self, req, res):
+        """Test whether the server recognizes malformed headers"""
+        assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
+
+
     @make_request("server-root.http")
     def test_2_1(self, req, res):
         """Assignment 2, Test 1"""
