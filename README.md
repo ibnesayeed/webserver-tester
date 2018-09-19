@@ -77,3 +77,53 @@ To run all tests:
 ```
 $ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>
 ```
+
+## Contribute
+
+To add more test cases, first create an issue describing the test scenario. To avoid duplicate efforts, claim the ticket if you want to work on it. Fork the repository and submit a PR when done.
+
+Adding a test case is quite simple. First, check the `messages` director to see if any existing HTTP Request messages are suitable for your scenario. If not, then create a new Request message file and name it appropriately. You can use `<HOST>`, `<PORT>`, and `<HOSTPORT>` placeholders that will be replaced with the corresponding values of the server being tested. The latter is a combination of the other two in the form of `<HOST>:<PORT>`, but it does not include the port number if it is the default `80`.
+
+In the `tester.py` file locate where existing test cases are present, then define a new method using the `test_<bucket-number>_<descriptive_name>` naming convention. Add a sentence or two to describe the test in the form of doc string. Add the `@make_request(<request-message-file.http>)` decorator above your method. This will perform the request, parse the response, and execute your test conditions if no connection or syntactic errors are found. Your test method will receive the request and response object. They contain various raw and parsed attributes to perform your test assertions on.
+
+```py
+req = {
+    "raw": ""
+}
+res = {
+    "raw_headers": "",
+    "http_version": "",
+    "status_code": 0,
+    "status_text": "",
+    "headers": {},
+    "payload": None,
+    "payload_size": 0,
+    "connection": "closed"
+}
+```
+
+For example, if we want to test whether a server returns `400 Bad Request` response when the request has a malformed header, we can create a message file named `message/malformed-header.http`:
+
+```http
+GET /foo HTTP/1.1
+Host: <HOSTPORT>
+Header with missing colon
+
+```
+
+Then add a test case as following:
+
+```py
+@make_request("malformed-header.http")
+def test_1_bad_request_header(self, req, res):
+    """Test whether the server recognizes malformed headers"""
+    assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
+```
+
+We can have more than one assertions in a single test case, but the first one that fails will be reported otherwise the test will pass. Assertions take the following form:
+
+```py
+assert <test-condition>[, <optional-failure-message>]
+```
+
+This is it! We got a brand new test case in place.
