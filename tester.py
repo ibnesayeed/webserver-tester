@@ -3,7 +3,6 @@
 import sys
 import os
 import re
-import tempfile
 import inspect
 import collections
 import functools
