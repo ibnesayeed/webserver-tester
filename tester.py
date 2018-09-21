@@ -69,16 +69,17 @@ class HTTPTester():
                 return req, res, errors
             try:
                 sock.sendall(msg)
-                data = b""
+                data = []
+                sock.settimeout(0.05)
                 buf = sock.recv(4096)
                 while buf:
-                    data += buf
+                    data.append(buf)
                     buf = sock.recv(4096)
             except socket.timeout as e:
                 res["connection"] = "alive"
             except Exception as e:
                 errors.append(f"Communication failed: {e}")
-            pres, errors = self.parse_response(data)
+            pres, errors = self.parse_response(b"".join(data))
             res = {**res, **pres}
         return req, res, errors
 
