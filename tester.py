@@ -20,6 +20,12 @@ class HTTPTester():
         # Test function name pattern
         self.TFPATTERN = re.compile("^test_(\d+)_(.+)")
 
+        # Socket timeouts
+        self.CONNECTION_TIMEOUT = 0.2
+        self.SEND_DATA_TIMEOUT = 3.0
+        self.RECV_FIRST_BYTE_TIMEOUT = 1.0
+        self.RECV_END_TIMEOUT = 0.05
+
         # Identify host and port of the server to be tested
         self.host = "localhost"
         parts = hostport.split(":")
@@ -61,17 +67,23 @@ class HTTPTester():
             msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             req["raw"] = msg.decode()
             sock = socket.socket()
-            sock.settimeout(3)
             try:
+                sock.settimeout(self.CONNECTION_TIMEOUT)
                 sock.connect((self.host, self.port))
             except Exception as e:
                 errors.append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
                 return req, res, errors
             try:
+                sock.settimeout(self.SEND_DATA_TIMEOUT)
                 sock.sendall(msg)
+            except Exception as e:
+                errors.append(f"Sending data failed: {e}")
+                return req, res, errors
+            try:
                 data = []
-                sock.settimeout(0.05)
+                sock.settimeout(self.RECV_FIRST_BYTE_TIMEOUT)
                 buf = sock.recv(4096)
+                sock.settimeout(self.RECV_END_TIMEOUT)
                 while buf:
                     data.append(buf)
                     buf = sock.recv(4096)
