@@ -72,12 +72,14 @@ class HTTPTester():
                 sock.connect((self.host, self.port))
             except Exception as e:
                 errors.append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
+                sock.close()
                 return req, res, errors
             try:
                 sock.settimeout(self.SEND_DATA_TIMEOUT)
                 sock.sendall(msg)
             except Exception as e:
                 errors.append(f"Sending data failed: {e}")
+                sock.close()
                 return req, res, errors
             try:
                 data = []
@@ -90,7 +92,8 @@ class HTTPTester():
             except socket.timeout as e:
                 res["connection"] = "alive"
             except Exception as e:
-                errors.append(f"Communication failed: {e}")
+                errors.append(f"Reading data failed: {e}")
+            sock.close()
             pres, errors = self.parse_response(b"".join(data))
             res = {**res, **pres}
         return req, res, errors
