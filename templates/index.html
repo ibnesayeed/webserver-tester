@@ -270,6 +270,7 @@
         let state = msg = '';
         testResults = {};
         if (hostport) {
+          activateFavicon();
           msg = `Testing server ${hostport} with all test cases${bucket ? ' of Bucket ' + bucket : ''}...`;
           let selector = bucket ? `.bucket-${bucket}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
@@ -291,7 +292,7 @@
             }
           }).catch(e => {
             ShowResMsg(testSummaryDiv, e, 'failure');
-          });
+          }).finally(resetFavicon);
         } else {
           state = 'failure';
           msg = 'Enter a valid host and port combination (e.g., localhost:5000)';
@@ -308,6 +309,7 @@
           let hostport = hostportInp.value;
           let state = msg = '';
           if (hostport) {
+            activateFavicon();
             msg = `Running this test against the server ${hostport}...`;
             box.classList.remove('FAILED', 'PASSED');
             fetch(`/tests/${hostport}/${testId}`).then(r => {
@@ -322,7 +324,7 @@
             }).catch(e => {
               state = 'failure';
               msg = e;
-            });
+            }).finally(resetFavicon);
           } else {
             state = 'failure';
             msg = 'Provide a valid host and port combination above (e.g., localhost:80)';
@@ -339,6 +341,32 @@
         showBucketTestCases();
       }
       testResetterBtn.onclick = resetTests;
+
+      const faviconlink = document.querySelector('link[rel="icon"]');
+      const favicons = [
+        "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIiIAAAAAAAAiIiAAAAAAAAAAAAAAAAACIiIAAAAAAAAiIiAAAAAAAAAAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA//8AAP//AAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA",
+        "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIAAAAAAAACIiAAACIiICICIgAAAiIiIAAiIAAAAAAAAAIiACIiIAAAACIgAiIiAAAAAiIAAAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA//8AAP//AADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA",
+        "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAABERAAABEREBEBEQAAAREREAAREAAAAAAAAAERABEREAAAABEQARERAAAAAREAAAAAAAAAAAAAAAAAAAAAAAAAACIAAAAAAAACIiAAACIiICICIgAAAiIiIAAiIAAAAAAAAAIiACIiIAAAACIgAiIiAAAAAiIAAADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA//8AAP//AADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA"
+      ];
+      let activeFaviconIdx = 0;
+      function changeFavicon() {
+        faviconlink.href = favicons[activeFaviconIdx];
+        activeFaviconIdx = (activeFaviconIdx + 1) % favicons.length;
+      }
+      let activeTests = 0;
+      let iconLoop;
+      function activateFavicon() {
+        ++activeTests;
+        clearInterval(iconLoop);
+        iconLoop = setInterval(changeFavicon, 500);
+      }
+      function resetFavicon() {
+        if (--activeTests <= 0) {
+          clearInterval(iconLoop);
+          activeFaviconIdx = favicons.length - 1;
+          changeFavicon();
+        }
+      }
     </script>
   </body>
 </html>
