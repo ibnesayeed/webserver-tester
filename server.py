@@ -86,7 +86,7 @@ def deploy_server(csid):
         client.images.build(path=url, tag=imgname)
         msgs.append(f"Image {imgname} built from the latest code of the {repo} repo.")
     except Exception as e:
-        return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + "@", "")}", status=500)
+        return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)
 
     try:
         print(f"Removing existing container {contname}")
