@@ -45,7 +45,8 @@ def get_student_repo(csid):
     url = f"https://raw.githubusercontent.com/{COURSEREPO}/master/users/{csid.strip()}"
     req = requests.get(url)
     if req.status_code == 200:
-        repo = req.text.strip().rstrip('.git')
+        repo = req.text.strip()
+        repo = re.sub("\.git$", "", repo)
         match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
         if match is not None:
             return f"{match[1]}/{match[2]}"
