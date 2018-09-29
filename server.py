@@ -13,9 +13,12 @@ import base64
 from tester import HTTPTester
 
 # This should be changed inline or supplied via the environment variable each semester the course is offered
-COURSEREPO = os.environ.get("COURSEREPO") or "phonedude/cs531-f18"
+COURSEREPO = os.getenv("COURSEREPO", "phonedude/cs531-f18")
 # This is needed if student repos are kept private (ideally, supply it via the environment variable)
-CREDENTIALS = os.environ.get("GITHUBKEY") or ""
+CREDENTIALS = os.getenv("GITHUBKEY", "")
+
+student_repos = {}
+
 
 app = Flask(__name__)
 client = docker.from_env()
@@ -41,20 +44,32 @@ bucket_numbers = default_tester.test_buckets.keys()
 test_cases = generate_test_cases_json(default_tester.test_buckets)
 
 
-def get_student_repo(csid):
-    url = f"https://raw.githubusercontent.com/{COURSEREPO}/master/users/{csid.strip()}"
-    req = requests.get(url)
-    if req.status_code == 200:
-        repo = req.text.strip()
-        repo = re.sub("\.git$", "", repo)
-        match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
-        if match is not None:
-            return f"{match[1]}/{match[2]}"
+def extract_repo_from_url(github_url):
+    repo = re.sub("\.git$", "", github_url)
+    match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
+    if match is not None:
+        return f"{match[1]}/{match[2]}"
+    print(f"{github_url} is not a recognized GitHub URL")
     return None
 
 
-def get_authorized_repo_url(csid):
-    repo = get_student_repo(csid)
+def fetch_student_repo(csid):
+    url = f"https://raw.githubusercontent.com/{COURSEREPO}/master/users/{csid}"
+    try:
+        req = requests.get(url)
+        if req.status_code == 200:
+            student_repos[csid] = extract_repo_from_url(req.text.strip())
+            return student_repos[csid]
+    except Exception as e:
+        print(f"Cannot fetch repo URI from GitHub: {e}")
+    return None
+
+
+def get_student_repo(csid):
+    return student_repos.get(csid, fetch_student_repo(csid))
+
+
+def get_authorized_repo_url(repo):
     if repo is None:
         return None
     cred = CREDENTIALS + "@" if CREDENTIALS else ""
@@ -68,23 +83,23 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", test_buckets=bucket_numbers, test_cases=test_cases, show_deployer=DEPLOYER)
+    return render_template("index.html", test_buckets=bucket_numbers, test_cases=test_cases, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
 
 
 @app.route("/servers/<csid>")
 def deploy_server(csid):
-    url = get_authorized_repo_url(csid)
-    if url is None:
+    repo = get_student_repo(csid.strip())
+    repo_url = get_authorized_repo_url(repo)
+    if repo_url is None:
         return Response(f"User record '{csid}' not present in https://github.com/{COURSEREPO}/tree/master/users", status=404)
 
-    repo = get_student_repo(csid)
     imgname = "cs531/" + csid
     contname = "cs531-" + csid
     msgs = []
 
     try:
         print(f"Building image {imgname}")
-        client.images.build(path=url, tag=imgname)
+        client.images.build(path=repo_url, tag=imgname)
         msgs.append(f"Image {imgname} built from the latest code of the {repo} repo.")
     except Exception as e:
         return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)

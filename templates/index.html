@@ -135,7 +135,12 @@
       {%- if show_deployer %}
       <section class="deployment box">
         <h2>Deploy a Web Server</h2>
-        <input id="csid" class="text-input" value="" placeholder="Enter CS-ID">
+        <input id="csid" class="text-input" value="" list="studentids" placeholder="Enter CS-ID">
+        <datalist id="studentids">
+          {%- for sid in student_ids %}
+          <option value="{{ sid }}">
+          {% endfor %}
+        </datalist>
         <button id="deploy-server">Deploy the Web Server</button>
         <div class="results" id="deployment-results"></div>
       </section>
