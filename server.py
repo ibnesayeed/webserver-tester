@@ -147,16 +147,17 @@ def run_test(hostport, bucket, tid):
         return Response(f"{e}", status=404)
 
 
-@app.route("/tests/<hostport>", strict_slashes=False, defaults={"bucket": None})
+@app.route("/tests/<hostport>", strict_slashes=False, defaults={"bucket": ""})
 @app.route("/tests/<hostport>/<int:bucket>")
 def run_tests(hostport, bucket):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         return Response(f"{e}", status=400)
-    if bucket and str(bucket) not in t.test_buckets.keys():
+    bucket = str(bucket)
+    if bucket and bucket not in t.test_buckets.keys():
         return Response(f"Test bucket {bucket} not implemented", status=404)
-    buckets = [str(bucket)] if bucket else t.test_buckets.keys()
+    buckets = [bucket] if bucket else t.test_buckets.keys()
 
     def generate():
         for bucket in buckets:
