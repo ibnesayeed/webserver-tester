@@ -1,0 +1,4 @@
+GET / <VERSION>
+Host: <HOSTPORT>
+Connection: close
+
