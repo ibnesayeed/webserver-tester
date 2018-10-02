@@ -38,12 +38,14 @@ class HTTPTester():
                 raise ValueError(f"Invalid port number supplied: '{parts[1]}'")
         self.hostport = self.host if self.port == 80 else f"{self.host}:{self.port}"
 
-        # Create buckets of defined test methods
+        # Create buckets of test methods in their defined order
         self.test_buckets = collections.defaultdict(dict)
-        for (fname, func) in inspect.getmembers(self, inspect.ismethod):
+        tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if self.TFPATTERN.match(f[0])]
+        for tf in tfuncs:
+            tf[1].__func__.__orig_lineno__ = tf[1].__wrapped__.__code__.co_firstlineno if hasattr(tf[1], "__wrapped__") else tf[1].__code__.co_firstlineno
+        for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
             m = self.TFPATTERN.match(fname)
-            if m:
-                self.test_buckets[m[1]][fname] = func
+            self.test_buckets[m[1]][fname] = func
 
 
     def netcat(self, msg_file, **kwargs):
