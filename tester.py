@@ -194,36 +194,36 @@ class HTTPTester():
 ############################### BEGIN TEST CASES ###############################
 
 
-    @make_request("server-root.http")
-    def test_1_healthy_server(self, req, res):
+    @make_request("get-root.http")
+    def test_0_healthy_server(self, req, res):
         """Test healthy server root"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         assert "date" in res["headers"], "Date header should be present"
 
 
-    @make_request("server-root.http")
-    def test_1_text_response(self, req, res):
+    @make_request("get-root.http")
+    def test_0_text_response(self, req, res):
         """Test server root returns a text response"""
         assert "content-type" in res["headers"], "Content-Type header should be present"
         assert res["headers"]["content-type"].startswith("text/"), f"Content-Type should start with 'text/', returned '{res['headers']['content-type']}'"
 
 
-    @make_request("server-root.http")
-    def test_1_http_version(self, req, res):
+    @make_request("get-root.http")
+    def test_0_http_version(self, req, res):
         """Test HTTP version"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
 
 
     @make_request("malformed-header.http")
-    def test_1_bad_request_header(self, req, res):
+    def test_0_bad_request_header(self, req, res):
         """Test whether the server recognizes malformed headers"""
         assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 
 
-    @make_request("server-root.http")
-    def test_2_1(self, req, res):
-        """Assignment 2, Test 1"""
-        assert False, "Placeholder test (not implemented yet!)"
+    @make_request("get-root.http")
+    def test_42_always_fail(self, req, res):
+        """A test that always fails"""
+        assert False, "A placeholder test, meant to always fail"
 
 
 ################################ END TEST CASES ################################
