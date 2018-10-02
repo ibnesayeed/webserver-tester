@@ -46,7 +46,7 @@ class HTTPTester():
                 self.test_buckets[m[1]][fname] = func
 
 
-    def netcat(self, msg_file):
+    def netcat(self, msg_file, **kwargs):
         req = {
             "raw": ""
         }
@@ -62,7 +62,7 @@ class HTTPTester():
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file), "rb") as f:
-            msg = self.replace_placeholders(f.read())
+            msg = self.replace_placeholders(f.read(), **kwargs)
             hdrs, sep, pld = self.split_http_message(msg)
             msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             req["raw"] = msg.decode()
@@ -99,12 +99,15 @@ class HTTPTester():
         return req, res, errors
 
 
-    def replace_placeholders(self, msg):
+    def replace_placeholders(self, msg, **kwargs):
         replacements = {
             "<HOST>": self.host,
             "<PORT>": str(self.port),
             "<HOSTPORT>": self.hostport
         }
+        for k, v in kwargs.items():
+            replacements[f"<{k}>"] = v
+
         for placeholder, replacement in replacements.items():
             msg = msg.replace(placeholder.encode(), replacement.encode())
         return msg
@@ -171,7 +174,7 @@ class HTTPTester():
             yield func()
 
 
-    def make_request(msg_file):
+    def make_request(msg_file, **kwargs):
         """Test decorator generator that makes HTTP request using the msg_file.
         Makes the response available for assertions.
         Intended to be used as a decorator from within this class."""
@@ -179,7 +182,7 @@ class HTTPTester():
         def test_decorator(func):
             @functools.wraps(func)
             def wrapper(self):
-                req, res, errors = self.netcat(msg_file)
+                req, res, errors = self.netcat(msg_file, **kwargs)
                 try:
                     if not errors:
                         func(self, req, res)
@@ -193,36 +196,36 @@ class HTTPTester():
 ############################### BEGIN TEST CASES ###############################
 
 
-    @make_request("server-root.http")
-    def test_1_healthy_server(self, req, res):
+    @make_request("get-root.http")
+    def test_0_healthy_server(self, req, res):
         """Test healthy server root"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         assert "date" in res["headers"], "Date header should be present"
 
 
-    @make_request("server-root.http")
-    def test_1_text_response(self, req, res):
+    @make_request("get-root.http")
+    def test_0_text_response(self, req, res):
         """Test server root returns a text response"""
         assert "content-type" in res["headers"], "Content-Type header should be present"
         assert res["headers"]["content-type"].startswith("text/"), f"Content-Type should start with 'text/', returned '{res['headers']['content-type']}'"
 
 
-    @make_request("server-root.http")
-    def test_1_http_version(self, req, res):
+    @make_request("get-root.http")
+    def test_0_http_version(self, req, res):
         """Test HTTP version"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
 
 
     @make_request("malformed-header.http")
-    def test_1_bad_request_header(self, req, res):
+    def test_0_bad_request_header(self, req, res):
         """Test whether the server recognizes malformed headers"""
         assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 
 
-    @make_request("server-root.http")
-    def test_2_1(self, req, res):
-        """Assignment 2, Test 1"""
-        assert False, "Placeholder test (not implemented yet!)"
+    @make_request("get-root.http")
+    def test_42_always_fail(self, req, res):
+        """A test that always fails"""
+        assert False, "A placeholder test, meant to always fail"
 
 
 ################################ END TEST CASES ################################

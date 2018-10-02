@@ -1,0 +1,4 @@
+GET <PATH> HTTP/1.1
+Host: <HOSTPORT>
+Connection: close
+
