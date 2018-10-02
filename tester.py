@@ -103,9 +103,11 @@ class HTTPTester():
         replacements = {
             "<HOST>": self.host,
             "<PORT>": str(self.port),
-            "<HOSTPORT>": self.hostport,
-            **kwargs
+            "<HOSTPORT>": self.hostport
         }
+        for k, v in kwargs.items():
+            replacements[f"<{k}>"] = v
+
         for placeholder, replacement in replacements.items():
             msg = msg.replace(placeholder.encode(), replacement.encode())
         return msg
