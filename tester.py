@@ -222,6 +222,152 @@ class HTTPTester():
         assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 
 
+    @make_request("get-url.http", PATH="/a1-test/")
+    def test_1_url_get_ok(self, req, res):
+        """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
+        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        assert res["status_text"] == "OK", f"HTTP status text expected 'OK', returned '{res['status_text']}'"
+
+
+    @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/")
+    def test_1_url_head_ok(self, req, res):
+        """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"Content-Type should start with 'text/html', returned '{ctype}'"
+
+
+    @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/")
+    def test_1_path_head_ok(self, req, res):
+        """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"Content-Type should start with 'text/html', returned '{ctype}'"
+
+
+    @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/")
+    def test_1_path_options_ok(self, req, res):
+        """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        assert "allow" in res["headers"], "Allow header should be present"
+
+
+    @make_request("get-path.http", PATH="/1/1.1/go%20hokies.html")
+    def test_1_get_missing(self, req, res):
+        """Test whether a non-existing path returns 404 on GET"""
+        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
+        assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
+        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
+
+
+    @make_request("get-path.http", PATH="/a1-test/a1-test/")
+    def test_1_get_duplicate_path_prefix(self, req, res):
+        """Test tight path prefix checking"""
+        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
+        assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
+        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
+
+
+    @make_request("unsupported-version.http", VERSION="HTTP/2.3")
+    def test_1_unsupported_version(self, req, res):
+        """Test whether a request with unsupported version returns 505"""
+        assert res["status_code"] == 505, f"Status expected '505', returned '{res['status_code']}'"
+
+
+    @make_request("unsupported-version.http", VERSION="HTTP/1.11")
+    def test_1_tight_unsupported_version_check(self, req, res):
+        """Test tight HTTP version checking to not match HTTP/1.11"""
+        assert res["status_code"] == 505, f"Status expected '505', returned '{res['status_code']}'"
+
+
+    @make_request("invalid-request.http")
+    def test_1_invalid_request(self, req, res):
+        """Test whether an invalid request returns 400"""
+        assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
+
+
+    @make_request("missing-host.http")
+    def test_1_missing_host_header(self, req, res):
+        """Test whether missing Host header in a request returns 400"""
+        assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
+
+
+    @make_request("method-path.http", METHOD="POST", PATH="/a1-test/")
+    def test_1_post_not_implemented(self, req, res):
+        """Test whether the assignment 1 returns 501 on POST"""
+        assert res["status_code"] == 501, f"Status expected '501', returned '{res['status_code']}'"
+
+
+    @make_request("method-path.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
+    def test_1_trace_echoback(self, req, res):
+        """Test whether the server echoes back the request on TRACE"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("message/http"), f"Content-Type should start with 'message/http', returned '{ctype}'"
+        assert res["payload"] and res["payload"].startswith(b"TRACE /a1-test/1/1.4/ HTTP/1.1"), f"Payload should start with 'TRACE /a1-test/1/1.4/ HTTP/1.1'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/1/1.4/test%3A.html")
+    def test_1_get_escaped_file_name(self, req, res):
+        """Test whether the escaped file name is respected"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        assert res["payload"] and b"lower case html" in res["payload"], f"Payload should contain 'lower case html'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/1/1.4/escape%25this.html")
+    def test_1_get_escape_escaping_character(self, req, res):
+        """Test whether the escaped escaping caracter in a file name is respected"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        assert res["payload"] and b"Go Monarchs!" in res["payload"], f"Payload should contain 'Go Monarchs!'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/2/0.jpeg")
+    def test_1_get_jpeg_image(self, req, res):
+        """Test whether a JPEG image returns 200 with proper Content-Length on GET"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        clength = res["headers"].get("content-length", "[ABSENT]")
+        assert clength == "38457", f"Content-Length expected '38457', returned '{clength}'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/2/0.JPEG")
+    def test_1_get_case_sensitive_file_extension(self, req, res):
+        """Test whether file extensions are treated case-sensitive"""
+        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
+        assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
+        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/4/thisfileisempty.txt")
+    def test_1_get_empty_file(self, req, res):
+        """Test whether an empty file returns zero bytes with 200 on GET"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        clength = res["headers"].get("content-length", "[ABSENT]")
+        assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
+    def test_1_get_filename_with_many_dots(self, req, res):
+        """Test whether file names with multiple dots return 200 on GET"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/xml"), f"Content-Type should start with 'text/xml', returned '{ctype}'"
+
+
+    @make_request("get-url.http", PATH="/a1-test/2/6.gif")
+    def test_1_get_magic_cookie_of_a_binary_file(self, req, res):
+        """Test whether a GIF file contains identifying magic cookie"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        assert res["payload"] and res["payload"].startswith(b"GIF89a"), f"Payload should contain 'GIF89a' magic cookie for GIF"
+
+
+    @make_request("get-url.http", PATH="/a1-test/4/directory3isemptyt")
+    def test_1_get_empty_directory(self, req, res):
+        """Test whether an empty directory returns a valid Content-Type"""
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert "/" in ctype, f"Content-Type should be of the form '.*/.*', returned '{ctype}'"
+
+
     @make_request("get-root.http")
     def test_42_always_fail(self, req, res):
         """A test that always fails"""
