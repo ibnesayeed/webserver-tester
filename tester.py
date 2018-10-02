@@ -201,18 +201,7 @@ class HTTPTester():
         """Test healthy server root"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         assert "date" in res["headers"], "Date header should be present"
-
-
-    @make_request("get-root.http")
-    def test_0_text_response(self, req, res):
-        """Test server root returns a text response"""
         assert "content-type" in res["headers"], "Content-Type header should be present"
-        assert res["headers"]["content-type"].startswith("text/"), f"Content-Type should start with 'text/', returned '{res['headers']['content-type']}'"
-
-
-    @make_request("get-root.http")
-    def test_0_http_version(self, req, res):
-        """Test HTTP version"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
 
 
