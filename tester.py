@@ -46,7 +46,7 @@ class HTTPTester():
                 self.test_buckets[m[1]][fname] = func
 
 
-    def netcat(self, msg_file):
+    def netcat(self, msg_file, **kwargs):
         req = {
             "raw": ""
         }
@@ -62,7 +62,7 @@ class HTTPTester():
         }
         errors = []
         with open(os.path.join(self.MSGDIR, msg_file), "rb") as f:
-            msg = self.replace_placeholders(f.read())
+            msg = self.replace_placeholders(f.read(), **kwargs)
             hdrs, sep, pld = self.split_http_message(msg)
             msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             req["raw"] = msg.decode()
@@ -99,11 +99,12 @@ class HTTPTester():
         return req, res, errors
 
 
-    def replace_placeholders(self, msg):
+    def replace_placeholders(self, msg, **kwargs):
         replacements = {
             "<HOST>": self.host,
             "<PORT>": str(self.port),
-            "<HOSTPORT>": self.hostport
+            "<HOSTPORT>": self.hostport,
+            **kwargs
         }
         for placeholder, replacement in replacements.items():
             msg = msg.replace(placeholder.encode(), replacement.encode())
@@ -171,7 +172,7 @@ class HTTPTester():
             yield func()
 
 
-    def make_request(msg_file):
+    def make_request(msg_file, **kwargs):
         """Test decorator generator that makes HTTP request using the msg_file.
         Makes the response available for assertions.
         Intended to be used as a decorator from within this class."""
@@ -179,7 +180,7 @@ class HTTPTester():
         def test_decorator(func):
             @functools.wraps(func)
             def wrapper(self):
-                req, res, errors = self.netcat(msg_file)
+                req, res, errors = self.netcat(msg_file, **kwargs)
                 try:
                     if not errors:
                         func(self, req, res)
