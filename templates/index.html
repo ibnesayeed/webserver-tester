@@ -179,6 +179,14 @@
       const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
 
+      const htmlEscapes = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+
       let testCases = [];
       let testResults = {};
 
@@ -274,9 +282,10 @@
         <pre><code>${r.req.raw}</code></pre>`;
         if (r.res.raw_headers) {
           let ctype = (r.res.headers["content-type"] || 'text/plain').replace(/\s/g, '');
+          let pld = r.res.payload_size ? ['text', 'message'].includes(ctype.split('/')[0]) ? atob(r.res.payload).replace(/[&<>"']/g, m => htmlEscapes[m]) : `[<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open ${ctype} payload (${r.res.payload_size} bytes)</a>]` : '';
           markup += `
-          <h4>Original Response${r.res.payload ? ` [<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open Payload</a>]` : ''}</h4>
-          <pre><code>${r.res.raw_headers}${r.res.payload_size ? `\r\n\r\n[Payload redacted (${r.res.payload_size} bytes)]` : ''}</code></pre>`;
+          <h4>Original Response</h4>
+          <pre><code>${r.res.raw_headers}\r\n\r\n${pld}</code></pre>`;
         }
         document.getElementById(`result-${r.id}`).innerHTML = markup;
       }
