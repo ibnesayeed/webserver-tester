@@ -170,7 +170,7 @@ class HTTPTester():
 
     def run_bucket_tests(self, bucket):
         if not self.test_buckets.get(bucket):
-            err = f"Test bucket {bucket} not implemented"
+            err = f"Assignment {bucket} not implemented"
             raise Exception(err)
         for fname, func in self.test_buckets[bucket].items():
             yield func()
@@ -380,12 +380,12 @@ if __name__ == "__main__":
     def print_help():
         print("")
         print("Usage:")
-        print("./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]")
+        print("./tester.py [[<host>]:[<port>] [<test-id>|<assignment-numbers>]]")
         print("")
-        print("<host>           : Hostname or IP address of the server to be tested (default: 'localhost')")
-        print("<port>           : Port number of the server to be tested (default: '80')")
-        print("<test-id>        : ID of an individual test function (e.g., 'test_1_healthy_server')")
-        print("<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)")
+        print("<host>               : Hostname or IP address of the server to be tested (default: 'localhost')")
+        print("<port>               : Port number of the server to be tested (default: '80')")
+        print("<test-id>            : ID of an individual test function (e.g., 'test_0_healthy_server')")
+        print("<assignment-numbers> : Comma separated list of assignment numbers (default: all assignments)")
         print("")
 
     def colorize(str, code=91):
@@ -401,7 +401,7 @@ if __name__ == "__main__":
         print()
         for bucket, tests in HTTPTester().test_buckets.items():
             for fname, func in tests.items():
-                print(f"[Bucket {bucket}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
+                print(f"[Assignment {bucket}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
         print(f"For help run: {colorize('./tester.py -h')}")
         print()

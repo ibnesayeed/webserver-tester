@@ -13,12 +13,12 @@ $ pip install -r requirements.txt
 $ ./tester.py -h
 
 Usage:
-./tester.py [[<host>]:[<port>] [<test-id>|<bucket-numbers>]]
+./tester.py [[<host>]:[<port>] [<test-id>|<assignment-numbers>]]
 
-<host>           : Hostname or IP address of the server to be tested (e.g., 'localhost')
-<port>           : Port number of the server to be tested (default: '80')
-<test-id>        : ID of an individual test function (e.g., 'test_1_healthy_server')
-<bucket-numbers> : Comma separated list of bucket numbers (default: all buckets)
+<host>               : Hostname or IP address of the server to be tested (e.g., 'localhost')
+<port>               : Port number of the server to be tested (default: '80')
+<test-id>            : ID of an individual test function (e.g., 'test_1_healthy_server')
+<assignment-numbers> : Comma separated list of assignment numbers (default: all assignments)
 ```
 
 Alternatively, build a Docker image from the source to ensure all the dependencies are available and run tester script inside.
@@ -66,10 +66,10 @@ To run a specific test:
 $ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<test-id>
 ```
 
-To run all tests in a bucket:
+To run all tests in an assignment:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<bucket-number>
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<assignment-number>
 ```
 
 To run all tests:
@@ -84,7 +84,7 @@ To add more test cases, first create an issue describing the test scenario. To a
 
 Adding a test case is quite simple. First, check the `messages` director to see if any existing HTTP Request messages are suitable for your scenario. If not, then create a new Request message file and name it appropriately. You can use `<HOST>`, `<PORT>`, and `<HOSTPORT>` placeholders that will be replaced with the corresponding values of the server being tested. The latter is a combination of the other two in the form of `<HOST>:<PORT>`, but it does not include the port number if it is the default `80`.
 
-In the `tester.py` file locate where existing test cases are present, then define a new method using the `test_<bucket-number>_<descriptive_name>` naming convention. Add a sentence or two to describe the test in the form of doc string. Add the `@make_request(<request-message-file.http>)` decorator above your method. This will perform the request, parse the response, and execute your test conditions if no connection or syntactic errors are found. Your test method will receive the request and response object. They contain various raw and parsed attributes to perform your test assertions on.
+In the `tester.py` file locate where existing test cases are present, then define a new method using the `test_<assignment-number>_<descriptive_name>` naming convention. Add a sentence or two to describe the test in the form of doc string. Add the `@make_request(<request-message-file.http>)` decorator above your method. This will perform the request, parse the response, and execute your test conditions if no connection or syntactic errors are found. Your test method will receive the request and response object. They contain various raw and parsed attributes to perform your test assertions on.
 
 ```py
 req = {
@@ -115,7 +115,7 @@ Then add a test case as following:
 
 ```py
 @make_request("malformed-header.http")
-def test_1_bad_request_header(self, req, res):
+def test_0_bad_request_header(self, req, res):
     """Test whether the server recognizes malformed headers"""
     assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 ```

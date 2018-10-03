@@ -156,7 +156,7 @@ def run_tests(hostport, bucket):
         return Response(f"{e}", status=400)
     bucket = str(bucket)
     if bucket and bucket not in t.test_buckets.keys():
-        return Response(f"Test bucket {bucket} not implemented", status=404)
+        return Response(f"Assignment {bucket} not implemented", status=404)
     buckets = [bucket] if bucket else t.test_buckets.keys()
 
     def generate():

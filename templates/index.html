@@ -155,7 +155,7 @@
         <select id="bucket-selector">
           <option value="">All Test Cases</option>
           {%- for bucket in test_buckets %}
-          <option value="{{ bucket }}">Bucket {{ bucket }}</option>
+          <option value="{{ bucket }}">Assignment {{ bucket }}</option>
           {%- endfor %}
         </select>
         <button id="run-batch-tests">Run Tests</button>
@@ -288,7 +288,7 @@
         testResults = {};
         if (hostport) {
           activateFavicon();
-          msg = `Testing server ${hostport} with all test cases${bucket ? ' of Bucket ' + bucket : ''}...`;
+          msg = `Testing server ${hostport} with all test cases${bucket ? ' of Assignment ' + bucket : ''}...`;
           let selector = bucket ? `.bucket-${bucket}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
             box.classList.remove('FAILED', 'PASSED');
