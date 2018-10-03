@@ -319,7 +319,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "38457", f"Content-Length expected '38457', returned '{clength}'"
-        assert res["payload"] and res["payload_size"] == 38457, f"Payload length expected 38457 bytes, returned '{res["payload_size"]}'"
+        assert res["payload"] and res["payload_size"] == 38457, f"Payload length expected 38457 bytes, returned '{res['payload_size']}'"
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.JPEG")
@@ -336,7 +336,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
-        assert not res["payload"], f"Payload length expected zero bytes, returned '{res["payload_size"]}'"
+        assert not res["payload"], f"Payload length expected zero bytes, returned '{res['payload_size']}'"
 
 
     @make_request("get-url.http", PATH="/a1-test/4/directory3isemptyt")
@@ -345,7 +345,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
-        assert not res["payload"], f"Payload length expected zero bytes, returned '{res["payload_size"]}'"
+        assert not res["payload"], f"Payload length expected zero bytes, returned '{res['payload_size']}'"
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert "/" in ctype, f"Content-Type should be of the form '.*/.*', returned '{ctype}'"
 
