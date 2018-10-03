@@ -54,6 +54,12 @@ To deploy your instance:
 $ curl -i http://cs531.cs.odu.edu/servers/<cs-id>
 ```
 
+To deploy your instance with a specific code version:
+
+```
+$ curl -i http://cs531.cs.odu.edu/servers/<cs-id>/<git-ref>
+```
+
 To list available tests:
 
 ```

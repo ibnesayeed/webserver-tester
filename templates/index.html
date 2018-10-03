@@ -77,8 +77,11 @@
       }
       .text-input {
         padding: 4px;
-        width: 300px;
+        width: 180px;
         margin-bottom: 4px;
+      }
+      #hostport {
+        width: 235px;
       }
       select {
         padding: 4px;
@@ -144,6 +147,13 @@
           <option value="{{ sid }}">
           {%- endfor %}
         </datalist>
+        <input id="gitref" class="text-input" value="" list="gitrefs" placeholder="Version">
+        <datalist id="gitrefs">
+          <option value="master">Latest</option>
+          {%- for bucket in test_buckets %}
+          <option value="a{{ bucket }}">Assignment {{ bucket }}</option>
+          {%- endfor %}
+        </datalist>
         <button id="deploy-server">Deploy the Web Server</button>
         <div class="results" id="deployment-results"></div>
       </section>
@@ -151,7 +161,7 @@
 
       <section class="testing box">
         <h2>Test a Web Server</h2>
-        <input id="hostport" class="text-input" value="" placeholder="<host>[:<port>]">
+        <input id="hostport" class="text-input" value="" placeholder="<HOST>[:<PORT>]">
         <select id="bucket-selector">
           <option value="">All Test Cases</option>
           {%- for bucket in test_buckets %}
@@ -172,6 +182,7 @@
       const testCaseContainer = document.getElementById('testcases');
       const bucketSelector = document.getElementById('bucket-selector');
       const csidInp = document.getElementById('csid');
+      const gitRefInp = document.getElementById('gitref');
       const hostportInp = document.getElementById('hostport');
       const deployerBtn = document.getElementById('deploy-server');
       const deployerResDiv = document.getElementById('deployment-results');
@@ -228,10 +239,11 @@
 
       function deployServer() {
         let csid = csidInp.value;
+        let gitref = gitRefInp.value;
         let state = msg = '';
         if (csid) {
-          msg = `Deploying server for ${csid}...`;
-          fetch(`/servers/${csid}`).then(r => {
+          msg = `Deploying server for ${csid}${gitref ? ` with code version ${gitref}` : ''}...`;
+          fetch(`/servers/${csid}/${gitref}`).then(r => {
             state = r.ok ? 'success' : 'failure';
             return r.text();
           }).then(text => {

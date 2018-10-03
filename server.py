@@ -86,8 +86,9 @@ def home():
     return render_template("index.html", test_buckets=bucket_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
 
 
-@app.route("/servers/<csid>")
-def deploy_server(csid):
+@app.route("/servers/<csid>", strict_slashes=False, defaults={"gitref": ""})
+@app.route("/servers/<csid>/<gitref>")
+def deploy_server(csid, gitref):
     repo = get_student_repo(csid.strip())
     repo_url = get_authorized_repo_url(repo)
     if repo_url is None:
@@ -96,6 +97,11 @@ def deploy_server(csid):
     imgname = "cs531/" + csid
     contname = "cs531-" + csid
     msgs = []
+
+    if gitref:
+        repo_url += f"#{gitref}"
+
+    print(repo_url)
 
     try:
         print(f"Building image {imgname}")
