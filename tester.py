@@ -213,7 +213,7 @@ class HTTPTester():
         assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 
 
-    @make_request("get-url.http", PATH="/a1-test/")
+    @make_request("get-url.http", PATH="/a1-test/2/index.html")
     def test_1_url_get_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
@@ -221,7 +221,7 @@ class HTTPTester():
         assert res["status_text"] == "OK", f"HTTP status text expected 'OK', returned '{res['status_text']}'"
 
 
-    @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/")
+    @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
     def test_1_url_head_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
@@ -229,7 +229,7 @@ class HTTPTester():
         assert ctype.startswith("text/html"), f"Content-Type should start with 'text/html', returned '{ctype}'"
 
 
-    @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/")
+    @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
     def test_1_path_head_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
@@ -237,7 +237,7 @@ class HTTPTester():
         assert ctype.startswith("text/html"), f"Content-Type should start with 'text/html', returned '{ctype}'"
 
 
-    @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/")
+    @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/2/index.html")
     def test_1_path_options_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
