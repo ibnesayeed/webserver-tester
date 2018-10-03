@@ -368,9 +368,9 @@ class HTTPTester():
 
 
     @make_request("get-root.http")
-    def test_42_always_fail(self, req, res):
-        """A test that always fails"""
-        assert False, "A placeholder test, meant to always fail"
+    def test_42_the_untimate_question(self, req, res):
+        """Answer to the Ultimate Question of Life, the Universe, and Everything"""
+        assert False, "A placeholder test, meant to always fail!"
 
 
 ################################ END TEST CASES ################################
