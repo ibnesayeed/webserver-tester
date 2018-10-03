@@ -331,9 +331,11 @@ class HTTPTester():
 
 
     @make_request("get-url.http", PATH="/a1-test/4/thisfileisempty.txt")
-    def test_1_get_empty_file(self, req, res):
+    def test_1_get_empty_text_file(self, req, res):
         """Test whether an empty file returns zero bytes with 200 on GET"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/plain"), f"Content-Type should start with 'text/plain', returned '{ctype}'"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
         assert not res["payload"], f"Payload length expected zero bytes, returned '{res['payload_size']}'"
@@ -343,11 +345,11 @@ class HTTPTester():
     def test_1_get_empty_directory(self, req, res):
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("application/octet-stream"), f"Content-Type should start with 'application/octet-stream', returned '{ctype}'"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
         assert not res["payload"], f"Payload length expected zero bytes, returned '{res['payload_size']}'"
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert "/" in ctype, f"Content-Type should be of the form '.*/.*', returned '{ctype}'"
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
