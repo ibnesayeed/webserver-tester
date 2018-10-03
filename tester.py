@@ -341,7 +341,7 @@ class HTTPTester():
         assert not res["payload"], f"Payload length expected zero bytes, returned '{res['payload_size']}'"
 
 
-    @make_request("get-url.http", PATH="/a1-test/4/directory3isemptyt")
+    @make_request("get-url.http", PATH="/a1-test/4/directory3isempty")
     def test_1_get_empty_directory(self, req, res):
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
