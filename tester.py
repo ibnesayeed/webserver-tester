@@ -337,6 +337,16 @@ class HTTPTester():
         assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
 
 
+    @make_request("get-url.http", PATH="/a1-test/4/directory3isemptyt")
+    def test_1_get_empty_directory(self, req, res):
+        """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
+        assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
+        clength = res["headers"].get("content-length", "[ABSENT]")
+        assert clength == "0", f"Content-Length expected '0', returned '{clength}'"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert "/" in ctype, f"Content-Type should be of the form '.*/.*', returned '{ctype}'"
+
+
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
     def test_1_get_filename_with_many_dots(self, req, res):
         """Test whether file names with multiple dots return 200 on GET"""
@@ -350,13 +360,6 @@ class HTTPTester():
         """Test whether a GIF file contains identifying magic cookie"""
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
         assert res["payload"] and res["payload"].startswith(b"GIF89a"), f"Payload should contain 'GIF89a' magic cookie for GIF"
-
-
-    @make_request("get-url.http", PATH="/a1-test/4/directory3isemptyt")
-    def test_1_get_empty_directory(self, req, res):
-        """Test whether an empty directory returns a valid Content-Type"""
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert "/" in ctype, f"Content-Type should be of the form '.*/.*', returned '{ctype}'"
 
 
     @make_request("get-root.http")
