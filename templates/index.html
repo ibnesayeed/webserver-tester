@@ -169,8 +169,6 @@
     <footer><a href="https://github.com/ibnesayeed/webserver-tester">WebServer Tester</a> by <a href="https://twitter.com/ibnesayeed">Sawood Alam</a></footer>
 
     <script type="text/javascript">
-      const testCases = {{ test_cases|safe }};
-
       const testCaseContainer = document.getElementById('testcases');
       const bucketSelector = document.getElementById('bucket-selector');
       const csidInp = document.getElementById('csid');
@@ -181,7 +179,12 @@
       const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
 
+      let testCases = [];
       let testResults = {};
+
+      function ShowResMsg(target, msg, state) {
+        target.innerHTML = `<p class="${state}">${msg}</p>`;
+      }
 
       function renderTestCases() {
         let markup = testCases.map(tc => `
@@ -195,7 +198,17 @@
         </section>`).join('');
         testCaseContainer.innerHTML = markup;
       }
-      renderTestCases();
+
+      ShowResMsg(testCaseContainer, 'Loading test cases...', '');
+      fetch('/tests/').then(r => {
+        return r.json();
+      }).then(j => {
+        testCases = j;
+        renderTestCases();
+      }).catch(e => {
+        console.log(e);
+        ShowResMsg(testCaseContainer, 'Failed to load test cases!', 'failure');
+      });
 
       function showBucketTestCases() {
         let bucket = bucketSelector.value;
@@ -204,10 +217,6 @@
         });
       }
       bucketSelector.onchange = showBucketTestCases;
-
-      function ShowResMsg(target, msg, state) {
-        target.innerHTML = `<p class="${state}">${msg}</p>`;
-      }
 
       function deployServer() {
         let csid = csidInp.value;
@@ -335,7 +344,7 @@
             }).finally(resetFavicon);
           } else {
             state = 'failure';
-            msg = 'Provide a valid host and port combination above (e.g., localhost:80)';
+            msg = 'Provide a valid host and port combination above (e.g., localhost:5000)';
           }
           ShowResMsg(testResDiv, msg, state);
         }
