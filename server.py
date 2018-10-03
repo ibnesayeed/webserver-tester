@@ -101,12 +101,10 @@ def deploy_server(csid, gitref):
     if gitref:
         repo_url += f"#{gitref}"
 
-    print(repo_url)
-
     try:
         print(f"Building image {imgname}")
         client.images.build(path=repo_url, tag=imgname)
-        msgs.append(f"Image {imgname} built from the latest code of the {repo} repo.")
+        msgs.append(f"Image {imgname} built from the {gitref if gitref else 'latest'} version of the {repo} repo.")
     except Exception as e:
         return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)
 
