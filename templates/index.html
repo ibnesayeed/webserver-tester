@@ -282,9 +282,9 @@
         <pre><code>${r.req.raw}</code></pre>`;
         if (r.res.raw_headers) {
           let ctype = (r.res.headers["content-type"] || 'text/plain').replace(/\s/g, '');
-          let pld = r.res.payload_size ? ['text', 'message'].includes(ctype.split('/')[0]) ? atob(r.res.payload).replace(/[&<>"']/g, m => htmlEscapes[m]) : `[<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open ${ctype} payload (${r.res.payload_size} bytes)</a>]` : '';
+          let pld = r.res.payload_size ? ['text', 'message'].includes(ctype.split('/')[0]) ? atob(r.res.payload).replace(/[&<>"']/g, m => htmlEscapes[m]) : `[<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Open ${ctype} payload</a>]` : '';
           markup += `
-          <h4>Original Response</h4>
+          <h4>Original Response <span class="description">(Payload: ${r.res.payload_size} bytes, Connection: ${r.res.connection})</span></h4>
           <pre><code>${r.res.raw_headers}\r\n\r\n${pld}</code></pre>`;
         }
         document.getElementById(`result-${r.id}`).innerHTML = markup;
