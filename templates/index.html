@@ -200,6 +200,7 @@
 
       let testCases = [];
       let testResults = {};
+      let activeTests = activeFaviconIdx = faviconIdxBase = 0;
 
       function ShowResMsg(target, msg, state) {
         target.innerHTML = `<p class="${state}">${msg}</p>`;
@@ -242,6 +243,8 @@
         let gitref = gitRefInp.value;
         let state = msg = '';
         if (csid) {
+          resetTests();
+          activateFavicon(0);
           msg = `Deploying server for ${csid}${gitref ? ` with code version ${gitref}` : ''}...`;
           fetch(`/servers/${csid}/${gitref}`).then(r => {
             state = r.ok ? 'success' : 'failure';
@@ -251,13 +254,13 @@
             m = msg.match(/the service ([\w\-]+) is deployed successfully/);
             if (m) {
               hostportInp.value = m[1];
-              resetTests();
             }
           }).catch(e => {
             state = 'failure';
             msg = e;
           }).finally(() => {
             ShowResMsg(deployerResDiv, msg, state);
+            resetFavicon();
           });
         } else {
           state = 'failure';
@@ -268,6 +271,9 @@
       deployerBtn.onclick = deployServer;
 
       function showTestSummary(hostport) {
+        if (!activeTests) {
+          return;
+        }
         var counts = Object.values(testResults).reduce((c, r) => {c[r]++; return c;}, {'PASSED': 0, 'FAILED': 0})
         let markup = `
         <h4>Server: <span class="description">${hostport}</span></h4>
@@ -283,6 +289,9 @@
       }
 
       function showTestResult(result) {
+        if (!activeTests) {
+          return;
+        }
         let r = JSON.parse(result);
         let err = r.errors.map(e => `<li>${e}</li>`).join('')
         let state = err ? 'FAILED' : 'PASSED';
@@ -308,7 +317,7 @@
         let state = msg = '';
         testResults = {};
         if (hostport) {
-          activateFavicon();
+          activateFavicon(2);
           msg = `Testing server ${hostport} with all test cases${bucket ? ' of Assignment ' + bucket : ''}...`;
           let selector = bucket ? `.bucket-${bucket}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
@@ -347,7 +356,7 @@
           let hostport = hostportInp.value;
           let state = msg = '';
           if (hostport) {
-            activateFavicon();
+            activateFavicon(2);
             msg = `Running this test against the server ${hostport}...`;
             box.classList.remove('FAILED', 'PASSED');
             fetch(`/tests/${hostport}/${testId}`).then(r => {
@@ -373,6 +382,7 @@
       testCaseContainer.onclick = runSingleTest;
 
       function resetTests() {
+        activeTests = 0;
         testResults = {};
         testSummaryDiv.innerHTML = '';
         renderTestCases();
@@ -382,27 +392,32 @@
 
       const faviconlink = document.querySelector('link[rel="icon"]');
       const favicons = [
+        "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAADUgwAAAAAAAE9T2QA5hDkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERERERERERERERERESIiIREREREREiIiERERERERERERERERESIiIREREREREiIiERERERERERERERERERERERERARERERERERAAERERERERAAABETMzMRAAEAAREzMzAAERAAEREREAEREQATMzMQEREREBEzMzERERERERERH//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA//8AAPf/AADj/wAAwcEAAIjgAAAcfwAAPkEAAH9gAAD//wAA",
+        "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAADUgwAAAAAAAE9T2QA5hDkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEREREREREREREQERESIiIREQABEREiIiEQAAAREREREQABAAESIiIQABEQABEiIiABEREAEREREBERERARERERERERERERERERERERERERERERERETMzMREREREREzMzERERERERERERERERETMzMREREREREzMzERERERERERH//wAA98EAAOPgAADB/wAAiMEAABxgAAA+fwAAf38AAP//AAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA",
         "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIiIAAAAAAAAiIiAAAAAAAAAAAAAAAAACIiIAAAAAAAAiIiAAAAAAAAAAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA//8AAP//AAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA",
         "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAABEREAAAAAAAARERAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIAAAAAAAACIiAAACIiICICIgAAAiIiIAAiIAAAAAAAAAIiACIiIAAAACIgAiIiAAAAAiIAAAD//wAA/8EAAP/gAAD//wAA/8EAAP/gAAD//wAA//8AAP//AADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA",
         "data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAT1PZADmEOQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEAAAAAAAABERAAABEREBEBEQAAAREREAAREAAAAAAAAAERABEREAAAABEQARERAAAAAREAAAAAAAAAAAAAAAAAAAAAAAAAACIAAAAAAAACIiAAACIiICICIgAAAiIiIAAiIAAAAAAAAAIiACIiIAAAACIgAiIiAAAAAiIAAADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA//8AAP//AADP/wAAh8EAACPgAABx/wAA+MEAAPxgAAD+PwAA"
       ];
-      let activeFaviconIdx = 0;
       function changeFavicon() {
-        faviconlink.href = favicons[activeFaviconIdx];
-        activeFaviconIdx = (activeFaviconIdx + 1) % favicons.length;
+        faviconlink.href = favicons[faviconIdxBase + activeFaviconIdx];
+        activeFaviconIdx = (activeFaviconIdx + 1) % 3;
       }
-      let activeTests = 0;
       let iconLoop;
-      function activateFavicon() {
-        ++activeTests;
+      function activateFavicon(base) {
+        faviconIdxBase = base;
+        if (base) {
+          ++activeTests;
+        }
         clearInterval(iconLoop);
         iconLoop = setInterval(changeFavicon, 500);
       }
       function resetFavicon() {
         if (--activeTests <= 0) {
           clearInterval(iconLoop);
+          faviconIdxBase = 0;
           activeFaviconIdx = favicons.length - 1;
           changeFavicon();
+          activeTests = 0;
         }
       }
     </script>
