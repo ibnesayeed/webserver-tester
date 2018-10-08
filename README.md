@@ -17,7 +17,7 @@ Usage:
 
 <host>               : Hostname or IP address of the server to be tested (e.g., 'localhost')
 <port>               : Port number of the server to be tested (default: '80')
-<test-id>            : ID of an individual test function (e.g., 'test_1_healthy_server')
+<test-id>            : ID of an individual test function (e.g., 'test_0_healthy_server')
 <assignment-numbers> : Comma separated list of assignment numbers (default: all assignments)
 ```
 
