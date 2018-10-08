@@ -310,7 +310,7 @@
         testResults[r.id] = state;
         document.getElementById(`box-${r.id}`).classList.add(state);
         let markup = `
-        ${err ? `<h4>Failures</h4><ul class="failure reason">${err}</ul>` : ''}
+        ${err ? `<h4>Failures</h4><ul class="failure reason">${err.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</ul>` : ''}
         <h4>Original Request</h4>
         <pre><code>${r.req.raw}</code></pre>`;
         if (r.res.raw_headers) {
