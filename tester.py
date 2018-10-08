@@ -226,6 +226,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
@@ -234,6 +235,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/2/index.html")
