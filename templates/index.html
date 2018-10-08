@@ -155,6 +155,8 @@
           {%- endfor %}
         </datalist>
         <button id="deploy-server">Deploy the Web Server</button>
+        <input type="checkbox" id="rebuild" value="force" checked>
+        <label for="rebuild">Force rebuild</label>
         <div class="results" id="deployment-results"></div>
       </section>
       {%- endif %}
@@ -185,6 +187,7 @@
       const gitRefInp = document.getElementById('gitref');
       const hostportInp = document.getElementById('hostport');
       const deployerBtn = document.getElementById('deploy-server');
+      const rebuildCheck = document.getElementById('rebuild');
       const deployerResDiv = document.getElementById('deployment-results');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
       const testResetterBtn = document.getElementById('test-resetter');
@@ -246,7 +249,7 @@
           resetTests();
           activateFavicon(0);
           msg = `Deploying server for ${csid}${gitref ? ` with code version ${gitref}` : ''}...`;
-          fetch(`/servers/${csid}/${gitref}`).then(r => {
+          fetch(`/servers/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
             state = r.ok ? 'success' : 'failure';
             return r.text();
           }).then(text => {

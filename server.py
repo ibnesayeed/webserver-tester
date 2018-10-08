@@ -101,12 +101,23 @@ def deploy_server(csid, gitref):
         imgname += f":{gitref}"
         repo_url += f"#{gitref}"
 
-    try:
-        print(f"Building image {imgname}")
-        client.images.build(path=repo_url, tag=imgname)
-        msgs.append(f"Image {imgname} built from the {gitref if gitref else 'latest'} version of the {repo} repo.")
-    except Exception as e:
-        return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)
+    buildimg = True
+    if request.args.get("rebuild") == "skip":
+        try:
+            client.images.get(imgname)
+            buildimg = False
+        except Exception as e:
+            msgs.append(f"Image {imgname} is not present.")
+
+    if buildimg:
+        try:
+            print(f"Building image {imgname}")
+            client.images.build(path=repo_url, tag=imgname)
+            msgs.append(f"Image {imgname} built from the {gitref if gitref else 'latest'} version of the {repo} repo.")
+        except Exception as e:
+            return Response(f"Building image {imgname} from the {repo} repo failed, ensure that the repo is accessible and contains a valid Dockerfile. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)
+    else:
+        msgs.append(f"Reusing existing image {imgname} to redeploy the service.")
 
     try:
         print(f"Removing existing container {contname}")
