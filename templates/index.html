@@ -114,6 +114,14 @@
       .FAILED h3 {
         background-color: #d9534f;
       }
+      i.highlight {
+        background-color: #ffc;
+        border: 1px dotted;
+        border-radius: 4px;
+        padding: 0 2px;
+        font-style: italic;
+        white-space: nowrap;
+      }
       .box pre {
         overflow: auto;
         background: #ccc;
@@ -206,7 +214,7 @@
       let activeTests = activeFaviconIdx = faviconIdxBase = 0;
 
       function ShowResMsg(target, msg, state) {
-        target.innerHTML = `<p class="${state}">${msg}</p>`;
+        target.innerHTML = `<p class="${state}">${msg.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</p>`;
       }
 
       function renderTestCases() {
@@ -248,13 +256,13 @@
         if (csid) {
           resetTests();
           activateFavicon(0);
-          msg = `Deploying server for ${csid}${gitref ? ` with code version ${gitref}` : ''}...`;
+          msg = `Deploying server for \`${csid}\`${gitref ? ` with code branch/tag \`${gitref}\`` : ''}...`;
           fetch(`/servers/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
             state = r.ok ? 'success' : 'failure';
             return r.text();
           }).then(text => {
             msg = text;
-            m = msg.match(/the service ([\w\-]+) is deployed successfully/);
+            m = msg.match(/the service `([\w\-]+)` is deployed successfully/);
             if (m) {
               hostportInp.value = m[1];
             }
@@ -267,7 +275,7 @@
           });
         } else {
           state = 'failure';
-          msg = 'Enter a valid CS-ID (e.g., mln)';
+          msg = 'Enter a valid CS-ID (e.g., `mln`)';
         }
         ShowResMsg(deployerResDiv, msg, state);
       }
@@ -325,7 +333,7 @@
           let selector = batch ? `.batch-${batch}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
             box.classList.remove('FAILED', 'PASSED');
-            ShowResMsg(box.querySelector('.results'), `Running this test against the server ${hostport}...`, '');
+            ShowResMsg(box.querySelector('.results'), `Running this test against the server \`${hostport}\`...`, '');
           });
           fetch(`/tests/${hostport}/${batch}`).then(r => {
             state = r.ok ? '' : 'failure';
@@ -345,7 +353,7 @@
           }).finally(resetFavicon);
         } else {
           state = 'failure';
-          msg = 'Enter a valid host and port combination (e.g., localhost:5000)';
+          msg = 'Enter a valid host and port combination (e.g., `localhost:5000`)';
         }
         ShowResMsg(testSummaryDiv, msg, state);
       }
@@ -360,7 +368,7 @@
           let state = msg = '';
           if (hostport) {
             activateFavicon(2);
-            msg = `Running this test against the server ${hostport}...`;
+            msg = `Running this test against the server \`${hostport}\`...`;
             box.classList.remove('FAILED', 'PASSED');
             fetch(`/tests/${hostport}/${testId}`).then(r => {
               state = r.ok ? '' : 'failure';
@@ -377,7 +385,7 @@
             }).finally(resetFavicon);
           } else {
             state = 'failure';
-            msg = 'Provide a valid host and port combination above (e.g., localhost:5000)';
+            msg = 'Provide a valid host and port combination above (e.g., `localhost:5000`)';
           }
           ShowResMsg(testResDiv, msg, state);
         }
