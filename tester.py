@@ -38,14 +38,14 @@ class HTTPTester():
                 raise ValueError(f"Invalid port number supplied: '{parts[1]}'")
         self.hostport = self.host if self.port == 80 else f"{self.host}:{self.port}"
 
-        # Create buckets of test methods in their defined order
-        self.test_buckets = collections.defaultdict(dict)
+        # Create batches of test methods in their defined order
+        self.test_batches = collections.defaultdict(dict)
         tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if self.TFPATTERN.match(f[0])]
         for tf in tfuncs:
             tf[1].__func__.__orig_lineno__ = tf[1].__wrapped__.__code__.co_firstlineno if hasattr(tf[1], "__wrapped__") else tf[1].__code__.co_firstlineno
         for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
             m = self.TFPATTERN.match(fname)
-            self.test_buckets[m[1]][fname] = func
+            self.test_batches[m[1]][fname] = func
 
 
     def netcat(self, msg_file, **kwargs):
@@ -162,17 +162,17 @@ class HTTPTester():
         m = self.TFPATTERN.match(test_id)
         if m:
             try:
-                return self.test_buckets[m[1]][test_id]()
+                return self.test_batches[m[1]][test_id]()
             except KeyError as e:
                 err = f"Test {test_id} not implemented"
         raise Exception(err)
 
 
-    def run_bucket_tests(self, bucket):
-        if not self.test_buckets.get(bucket):
-            err = f"Assignment {bucket} not implemented"
+    def run_batch_tests(self, batch):
+        if not self.test_batches.get(batch):
+            err = f"Assignment {batch} not implemented"
             raise Exception(err)
-        for fname, func in self.test_buckets[bucket].items():
+        for fname, func in self.test_batches[batch].items():
             yield func()
 
 
@@ -399,9 +399,9 @@ if __name__ == "__main__":
         print()
         print("Following test cases are available:")
         print()
-        for bucket, tests in HTTPTester().test_buckets.items():
+        for batch, tests in HTTPTester().test_batches.items():
             for fname, func in tests.items():
-                print(f"[Assignment {bucket}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
+                print(f"[Assignment {batch}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
         print(f"For help run: {colorize('./tester.py -h')}")
         print()
@@ -415,13 +415,13 @@ if __name__ == "__main__":
         sys.exit(1)
     hostport = f"{t.host}:{t.port}"
 
-    buckets = list(t.test_buckets.keys())
+    batches = list(t.test_batches.keys())
     test_id = None
     if len(sys.argv) > 2:
         if t.TFPATTERN.match(sys.argv[2]):
             test_id = sys.argv[2]
         if re.match("^[\d,]+$", sys.argv[2]):
-            buckets = sys.argv[2].split(",")
+            batches = sys.argv[2].split(",")
 
     def print_result(result):
         print("-" * 79)
@@ -460,8 +460,8 @@ if __name__ == "__main__":
             print_result(result)
         else:
             test_results = {}
-            for bucket in buckets:
-                for result in t.run_bucket_tests(bucket):
+            for batch in batches:
+                for result in t.run_batch_tests(batch):
                     test_results[result["id"]] = "FAILED" if result["errors"] else "PASSED"
                     print_result(result)
             print_summary(hostport, test_results)

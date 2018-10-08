@@ -150,8 +150,8 @@
         <input id="gitref" class="text-input" value="" list="gitrefs" placeholder="Version">
         <datalist id="gitrefs">
           <option value="master">Latest</option>
-          {%- for bucket in test_buckets %}
-          <option value="a{{ bucket }}">Assignment {{ bucket }}</option>
+          {%- for batch in test_batches %}
+          <option value="a{{ batch }}">Assignment {{ batch }}</option>
           {%- endfor %}
         </datalist>
         <button id="deploy-server">Deploy the Web Server</button>
@@ -162,10 +162,10 @@
       <section class="testing box">
         <h2>Test a Web Server</h2>
         <input id="hostport" class="text-input" value="" placeholder="<HOST>[:<PORT>]">
-        <select id="bucket-selector">
+        <select id="batch-selector">
           <option value="">All Test Cases</option>
-          {%- for bucket in test_buckets %}
-          <option value="{{ bucket }}">Assignment {{ bucket }}</option>
+          {%- for batch in test_batches %}
+          <option value="{{ batch }}">Assignment {{ batch }}</option>
           {%- endfor %}
         </select>
         <button id="run-batch-tests">Run Tests</button>
@@ -180,7 +180,7 @@
 
     <script type="text/javascript">
       const testCaseContainer = document.getElementById('testcases');
-      const bucketSelector = document.getElementById('bucket-selector');
+      const batchSelector = document.getElementById('batch-selector');
       const csidInp = document.getElementById('csid');
       const gitRefInp = document.getElementById('gitref');
       const hostportInp = document.getElementById('hostport');
@@ -208,7 +208,7 @@
 
       function renderTestCases() {
         let markup = testCases.map(tc => `
-        <section class="testcase box bucket-${tc.bucket}" id="box-${tc.id}">
+        <section class="testcase box batch-${tc.batch}" id="box-${tc.id}">
           <h3>
             <button class="run-single-test" value="${tc.id}" id="run-${tc.id}">Run This Test</button>
             <span>${tc.id}</span>
@@ -230,13 +230,13 @@
         ShowResMsg(testCaseContainer, 'Failed to load test cases!', 'failure');
       });
 
-      function showBucketTestCases() {
-        let bucket = bucketSelector.value;
+      function showBatchTestCases() {
+        let batch = batchSelector.value;
         Array.from(testCaseContainer.querySelectorAll('.testcase')).forEach(box => {
-          box.classList.toggle('hidden', bucket && !box.classList.contains('bucket-' + bucket));
+          box.classList.toggle('hidden', batch && !box.classList.contains('batch-' + batch));
         });
       }
-      bucketSelector.onchange = showBucketTestCases;
+      batchSelector.onchange = showBatchTestCases;
 
       function deployServer() {
         let csid = csidInp.value;
@@ -312,19 +312,19 @@
       }
 
       function runTestBatch() {
-        let bucket = bucketSelector.value;
+        let batch = batchSelector.value;
         let hostport = hostportInp.value;
         let state = msg = '';
         testResults = {};
         if (hostport) {
           activateFavicon(2);
-          msg = `Testing server ${hostport} with all test cases${bucket ? ' of Assignment ' + bucket : ''}...`;
-          let selector = bucket ? `.bucket-${bucket}` : '.testcase';
+          msg = `Testing server ${hostport} with all test cases${batch ? ' of Assignment ' + batch : ''}...`;
+          let selector = batch ? `.batch-${batch}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
             box.classList.remove('FAILED', 'PASSED');
             ShowResMsg(box.querySelector('.results'), `Running this test against the server ${hostport}...`, '');
           });
-          fetch(`/tests/${hostport}/${bucket}`).then(r => {
+          fetch(`/tests/${hostport}/${batch}`).then(r => {
             state = r.ok ? '' : 'failure';
             return r.text();
           }).then(text => {
@@ -386,7 +386,7 @@
         testResults = {};
         testSummaryDiv.innerHTML = '';
         renderTestCases();
-        showBucketTestCases();
+        showBatchTestCases();
       }
       testResetterBtn.onclick = resetTests;
 

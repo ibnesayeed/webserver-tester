@@ -32,16 +32,16 @@ except Exception as e:
     print("Docker daemon is not reachable, disabling deployment")
 
 
-def generate_test_cases_json(test_buckets):
+def generate_test_cases_json(test_batches):
     test_cases = []
-    for bucket, tests in test_buckets.items():
+    for batch, tests in test_batches.items():
         for fname, func in tests.items():
-            test_cases.append({"id": fname, "description": func.__doc__, "bucket": bucket})
+            test_cases.append({"id": fname, "description": func.__doc__, "batch": batch})
     return json.dumps(test_cases)
 
 default_tester = HTTPTester()
-bucket_numbers = default_tester.test_buckets.keys()
-test_cases = generate_test_cases_json(default_tester.test_buckets)
+batch_numbers = default_tester.test_batches.keys()
+test_cases = generate_test_cases_json(default_tester.test_batches)
 
 
 def extract_repo_from_url(github_url):
@@ -83,7 +83,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", test_buckets=bucket_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
+    return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
 
 
 @app.route("/servers/<csid>", strict_slashes=False, defaults={"gitref": ""})
@@ -137,13 +137,13 @@ def list_tests():
     return Response(test_cases, mimetype="application/json")
 
 
-@app.route("/tests/<hostport>/test_<int:bucket>_<tid>")
-def run_test(hostport, bucket, tid):
+@app.route("/tests/<hostport>/test_<int:batch>_<tid>")
+def run_test(hostport, batch, tid):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         return Response(f"{e}", status=400)
-    test_id = f"test_{bucket}_{tid}"
+    test_id = f"test_{batch}_{tid}"
     try:
         result = t.run_single_test(test_id)
         return Response(jsonify_result(result), mimetype="application/json")
@@ -151,21 +151,21 @@ def run_test(hostport, bucket, tid):
         return Response(f"{e}", status=404)
 
 
-@app.route("/tests/<hostport>", strict_slashes=False, defaults={"bucket": ""})
-@app.route("/tests/<hostport>/<int:bucket>")
-def run_tests(hostport, bucket):
+@app.route("/tests/<hostport>", strict_slashes=False, defaults={"batch": ""})
+@app.route("/tests/<hostport>/<int:batch>")
+def run_tests(hostport, batch):
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         return Response(f"{e}", status=400)
-    bucket = str(bucket)
-    if bucket and bucket not in t.test_buckets.keys():
-        return Response(f"Assignment {bucket} not implemented", status=404)
-    buckets = [bucket] if bucket else t.test_buckets.keys()
+    batch = str(batch)
+    if batch and batch not in t.test_batches.keys():
+        return Response(f"Assignment {batch} not implemented", status=404)
+    batches = [batch] if batch else t.test_batches.keys()
 
     def generate():
-        for bucket in buckets:
-            for result in t.run_bucket_tests(bucket):
+        for batch in batches:
+            for result in t.run_batch_tests(batch):
                 yield jsonify_result(result)
 
     return Response(generate(), mimetype="application/ors")
