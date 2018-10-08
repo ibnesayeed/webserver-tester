@@ -218,7 +218,6 @@ class HTTPTester():
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
         assert res["status_code"] == 200, f"Status expected '200', returned '{res['status_code']}'"
-        assert res["status_text"] == "OK", f"HTTP status text expected 'OK', returned '{res['status_text']}'"
 
 
     @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
@@ -249,7 +248,6 @@ class HTTPTester():
         """Test whether a non-existing path returns 404 on GET"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
         assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
-        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
 
 
     @make_request("get-path.http", PATH="/a1-test/a1-test/")
@@ -257,7 +255,6 @@ class HTTPTester():
         """Test tight path prefix checking"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
         assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
-        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
 
 
     @make_request("unsupported-version.http", VERSION="HTTP/2.3")
@@ -327,7 +324,6 @@ class HTTPTester():
         """Test whether file extensions are treated case-sensitive"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected 'HTTP/1.1', returned '{res['http_version']}'"
         assert res["status_code"] == 404, f"Status expected '404', returned '{res['status_code']}'"
-        assert res["status_text"] == "Not Found", f"HTTP status text expected 'Not Found', returned '{res['status_text']}'"
 
 
     @make_request("get-url.http", PATH="/a1-test/4/thisfileisempty.txt")
