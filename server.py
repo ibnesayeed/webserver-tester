@@ -90,15 +90,15 @@ def home():
 @app.route("/servers/<csid>/<gitref>")
 def deploy_server(csid, gitref):
     repo = get_student_repo(csid.strip())
-    repo_url = get_authorized_repo_url(repo)
-    if repo_url is None:
+    if repo is None:
         return Response(f"User record '{csid}' not present in https://github.com/{COURSEREPO}/tree/master/users", status=404)
 
-    imgname = "cs531/" + csid
-    contname = "cs531-" + csid
     msgs = []
-
+    contname = "cs531-" + csid
+    imgname = "cs531/" + csid
+    repo_url = get_authorized_repo_url(repo)
     if gitref:
+        imgname += f":{gitref}"
         repo_url += f"#{gitref}"
 
     try:
