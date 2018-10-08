@@ -334,7 +334,7 @@ class HTTPTester():
         assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
-        assert not res["payload"], f"Payload length expected `zero` bytes, returned `{res['payload_size']}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("get-url.http", PATH="/a1-test/4/directory3isempty")
@@ -345,7 +345,7 @@ class HTTPTester():
         assert ctype.startswith("application/octet-stream"), f"`Content-Type` should start with `application/octet-stream`, returned `{ctype}`"
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
-        assert not res["payload"], f"Payload length expected `zero` bytes, returned `{res['payload_size']}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
