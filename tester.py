@@ -203,6 +203,8 @@ class HTTPTester():
         """Test healthy server root"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         assert "date" in res["headers"], "`Date` header should be present"
+        datehdr = res["headers"].get("date", "")
+        assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
         assert "content-type" in res["headers"], "`Content-Type` header should be present"
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
 
