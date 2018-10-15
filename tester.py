@@ -133,7 +133,7 @@ class HTTPTester():
         if not sep:
             errors.append("Missing empty line after headers")
         if sep == b"\n\n":
-            errors.append("Using LF as header separator instead of CRLF")
+            errors.append("Using `LF` as header separator instead of `CRLF`")
         if res["payload"]:
             res["payload_size"] = len(res["payload"])
         hdrs = hdrs.decode()
@@ -147,13 +147,16 @@ class HTTPTester():
             res["status_code"] = int(m[2])
             res["status_text"] = m[3]
         else:
-            errors.append(f"Malformed status line: {status_line}")
+            errors.append(f"Malformed status line `{status_line}`")
         for line in lines:
             kv = line.split(":", 1)
             if len(kv) < 2:
-                errors.append(f"Malformed header line: {line}")
+                errors.append(f"Malformed header line `{line}`")
             else:
-                res["headers"][kv[0].lower()] = kv[1].strip()
+                k = kv[0].strip()
+                if k != kv[0]:
+                    errors.append(f"Header name `{kv[0]}` has spurious white-spaces")
+                res["headers"][k.lower()] = kv[1].strip()
         return res, errors
 
 
