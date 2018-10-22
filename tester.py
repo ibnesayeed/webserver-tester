@@ -90,20 +90,20 @@ class HTTPTester():
                 self.reset_sock()
                 return req, res, errors
             try:
-                sock.settimeout(self.SEND_DATA_TIMEOUT)
-                sock.sendall(msg)
+                self.sock.settimeout(self.SEND_DATA_TIMEOUT)
+                self.sock.sendall(msg)
             except Exception as e:
                 errors.append(f"Sending data failed: {e}")
                 keep_alive or self.reset_sock()
                 return req, res, errors
             try:
                 data = []
-                sock.settimeout(self.RECV_FIRST_BYTE_TIMEOUT)
-                buf = sock.recv(4096)
-                sock.settimeout(self.RECV_END_TIMEOUT)
+                self.sock.settimeout(self.RECV_FIRST_BYTE_TIMEOUT)
+                buf = self.sock.recv(4096)
+                self.sock.settimeout(self.RECV_END_TIMEOUT)
                 while buf:
                     data.append(buf)
-                    buf = sock.recv(4096)
+                    buf = self.sock.recv(4096)
             except socket.timeout as e:
                 res["connection"] = "alive"
             except Exception as e:
