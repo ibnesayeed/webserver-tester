@@ -14,6 +14,7 @@ from tester import HTTPTester
 
 # This should be changed inline or supplied via the environment variable each semester the course is offered
 COURSEREPO = os.getenv("COURSEREPO", "phonedude/cs531-f18")
+COURCEID = os.getenv("COURCEID", "cs531")
 # This is needed if student repos are kept private (ideally, supply it via the environment variable)
 CREDENTIALS = os.getenv("GITHUBKEY", "")
 
@@ -94,8 +95,8 @@ def deploy_server(csid, gitref):
         return Response(f"User record `{csid}` not present in `https://github.com/{COURSEREPO}/tree/master/users`.", status=404)
 
     msgs = []
-    contname = "cs531-" + csid
-    imgname = "cs531/" + csid
+    contname = f"{COURCEID}-{csid}"
+    imgname = f"{COURCEID}/{csid}"
     repo_url = get_authorized_repo_url(repo)
     if gitref:
         imgname += f":{gitref}"
@@ -130,9 +131,9 @@ def deploy_server(csid, gitref):
         print(f"Running new container {contname} using {imgname} image")
         deployment_labels = {
             "traefik.backend": csid,
-            "traefik.docker.network": "course",
+            "traefik.docker.network": COURCEID,
             "traefik.frontend.entryPoints": "http",
-            "traefik.frontend.rule": f"Host:{csid}.cs531.cs.odu.edu",
+            "traefik.frontend.rule": f"Host:{csid}.{COURCEID}.cs.odu.edu",
             "traefik.port": "80"
         }
         client.containers.run(imgname, detach=True, network="course", labels=deployment_labels, name=contname)
