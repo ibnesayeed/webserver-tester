@@ -24,7 +24,7 @@ class HTTPTester():
         self.CONNECTION_TIMEOUT = 0.2
         self.SEND_DATA_TIMEOUT = 3.0
         self.RECV_FIRST_BYTE_TIMEOUT = 1.0
-        self.RECV_END_TIMEOUT = 0.05
+        self.RECV_END_TIMEOUT = 0.5
 
         # Identify host and port of the server to be tested
         self.host = "localhost"
@@ -38,6 +38,9 @@ class HTTPTester():
                 raise ValueError(f"Invalid port number supplied: '{parts[1]}'")
         self.hostport = self.host if self.port == 80 else f"{self.host}:{self.port}"
 
+        # Create reusable socket reference
+        self.sock = None
+
         # Create batches of test methods in their defined order
         self.test_batches = collections.defaultdict(dict)
         tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if self.TFPATTERN.match(f[0])]
@@ -48,7 +51,19 @@ class HTTPTester():
             self.test_batches[m[1]][fname] = func
 
 
-    def netcat(self, msg_file, **kwargs):
+    def connect_sock(self):
+        if not self.sock:
+            self.sock = socket.socket()
+            self.sock.settimeout(self.CONNECTION_TIMEOUT)
+            self.sock.connect((self.host, self.port))
+
+
+    def reset_sock(self):
+        self.sock.close()
+        self.sock = None
+
+
+    def netcat(self, msg_file, keep_alive=False, **kwargs):
         req = {
             "raw": ""
         }
@@ -68,20 +83,18 @@ class HTTPTester():
             hdrs, sep, pld = self.split_http_message(msg)
             msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             req["raw"] = msg.decode()
-            sock = socket.socket()
             try:
-                sock.settimeout(self.CONNECTION_TIMEOUT)
-                sock.connect((self.host, self.port))
+                self.connect_sock()
             except Exception as e:
                 errors.append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
-                sock.close()
+                self.reset_sock()
                 return req, res, errors
             try:
                 sock.settimeout(self.SEND_DATA_TIMEOUT)
                 sock.sendall(msg)
             except Exception as e:
                 errors.append(f"Sending data failed: {e}")
-                sock.close()
+                keep_alive or self.reset_sock()
                 return req, res, errors
             try:
                 data = []
@@ -95,7 +108,7 @@ class HTTPTester():
                 res["connection"] = "alive"
             except Exception as e:
                 errors.append(f"Reading data failed: {e}")
-            sock.close()
+            keep_alive or self.reset_sock()
             pres, errors = self.parse_response(b"".join(data))
             res = {**res, **pres}
         return req, res, errors
