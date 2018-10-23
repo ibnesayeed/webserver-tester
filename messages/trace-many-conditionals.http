@@ -1,0 +1,8 @@
+TRACE <PATH> HTTP/1.1
+Host: <HOSTPORT>
+If-Match: "not-a-real-etag"
+If-None-Match: "also-not-a-real-etag"
+If-Modified-Since: Fri, 19 Oct 2018 22:33:21 GMT
+If-Unmodified-Since: Fri, 19 Oct 2018 22:33:21 GMT
+Connection: close
+

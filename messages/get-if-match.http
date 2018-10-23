@@ -1,0 +1,5 @@
+GET <PATH> HTTP/1.1
+Host: <HOSTPORT>
+If-Match: "<ETAG>"
+Connection: close
+
