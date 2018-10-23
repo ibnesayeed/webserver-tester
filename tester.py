@@ -531,6 +531,15 @@ class HTTPTester():
         assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
 
 
+    @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
+    def test_2_trace_unnecessary_conditionals(self, req, res):
+        """Test whether many unnecessary conditionals are not processed"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
+        assert res["payload"] and res["payload"].startswith(b"TRACE /a2-test/2/index.html HTTP/1.1"), f"Payload should start with `TRACE /a2-test/2/index.html HTTP/1.1`"
+
+
     @make_request("get-path.http", PATH="/.well-known/access.log")
     def test_2_access_log_as_virtual_uri(self, req, res):
         """Test whether the access log is available as a Virtual URI in the Common Log Format"""
