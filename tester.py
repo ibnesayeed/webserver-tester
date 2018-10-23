@@ -81,7 +81,7 @@ class HTTPTester():
         with open(os.path.join(self.MSGDIR, msg_file), "rb") as f:
             msg = self.replace_placeholders(f.read(), **kwargs)
             hdrs, sep, pld = self.split_http_message(msg)
-            msg = hdrs.replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
+            msg = hdrs.replace(b"<PIPELINE>", b"").replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             req["raw"] = msg.decode()
             try:
                 self.connect_sock()
@@ -538,6 +538,28 @@ class HTTPTester():
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
         assert res["payload"] and res["payload"].startswith(b"TRACE /a2-test/2/index.html HTTP/1.1"), f"Payload should start with `TRACE /a2-test/2/index.html HTTP/1.1`"
+
+
+    @make_request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
+    def test_2_pipeline_requests(self, req, res):
+        """Test whether multiple pipelined requests are processed"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        pres, errors = self.parse_response(res["payload"])
+        if errors:
+            return {"req": req, "res": res, "errors": errors}
+        assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
+        ctype = pres["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        pres, errors = self.parse_response(pres["payload"])
+        if errors:
+            return {"req": req, "res": res, "errors": errors}
+        assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
+        ctype = pres["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert pres["payload"] and b"coolcar.html" in pres["payload"] and b"ford" in pres["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
     @make_request("get-path.http", PATH="/.well-known/access.log")
