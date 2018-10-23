@@ -498,7 +498,7 @@ class HTTPTester():
 
 
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
-    def test_2_include_etag(self, req, res):
+    def test_2_valid_etag_ok(self, req, res):
         """Test whether a valid ETag returns 200 OK"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         etag = res["headers"].get("etag", "").strip('"')
