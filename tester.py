@@ -507,9 +507,9 @@ class HTTPTester():
         try:
             if not errors:
                 assert res2["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
-                ctype = res["headers"].get("content-type", "[ABSENT]")
+                ctype = res2["headers"].get("content-type", "[ABSENT]")
                 assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
-                assert res["payload"] and b"1966 Ford Fairlane" in res["payload"], "Payload should contain `1966 Ford Fairlane`"
+                assert res2["payload"] and b"1966 Ford Fairlane" in res2["payload"], "Payload should contain `1966 Ford Fairlane`"
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
         return {"req": req2, "res": res2, "errors": errors}
@@ -542,7 +542,7 @@ class HTTPTester():
 
     @make_request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
     def test_2_pipeline_requests(self, req, res):
-        """Test whether multiple pipelined requests are processed"""
+        """Test whether multiple pipelined requests are processed and returned in the same order"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
@@ -560,6 +560,53 @@ class HTTPTester():
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert pres["payload"] and b"coolcar.html" in pres["payload"] and b"ford" in pres["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+
+
+    @make_request("head-keep-alive.http", keep_alive=False, PATH="/a2-test/")
+    def test_2_long_lived_connection(self, req, res):
+        """Test whether the socket connection is kept alive to process multiple requests successively"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+        req2, res2, errors = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+        req["raw"] += req2["raw"]
+        res["connection"] = res2["connection"]
+        pld = b""
+        if res["payload"]:
+            pld = res["payload"]
+        pld += res2["raw_headers"].encode()
+        if res2["payload"]:
+            pld += res2["payload"]
+        res["payload"] = pld
+        try:
+            if not errors:
+                assert res2["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                ctype = res2["headers"].get("content-type", "[ABSENT]")
+                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                assert not res2["payload"], f"Payload length expected `0` bytes, returned `{res2['payload_size']}`"
+                assert res2["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+        except AssertionError as e:
+            errors.append(f"ASSERTION: {e}")
+        if errors:
+            return {"req": req, "res": res, "errors": errors}
+        req3, res3, errors = self.netcat("get-path.http", PATH="/a2-test/")
+        req["raw"] += req3["raw"]
+        res["connection"] = res3["connection"]
+        res["payload"] += res3["raw_headers"].encode()
+        if res3["payload"]:
+            res["payload"] += res3["payload"]
+        try:
+            if not errors:
+                assert res3["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                ctype = res3["headers"].get("content-type", "[ABSENT]")
+                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                assert res3["payload"] and b"coolcar.html" in res3["payload"] and b"ford" in res3["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+                assert res3["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        except AssertionError as e:
+            errors.append(f"ASSERTION: {e}")
+        return {"req": req, "res": res, "errors": errors}
 
 
     @make_request("get-path.http", PATH="/.well-known/access.log")
