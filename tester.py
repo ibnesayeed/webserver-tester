@@ -201,11 +201,16 @@ class HTTPTester():
             @functools.wraps(func)
             def wrapper(self):
                 req, res, errors = self.netcat(msg_file, **kwargs)
+                overwrite = None
                 try:
                     if not errors:
-                        func(self, req, res)
+                        overwrite = func(self, req, res)
                 except AssertionError as e:
                     errors.append(f"ASSERTION: {e}")
+                if overwrite:
+                    req = overwrite["req"]
+                    res = overwrite["res"]
+                    errors = overwrite["errors"]
                 return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
             return wrapper
         return test_decorator
@@ -320,14 +325,14 @@ class HTTPTester():
     def test_1_get_escaped_file_name(self, req, res):
         """Test whether the escaped file name is respected"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
-        assert res["payload"] and b"lower case html" in res["payload"], f"Payload should contain `lower case html`"
+        assert res["payload"] and b"lower case html" in res["payload"], "Payload should contain `lower case html`"
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/escape%25this.html")
     def test_1_get_escape_escaping_character(self, req, res):
         """Test whether the escaped escaping caracter in a file name is respected"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
-        assert res["payload"] and b"Go Monarchs!" in res["payload"], f"Payload should contain `Go Monarchs!`"
+        assert res["payload"] and b"Go Monarchs!" in res["payload"], "Payload should contain `Go Monarchs!`"
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.jpeg")
@@ -381,6 +386,157 @@ class HTTPTester():
         """Test whether a GIF file contains identifying magic cookie"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         assert res["payload"] and res["payload"].startswith(b"GIF89a"), f"Payload should contain `GIF89a` magic cookie for GIF"
+
+
+    @make_request("get-url.http", PATH="/a2-test/")
+    def test_2_get_directory_listing(self, req, res):
+        """Test whether a2-test directory root returns directory listing"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert res["payload"] and b"coolcar.html" in res["payload"] and b"ford" in res["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+
+
+    @make_request("get-url.http", PATH="/a2-test/2")
+    def test_2_redirect_to_trailing_slash_for_directory_url(self, req, res):
+        """Test whether redirects URL to trailing slashes when missing for existing directories"""
+        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        loc = res["headers"].get("location", "[ABSENT]")
+        assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/2/`, returned `{loc}`"
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+
+
+    @make_request("get-path.http", PATH="/a2-test/1")
+    def test_2_redirect_to_trailing_slash_for_directory_path(self, req, res):
+        """Test whether redirects path to trailing slashes when missing for existing directories"""
+        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        loc = res["headers"].get("location", "[ABSENT]")
+        assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+
+
+    @make_request("get-url.http", PATH="/a2-test/2/")
+    def test_2_get_default_index_file(self, req, res):
+        """Test whether default index.html is returned instead of directory listing"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
+        assert res2["status_code"] == 200, f"Status expected `200`, returned `{res2['status_code']}`"
+        assert res["payload"] and res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+
+
+    @make_request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
+    def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, req, res):
+        """Test whether redirects as per the regular expression with wildcard trailing capture group"""
+        assert res["status_code"] == 302, f"Status expected `302`, returned `{res['status_code']}`"
+        loc = res["headers"].get("location", "[ABSENT]")
+        assert loc.endswith("/a2-test/1/1.1/assignment1.ppt"), f"`Location` expected to end with `/a2-test/1/1.1/assignment1.ppt`, returned `{loc}`"
+
+
+    @make_request("head-path.http", PATH="/a2-test/coolcar.html")
+    def test_2_redirect_as_per_regexp_trailing_specific_file(self, req, res):
+        """Test whether redirects as per the regular expression with a specific trailing file name"""
+        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        loc = res["headers"].get("location", "[ABSENT]")
+        assert loc.endswith("/a2-test/galaxie.html"), f"`Location` expected to end with `/a2-test/galaxie.html`, returned `{loc}`"
+
+
+    @make_request("head-path.http", PATH="/a2-test/galaxie.html")
+    def test_2_dont_redirect_target_file(self, req, res):
+        """Test whether the target of the configured redirect returns 200 OK"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert res["payload"] and b"Pro Street 1966 Ford Galaxie" in res["payload"], "Payload should contain `Pro Street 1966 Ford Galaxie`"
+
+
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 19 Oct 2018 22:33:21 GMT")
+    def test_2_conditional_head_fresh(self, req, res):
+        """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
+        assert res["status_code"] == 304, f"Status expected `304`, returned `{res['status_code']}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+
+
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 19 Oct 2018 22:33:20 GMT")
+    def test_2_conditional_head_stale(self, req, res):
+        """Test whether conditional HEAD of a stale file returns 200 OK"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+
+
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="who-doesn't-want-a-fairlane?")
+    def test_2_conditional_head_invalid_datetime(self, req, res):
+        """Test whether conditional HEAD with invalid datetime returns 200 OK"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+
+
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-19 22:33:21.304307000 -0400")
+    def test_2_conditional_head_unsupported_datetime_format(self, req, res):
+        """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+
+
+    @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
+    def test_2_include_etag(self, req, res):
+        """Test whether the HEAD response contains an ETag"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        assert "etag" in res["headers"], "`ETag` header should be present"
+        etag = res["headers"].get("etag", "")
+        assert etag.strip('"'), "`ETag` should not be empty"
+        assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+
+
+    @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
+    def test_2_include_etag(self, req, res):
+        """Test whether a valid ETag returns 200 OK"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        etag = res["headers"].get("etag", "").strip('"')
+        assert etag, "`ETag` should not be empty"
+        req2, res2, errors = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
+        try:
+            if not errors:
+                assert res2["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                ctype = res["headers"].get("content-type", "[ABSENT]")
+                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                assert res["payload"] and b"1966 Ford Fairlane" in res["payload"], "Payload should contain `1966 Ford Fairlane`"
+        except AssertionError as e:
+            errors.append(f"ASSERTION: {e}")
+        return {"req": req2, "res": res2, "errors": errors}
+
+
+    @make_request("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG="203948kjaldsf002")
+    def test_2_etag_if_match_failure(self, req, res):
+        """Test whether a random ETag returns 412 Precondition Failed"""
+        assert res["status_code"] == 412, f"Status expected `412`, returned `{res['status_code']}`"
+
+
+    @make_request("head-keep-alive.http", PATH="/a2-test/2/index.html")
+    def test_2_implicit_keep_alive(self, req, res):
+        """Test whether the socket connection is kept alive by default"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+
+
+    @make_request("get-path.http", PATH="/.well-known/access.log")
+    def test_2_access_log_as_virtual_uri(self, req, res):
+        """Test whether the access log is available as a Virtual URI in the Common Log Format"""
+        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        ctype = res["headers"].get("content-type", "[ABSENT]")
+        assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
 
 
     @make_request("get-root.http")
