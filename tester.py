@@ -219,21 +219,21 @@ class HTTPTester():
 ############################### ASSERTION HELPERS ##############################
 
 
-    def check_status_is(res, status):
+    def check_status_is(self, res, status):
         assert res["status_code"] == status, f"Status expected `{status}`, returned `{res['status_code']}`"
 
 
-    def check_header_present(res, header):
+    def check_header_present(self, res, header):
         assert header.lower() in res["headers"], "`{header}` header should be present"
 
 
-    def check_header_contains(res, header, value):
+    def check_header_contains(self, res, header, value):
         check_header_present(res, header)
         val = res["headers"].get(header, "")
         assert value in val, "`{header}` header should contain `{value}`, returned `{val}`"
 
 
-    def check_content_type_begins(res, ctype):
+    def check_content_type_begins(self, res, ctype):
         check_header_present(res, "Content-Type")
         ct = res["headers"].get("content-type", "")
         assert ct.startswith(ctype), f"`Content-Type` should begin with `{ctype}`, returned `{ct}`"
