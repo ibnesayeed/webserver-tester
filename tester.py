@@ -326,7 +326,7 @@ class HTTPTester():
     @make_request("get-root.http")
     def test_0_healthy_server(self, req, res):
         """Test healthy server root"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert "date" in res["headers"], "`Date` header should be present"
         datehdr = res["headers"].get("date", "")
         assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
@@ -337,20 +337,20 @@ class HTTPTester():
     @make_request("malformed-header.http")
     def test_0_bad_request_header(self, req, res):
         """Test whether the server recognizes malformed headers"""
-        assert res["status_code"] == 400, f"Status expected `400`, returned `{res['status_code']}`"
+        check_status_is(res, 400)
 
 
     @make_request("get-url.http", PATH="/a1-test/2/index.html")
     def test_1_url_get_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
 
 
     @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
     def test_1_url_head_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -359,7 +359,7 @@ class HTTPTester():
     @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
     def test_1_path_head_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -368,7 +368,7 @@ class HTTPTester():
     @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/2/index.html")
     def test_1_path_options_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert "allow" in res["headers"], "`Allow` header should be present"
 
 
@@ -376,50 +376,50 @@ class HTTPTester():
     def test_1_get_missing(self, req, res):
         """Test whether a non-existing path returns 404 on GET"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
-        assert res["status_code"] == 404, f"Status expected `404`, returned `{res['status_code']}`"
+        check_status_is(res, 404)
 
 
     @make_request("get-path.http", PATH="/a1-test/a1-test/")
     def test_1_get_duplicate_path_prefix(self, req, res):
         """Test tight path prefix checking"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
-        assert res["status_code"] == 404, f"Status expected `404`, returned `{res['status_code']}`"
+        check_status_is(res, 404)
 
 
     @make_request("unsupported-version.http", VERSION="HTTP/2.3")
     def test_1_unsupported_version(self, req, res):
         """Test whether a request with unsupported version returns 505"""
-        assert res["status_code"] == 505, f"Status expected `505`, returned `{res['status_code']}`"
+        check_status_is(res, 505)
 
 
     @make_request("unsupported-version.http", VERSION="HTTP/1.11")
     def test_1_tight_unsupported_version_check(self, req, res):
         """Test tight HTTP version checking to not match HTTP/1.11"""
-        assert res["status_code"] == 505, f"Status expected `505`, returned `{res['status_code']}`"
+        check_status_is(res, 505)
 
 
     @make_request("invalid-request.http")
     def test_1_invalid_request(self, req, res):
         """Test whether an invalid request returns 400"""
-        assert res["status_code"] == 400, f"Status expected `400`, returned `{res['status_code']}`"
+        check_status_is(res, 400)
 
 
     @make_request("missing-host.http")
     def test_1_missing_host_header(self, req, res):
         """Test whether missing Host header in a request returns 400"""
-        assert res["status_code"] == 400, f"Status expected `400`, returned `{res['status_code']}`"
+        check_status_is(res, 400)
 
 
     @make_request("method-path.http", METHOD="POST", PATH="/a1-test/")
     def test_1_post_not_implemented(self, req, res):
         """Test whether the assignment 1 returns 501 on POST"""
-        assert res["status_code"] == 501, f"Status expected `501`, returned `{res['status_code']}`"
+        check_status_is(res, 501)
 
 
     @make_request("method-path.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
     def test_1_trace_echoback(self, req, res):
         """Test whether the server echoes back the request on TRACE"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
         assert res["payload"] and res["payload"].startswith(b"TRACE /a1-test/1/1.4/ HTTP/1.1"), f"Payload should start with `TRACE /a1-test/1/1.4/ HTTP/1.1`"
@@ -428,21 +428,21 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/1/1.4/test%3A.html")
     def test_1_get_escaped_file_name(self, req, res):
         """Test whether the escaped file name is respected"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert res["payload"] and b"lower case html" in res["payload"], "Payload should contain `lower case html`"
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/escape%25this.html")
     def test_1_get_escape_escaping_character(self, req, res):
         """Test whether the escaped escaping caracter in a file name is respected"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert res["payload"] and b"Go Monarchs!" in res["payload"], "Payload should contain `Go Monarchs!`"
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.jpeg")
     def test_1_get_jpeg_image(self, req, res):
         """Test whether a JPEG image returns 200 with proper Content-Length on GET"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "38457", f"`Content-Length` expected `38457`, returned `{clength}`"
         assert res["payload"] and res["payload_size"] == 38457, f"Payload length expected `38457` bytes, returned `{res['payload_size']}`"
@@ -452,13 +452,13 @@ class HTTPTester():
     def test_1_get_case_sensitive_file_extension(self, req, res):
         """Test whether file extensions are treated case-sensitive"""
         assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
-        assert res["status_code"] == 404, f"Status expected `404`, returned `{res['status_code']}`"
+        check_status_is(res, 404)
 
 
     @make_request("get-url.http", PATH="/a1-test/4/thisfileisempty.txt")
     def test_1_get_empty_text_file(self, req, res):
         """Test whether an empty file returns zero bytes with 200 on GET"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
         clength = res["headers"].get("content-length", "[ABSENT]")
@@ -469,7 +469,7 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/4/directory3isempty")
     def test_1_get_empty_directory(self, req, res):
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("application/octet-stream"), f"`Content-Type` should start with `application/octet-stream`, returned `{ctype}`"
         clength = res["headers"].get("content-length", "[ABSENT]")
@@ -480,7 +480,7 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
     def test_1_get_filename_with_many_dots(self, req, res):
         """Test whether file names with multiple dots return 200 on GET"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/xml"), f"`Content-Type` should start with `text/xml`, returned `{ctype}`"
 
@@ -488,14 +488,14 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/2/6.gif")
     def test_1_get_magic_cookie_of_a_binary_file(self, req, res):
         """Test whether a GIF file contains identifying magic cookie"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert res["payload"] and res["payload"].startswith(b"GIF89a"), f"Payload should contain `GIF89a` magic cookie for GIF"
 
 
     @make_request("get-url.http", PATH="/a2-test/")
     def test_2_get_directory_listing(self, req, res):
         """Test whether a2-test directory root returns directory listing"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert res["payload"] and b"coolcar.html" in res["payload"] and b"ford" in res["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
@@ -505,7 +505,7 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a2-test/2")
     def test_2_redirect_to_trailing_slash_for_directory_url(self, req, res):
         """Test whether redirects URL to trailing slashes when missing for existing directories"""
-        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        check_status_is(res, 301)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/2/`, returned `{loc}`"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
@@ -514,7 +514,7 @@ class HTTPTester():
     @make_request("get-path.http", PATH="/a2-test/1")
     def test_2_redirect_to_trailing_slash_for_directory_path(self, req, res):
         """Test whether redirects path to trailing slashes when missing for existing directories"""
-        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        check_status_is(res, 301)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/1/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
@@ -523,11 +523,11 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a2-test/2/")
     def test_2_get_default_index_file(self, req, res):
         """Test whether default index.html is returned instead of directory listing"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
-        assert res2["status_code"] == 200, f"Status expected `200`, returned `{res2['status_code']}`"
+        check_status_is(res2, 200)
         assert res["payload"] and res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
@@ -535,7 +535,7 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
     def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, req, res):
         """Test whether redirects as per the regular expression with wildcard trailing capture group"""
-        assert res["status_code"] == 302, f"Status expected `302`, returned `{res['status_code']}`"
+        check_status_is(res, 302)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/1/1.1/assignment1.ppt"), f"`Location` expected to end with `/a2-test/1/1.1/assignment1.ppt`, returned `{loc}`"
 
@@ -543,7 +543,7 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/coolcar.html")
     def test_2_redirect_as_per_regexp_trailing_specific_file(self, req, res):
         """Test whether redirects as per the regular expression with a specific trailing file name"""
-        assert res["status_code"] == 302, f"Status expected `302`, returned `{res['status_code']}`"
+        check_status_is(res, 302)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/galaxie.html"), f"`Location` expected to end with `/a2-test/galaxie.html`, returned `{loc}`"
 
@@ -551,7 +551,7 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/galaxie.html")
     def test_2_dont_redirect_target_file(self, req, res):
         """Test whether the target of the configured redirect returns 200 OK"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -560,14 +560,14 @@ class HTTPTester():
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:21 GMT")
     def test_2_conditional_head_fresh(self, req, res):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
-        assert res["status_code"] == 304, f"Status expected `304`, returned `{res['status_code']}`"
+        check_status_is(res, 304)
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:20 GMT")
     def test_2_conditional_head_stale(self, req, res):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -576,7 +576,7 @@ class HTTPTester():
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="who-doesn't-want-a-fairlane?")
     def test_2_conditional_head_invalid_datetime(self, req, res):
         """Test whether conditional HEAD with invalid datetime returns 200 OK"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -585,7 +585,7 @@ class HTTPTester():
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-20 02:33:21.304307000 -0000")
     def test_2_conditional_head_unsupported_datetime_format(self, req, res):
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -594,7 +594,7 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
     def test_2_include_etag(self, req, res):
         """Test whether the HEAD response contains an ETag"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         assert "etag" in res["headers"], "`ETag` header should be present"
         etag = res["headers"].get("etag", "")
         assert etag.strip('"'), "`ETag` should not be empty"
@@ -604,13 +604,13 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
     def test_2_valid_etag_ok(self, req, res):
         """Test whether a valid ETag returns 200 OK"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         etag = res["headers"].get("etag", "").strip('"')
         assert etag, "`ETag` should not be empty"
         req2, res2, errors = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         try:
             if not errors:
-                assert res2["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                check_status_is(res2, 200)
                 ctype = res2["headers"].get("content-type", "[ABSENT]")
                 assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
                 assert res2["payload"] and b"1966 Ford Fairlane" in res2["payload"], "Payload should contain `1966 Ford Fairlane`"
@@ -622,13 +622,13 @@ class HTTPTester():
     @make_request("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG="203948kjaldsf002")
     def test_2_etag_if_match_failure(self, req, res):
         """Test whether a random ETag returns 412 Precondition Failed"""
-        assert res["status_code"] == 412, f"Status expected `412`, returned `{res['status_code']}`"
+        check_status_is(res, 412)
 
 
     @make_request("head-keep-alive.http", PATH="/a2-test/2/index.html")
     def test_2_implicit_keep_alive(self, req, res):
         """Test whether the socket connection is kept alive by default"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -638,7 +638,7 @@ class HTTPTester():
     @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
     def test_2_trace_unnecessary_conditionals(self, req, res):
         """Test whether many unnecessary conditionals are not processed"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
         assert res["payload"] and res["payload"].startswith(b"TRACE /a2-test/2/index.html HTTP/1.1"), f"Payload should start with `TRACE /a2-test/2/index.html HTTP/1.1`"
@@ -647,7 +647,7 @@ class HTTPTester():
     @make_request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
     def test_2_pipeline_requests(self, req, res):
         """Test whether multiple pipelined requests are processed and returned in the same order"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         pres, errors = self.parse_response(res["payload"])
@@ -669,7 +669,7 @@ class HTTPTester():
     @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
     def test_2_long_lived_connection(self, req, res):
         """Test whether the socket connection is kept alive to process multiple requests successively"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -686,7 +686,7 @@ class HTTPTester():
         res["payload"] = pld
         try:
             if not errors:
-                assert res2["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                check_status_is(res2, 200)
                 ctype = res2["headers"].get("content-type", "[ABSENT]")
                 assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
                 assert not res2["payload"], f"Payload length expected `0` bytes, returned `{res2['payload_size']}`"
@@ -703,7 +703,7 @@ class HTTPTester():
             res["payload"] += res3["payload"]
         try:
             if not errors:
-                assert res3["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+                check_status_is(res3, 200)
                 ctype = res3["headers"].get("content-type", "[ABSENT]")
                 assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
                 assert res3["payload"] and b"coolcar.html" in res3["payload"] and b"ford" in res3["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
@@ -716,7 +716,7 @@ class HTTPTester():
     @make_request("get-path.http", PATH="/.well-known/access.log")
     def test_2_access_log_as_virtual_uri(self, req, res):
         """Test whether the access log is available as a Virtual URI in the Common Log Format"""
-        assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
+        check_status_is(res, 200)
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
 
