@@ -211,6 +211,7 @@ class HTTPTester():
                     req = overwrite["req"]
                     res = overwrite["res"]
                     errors = overwrite["errors"]
+                self.reset_sock()
                 return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
             return wrapper
         return test_decorator
