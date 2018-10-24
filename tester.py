@@ -354,7 +354,7 @@ class HTTPTester():
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
@@ -362,7 +362,7 @@ class HTTPTester():
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/2/index.html")
@@ -461,7 +461,7 @@ class HTTPTester():
         check_mime_is(res, "text/plain")
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("get-url.http", PATH="/a1-test/4/directory3isempty")
@@ -471,7 +471,7 @@ class HTTPTester():
         check_mime_is(res, "application/octet-stream")
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
@@ -547,14 +547,14 @@ class HTTPTester():
         """Test whether the target of the configured redirect returns 200 OK"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:21 GMT")
     def test_2_conditional_head_fresh(self, req, res):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
         check_status_is(res, 304)
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:20 GMT")
@@ -562,7 +562,7 @@ class HTTPTester():
         """Test whether conditional HEAD of a stale file returns 200 OK"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="who-doesn't-want-a-fairlane?")
@@ -570,7 +570,7 @@ class HTTPTester():
         """Test whether conditional HEAD with invalid datetime returns 200 OK"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-20 02:33:21.304307000 -0000")
@@ -578,7 +578,7 @@ class HTTPTester():
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
 
 
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
@@ -619,7 +619,7 @@ class HTTPTester():
         """Test whether the socket connection is kept alive by default"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
         assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
 
 
@@ -655,7 +655,7 @@ class HTTPTester():
         """Test whether the socket connection is kept alive to process multiple requests successively"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
+        check_payload_empty(res)
         assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
         req2, res2, errors = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
         req["raw"] += req2["raw"]
