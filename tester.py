@@ -369,7 +369,7 @@ class HTTPTester():
     def test_1_path_options_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
         check_status_is(res, 200)
-        assert "allow" in res["headers"], "`Allow` header should be present"
+        check_header_contains(res, "Allow", "GET")
 
 
     @make_request("get-path.http", PATH="/1/1.1/go%20hokies.html")
@@ -585,10 +585,7 @@ class HTTPTester():
     def test_2_include_etag(self, req, res):
         """Test whether the HEAD response contains an ETag"""
         check_status_is(res, 200)
-        assert "etag" in res["headers"], "`ETag` header should be present"
-        etag = res["headers"].get("etag", "")
-        assert etag.strip('"'), "`ETag` should not be empty"
-        assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+        check_etag_valid(res)
 
 
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
