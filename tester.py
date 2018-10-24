@@ -259,6 +259,10 @@ class HTTPTester():
         assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
 
 
+    def check_mime_is(self, res, value):
+        check_header_begins(res, "Content-Type", value)
+
+
     def check_date_valid(self, res):
         check_header_present(res, "Date")
         datehdr = res["headers"].get("date", "")
@@ -349,8 +353,7 @@ class HTTPTester():
     def test_1_url_head_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -358,8 +361,7 @@ class HTTPTester():
     def test_1_path_head_ok(self, req, res):
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -418,8 +420,7 @@ class HTTPTester():
     def test_1_trace_echoback(self, req, res):
         """Test whether the server echoes back the request on TRACE"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
+        check_mime_is(res, "message/http")
         assert res["payload"] and res["payload"].startswith(b"TRACE /a1-test/1/1.4/ HTTP/1.1"), f"Payload should start with `TRACE /a1-test/1/1.4/ HTTP/1.1`"
 
 
@@ -457,8 +458,7 @@ class HTTPTester():
     def test_1_get_empty_text_file(self, req, res):
         """Test whether an empty file returns zero bytes with 200 on GET"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
+        check_mime_is(res, "text/plain")
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -468,8 +468,7 @@ class HTTPTester():
     def test_1_get_empty_directory(self, req, res):
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("application/octet-stream"), f"`Content-Type` should start with `application/octet-stream`, returned `{ctype}`"
+        check_mime_is(res, "application/octet-stream")
         clength = res["headers"].get("content-length", "[ABSENT]")
         assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
@@ -479,8 +478,7 @@ class HTTPTester():
     def test_1_get_filename_with_many_dots(self, req, res):
         """Test whether file names with multiple dots return 200 on GET"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/xml"), f"`Content-Type` should start with `text/xml`, returned `{ctype}`"
+        check_mime_is(res, "text/xml")
 
 
     @make_request("get-url.http", PATH="/a1-test/2/6.gif")
@@ -494,8 +492,7 @@ class HTTPTester():
     def test_2_get_directory_listing(self, req, res):
         """Test whether a2-test directory root returns directory listing"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert res["payload"] and b"coolcar.html" in res["payload"] and b"ford" in res["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
@@ -522,8 +519,7 @@ class HTTPTester():
     def test_2_get_default_index_file(self, req, res):
         """Test whether default index.html is returned instead of directory listing"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         check_status_is(res2, 200)
         assert res["payload"] and res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
@@ -550,8 +546,7 @@ class HTTPTester():
     def test_2_dont_redirect_target_file(self, req, res):
         """Test whether the target of the configured redirect returns 200 OK"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -566,8 +561,7 @@ class HTTPTester():
     def test_2_conditional_head_stale(self, req, res):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -575,8 +569,7 @@ class HTTPTester():
     def test_2_conditional_head_invalid_datetime(self, req, res):
         """Test whether conditional HEAD with invalid datetime returns 200 OK"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -584,8 +577,7 @@ class HTTPTester():
     def test_2_conditional_head_unsupported_datetime_format(self, req, res):
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
@@ -609,8 +601,7 @@ class HTTPTester():
         try:
             if not errors:
                 check_status_is(res2, 200)
-                ctype = res2["headers"].get("content-type", "[ABSENT]")
-                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                check_mime_is(res2, "text/html")
                 assert res2["payload"] and b"1966 Ford Fairlane" in res2["payload"], "Payload should contain `1966 Ford Fairlane`"
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
@@ -627,8 +618,7 @@ class HTTPTester():
     def test_2_implicit_keep_alive(self, req, res):
         """Test whether the socket connection is kept alive by default"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
         assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
 
@@ -637,8 +627,7 @@ class HTTPTester():
     def test_2_trace_unnecessary_conditionals(self, req, res):
         """Test whether many unnecessary conditionals are not processed"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("message/http"), f"`Content-Type` should start with `message/http`, returned `{ctype}`"
+        check_mime_is(res, "message/http")
         assert res["payload"] and res["payload"].startswith(b"TRACE /a2-test/2/index.html HTTP/1.1"), f"Payload should start with `TRACE /a2-test/2/index.html HTTP/1.1`"
 
 
@@ -646,20 +635,17 @@ class HTTPTester():
     def test_2_pipeline_requests(self, req, res):
         """Test whether multiple pipelined requests are processed and returned in the same order"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         pres, errors = self.parse_response(res["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
         assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
-        ctype = pres["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         pres, errors = self.parse_response(pres["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
         assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
-        ctype = pres["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert pres["payload"] and b"coolcar.html" in pres["payload"] and b"ford" in pres["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
@@ -668,8 +654,7 @@ class HTTPTester():
     def test_2_long_lived_connection(self, req, res):
         """Test whether the socket connection is kept alive to process multiple requests successively"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+        check_mime_is(res, "text/html")
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
         assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
         req2, res2, errors = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
@@ -685,8 +670,7 @@ class HTTPTester():
         try:
             if not errors:
                 check_status_is(res2, 200)
-                ctype = res2["headers"].get("content-type", "[ABSENT]")
-                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                check_mime_is(res2, "text/html")
                 assert not res2["payload"], f"Payload length expected `0` bytes, returned `{res2['payload_size']}`"
                 assert res2["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
         except AssertionError as e:
@@ -702,8 +686,7 @@ class HTTPTester():
         try:
             if not errors:
                 check_status_is(res3, 200)
-                ctype = res3["headers"].get("content-type", "[ABSENT]")
-                assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
+                check_mime_is(res3, "text/html")
                 assert res3["payload"] and b"coolcar.html" in res3["payload"] and b"ford" in res3["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
                 assert res3["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
         except AssertionError as e:
@@ -715,8 +698,7 @@ class HTTPTester():
     def test_2_access_log_as_virtual_uri(self, req, res):
         """Test whether the access log is available as a Virtual URI in the Common Log Format"""
         check_status_is(res, 200)
-        ctype = res["headers"].get("content-type", "[ABSENT]")
-        assert ctype.startswith("text/plain"), f"`Content-Type` should start with `text/plain`, returned `{ctype}`"
+        check_mime_is(res, "text/plain")
 
 
     @make_request("get-root.http")
