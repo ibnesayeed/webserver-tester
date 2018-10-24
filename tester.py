@@ -220,23 +220,102 @@ class HTTPTester():
 
 
     def check_status_is(self, res, status):
-        assert res["status_code"] == status, f"Status expected `{status}`, returned `{res['status_code']}`"
+        sc = res["status_code"]
+        assert status == sc, f"Status expected `{status}`, returned `{sc}`"
+
+
+    def check_version_is(self, res, version):
+        ver = res["http_version"]
+        assert version == ver, f"HTTP version expected `{status}`, returned `{ver}`"
 
 
     def check_header_present(self, res, header):
-        assert header.lower() in res["headers"], "`{header}` header should be present"
+        assert header.lower() in res["headers"], f"`{header}` header should be present"
+
+
+    def check_header_is(self, res, header, value):
+        check_header_present(res, header)
+        val = res["headers"].get(header, "")
+        assert value == val, f"`{header}` header should be `{value}`, returned `{val}`"
 
 
     def check_header_contains(self, res, header, value):
         check_header_present(res, header)
         val = res["headers"].get(header, "")
-        assert value in val, "`{header}` header should contain `{value}`, returned `{val}`"
+        assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
 
 
-    def check_content_type_begins(self, res, ctype):
-        check_header_present(res, "Content-Type")
-        ct = res["headers"].get("content-type", "")
-        assert ct.startswith(ctype), f"`Content-Type` should begin with `{ctype}`, returned `{ct}`"
+    def check_header_begins(self, res, header, value):
+        check_header_present(res, header)
+        val = res["headers"].get(header, "")
+        assert val.startswith(value), f"`{header}` header should begin with `{value}`, returned `{val}`"
+
+
+    def check_header_ends(self, res, header, value):
+        check_header_present(res, header)
+        val = res["headers"].get(header, "")
+        assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
+
+
+    def check_date_valid(self, res):
+        check_header_present(res, "Date")
+        datehdr = res["headers"].get("date", "")
+        assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
+
+
+    def check_etag_valid(self, res):
+        check_header_present(res, "ETag")
+        datehdr = res["headers"].get("etag", "")
+        etag = res["headers"].get("etag", "")
+        assert etag.strip('"'), "`ETag` should not be empty"
+        assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+
+
+    def check_redirects_to(self, res, status, location):
+        check_status_is(res, status)
+        check_header_ends(res, "Location", location)
+
+
+    def check_payload_empty(self, res):
+        assert not res["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
+
+
+    def check_payload_not_empty(self, res):
+        assert res["payload"], "Payload expected non-empty, returned empty"
+
+
+    def check_payload_size(self, res, value):
+        val = res["payload_size"]
+        assert value == val, f"Payload size expected `{value}` bytes, returned `{val}`"
+
+
+    def check_payload_is(self, res, value):
+        check_payload_not_empty(res)
+        assert value.encode() == res["payload"], f"Payload should exactly be `{value}`"
+
+
+    def check_payload_contains(self, res, value):
+        check_payload_not_empty(res)
+        assert value.encode() in res["payload"], f"Payload should contain `{value}`"
+
+
+    def check_payload_begins(self, res, value):
+        check_payload_not_empty(res)
+        assert res["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
+
+
+    def check_payload_ends(self, res, value):
+        check_payload_not_empty(res)
+        assert res["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
+
+
+    def check_connection_alive(self, res, explicit=False):
+        reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
+        assert res["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
+
+
+    def check_connection_closed(self, res):
+        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
 ############################### BEGIN TEST CASES ###############################
