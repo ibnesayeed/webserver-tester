@@ -439,7 +439,7 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/coolcar.html")
     def test_2_redirect_as_per_regexp_trailing_specific_file(self, req, res):
         """Test whether redirects as per the regular expression with a specific trailing file name"""
-        assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
+        assert res["status_code"] == 302, f"Status expected `302`, returned `{res['status_code']}`"
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/galaxie.html"), f"`Location` expected to end with `/a2-test/galaxie.html`, returned `{loc}`"
 
