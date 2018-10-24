@@ -161,5 +161,4 @@ def test_0_bad_request_header(self, req, res):
     self.check_status_is(res, 404)
 ```
 
-
 That's it! We got a couple of brand new test cases in place.
