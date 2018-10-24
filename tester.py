@@ -428,14 +428,14 @@ class HTTPTester():
     def test_1_get_escaped_file_name(self, req, res):
         """Test whether the escaped file name is respected"""
         check_status_is(res, 200)
-        assert res["payload"] and b"lower case html" in res["payload"], "Payload should contain `lower case html`"
+        check_payload_contains(res, "lower case html")
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/escape%25this.html")
     def test_1_get_escape_escaping_character(self, req, res):
         """Test whether the escaped escaping caracter in a file name is respected"""
         check_status_is(res, 200)
-        assert res["payload"] and b"Go Monarchs!" in res["payload"], "Payload should contain `Go Monarchs!`"
+        check_payload_contains(res, "Go Monarchs!")
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.jpeg")
@@ -493,7 +493,8 @@ class HTTPTester():
         """Test whether a2-test directory root returns directory listing"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        assert res["payload"] and b"coolcar.html" in res["payload"] and b"ford" in res["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+        check_payload_contains(res, "coolcar.html")
+        check_payload_contains(res, "ford")
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
@@ -599,7 +600,7 @@ class HTTPTester():
             if not errors:
                 check_status_is(res2, 200)
                 check_mime_is(res2, "text/html")
-                assert res2["payload"] and b"1966 Ford Fairlane" in res2["payload"], "Payload should contain `1966 Ford Fairlane`"
+                check_payload_contains(res2, "1966 Ford Fairlane")
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
         return {"req": req2, "res": res2, "errors": errors}
@@ -643,7 +644,8 @@ class HTTPTester():
             return {"req": req, "res": res, "errors": errors}
         assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
         check_mime_is(res, "text/html")
-        assert pres["payload"] and b"coolcar.html" in pres["payload"] and b"ford" in pres["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+        check_payload_contains(pres, "coolcar.html")
+        check_payload_contains(pres, "ford")
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
@@ -684,7 +686,8 @@ class HTTPTester():
             if not errors:
                 check_status_is(res3, 200)
                 check_mime_is(res3, "text/html")
-                assert res3["payload"] and b"coolcar.html" in res3["payload"] and b"ford" in res3["payload"], "Payload should contain all file and folder names immediately under `/a2-test/` directory"
+                check_payload_contains(res3, "coolcar.html")
+                check_payload_contains(res3, "ford")
                 assert res3["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
