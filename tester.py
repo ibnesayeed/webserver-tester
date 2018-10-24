@@ -3,6 +3,7 @@
 import sys
 import os
 import re
+import time
 import inspect
 import collections
 import functools
@@ -25,6 +26,7 @@ class HTTPTester():
         self.SEND_DATA_TIMEOUT = 3.0
         self.RECV_FIRST_BYTE_TIMEOUT = 1.0
         self.RECV_END_TIMEOUT = 0.5
+        self.LIFETIME_TIMEOUT = 15
 
         # Identify host and port of the server to be tested
         self.host = "localhost"
@@ -602,13 +604,21 @@ class HTTPTester():
         self.check_status_is(res, 412)
 
 
-    @make_request("head-keep-alive.http", PATH="/a2-test/2/index.html")
-    def test_2_implicit_keep_alive(self, req, res):
-        """Test whether the socket connection is kept alive by default"""
+    @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+    def test_2_implicit_keep_alive_until_timeout(self, req, res):
+        """Test whether the socket connection is kept alive by default and closed after the set timeout"""
         self.check_status_is(res, 200)
         self.check_mime_is(res, "text/html")
         self.check_payload_empty(res)
         self.check_connection_alive(res)
+        time.sleep(self.LIFETIME_TIMEOUT + 1)
+        try:
+            self.sock.settimeout(0.5)
+            self.sock.sendall(b"STILL ALIVE?")
+            assert False, f"Server should timeout after {self.LIFETIME_TIMEOUT} seconds"
+        except Exception as e:
+            res["connection"] = "closed"
+            return {"req": req, "res": res, "errors": []}
 
 
     @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
