@@ -280,7 +280,9 @@
         }
         ShowResMsg(deployerResDiv, msg, state);
       }
-      deployerBtn && deployerBtn.onclick = deployServer;
+      if (deployerBtn) {
+        deployerBtn.onclick = deployServer;
+      }
 
       function showTestSummary(hostport) {
         if (!activeTests) {
