@@ -664,7 +664,7 @@ class HTTPTester():
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
-    @make_request("head-keep-alive.http", keep_alive=False, PATH="/a2-test/")
+    @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
     def test_2_long_lived_connection(self, req, res):
         """Test whether the socket connection is kept alive to process multiple requests successively"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
