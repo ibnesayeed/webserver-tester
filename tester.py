@@ -514,9 +514,10 @@ class HTTPTester():
         """Test whether default index.html is returned instead of directory listing"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
+        check_payload_not_empty(res)
         req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         check_status_is(res2, 200)
-        assert res["payload"] and res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
+        assert res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
         check_connection_closed(res)
 
 
@@ -582,8 +583,8 @@ class HTTPTester():
     def test_2_valid_etag_ok(self, req, res):
         """Test whether a valid ETag returns 200 OK"""
         check_status_is(res, 200)
+        check_etag_valid(res)
         etag = res["headers"].get("etag", "").strip('"')
-        assert etag, "`ETag` should not be empty"
         req2, res2, errors = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         try:
             if not errors:
@@ -626,12 +627,12 @@ class HTTPTester():
         pres, errors = self.parse_response(res["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
-        assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
+        check_status_is(pres, 200)
         check_mime_is(res, "text/html")
         pres, errors = self.parse_response(pres["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
-        assert pres["status_code"] == 200, f"Status expected `200`, returned `{pres['status_code']}`"
+        check_status_is(pres, 200)
         check_mime_is(res, "text/html")
         check_payload_contains(pres, "coolcar.html")
         check_payload_contains(pres, "ford")
@@ -659,7 +660,7 @@ class HTTPTester():
             if not errors:
                 check_status_is(res2, 200)
                 check_mime_is(res2, "text/html")
-                assert not res2["payload"], f"Payload length expected `0` bytes, returned `{res2['payload_size']}`"
+                check_payload_empty(res2)
                 check_connection_alive(res2)
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
