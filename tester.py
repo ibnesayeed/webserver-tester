@@ -555,14 +555,14 @@ class HTTPTester():
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
-    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 19 Oct 2018 22:33:21 GMT")
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:21 GMT")
     def test_2_conditional_head_fresh(self, req, res):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
         assert res["status_code"] == 304, f"Status expected `304`, returned `{res['status_code']}`"
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
-    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 19 Oct 2018 22:33:20 GMT")
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:20 GMT")
     def test_2_conditional_head_stale(self, req, res):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
@@ -580,7 +580,7 @@ class HTTPTester():
         assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
-    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-19 22:33:21.304307000 -0400")
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-20 02:33:21.304307000 -0000")
     def test_2_conditional_head_unsupported_datetime_format(self, req, res):
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
