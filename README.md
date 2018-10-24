@@ -30,13 +30,24 @@ $ docker container run --rm -it webserver-tester ./tester.py -h
 
 Be aware that the `localhost` inside of the container refers to the container itself and not the host machine, so use a host that is reachable from inside of the container.
 
-Alternatively, the web interface can be used to test the server. The web interface can be deployed both on the host machine or in a Docker container. Here is how to run it in a container.
+Alternatively, the web interface can be used to test the server. The web interface can be deployed both on the host machine or in a Docker container. Here is how to run it in a container. To make sure that the tester can talk to your web server container, we will use a custom Docker network named `cs531` (which could be any other allowed network name) and use the same network for both the tester and server. We will also name the container as `cs531-tester` so that we can easily kill and remove it as we will be running it in daemon mode (`-d` flag instead of `--rm -it`) this time. We will expose the tester interface on port `5000` of the host machine.
 
 ```
-$ docker container run --rm -it -p 5000:5000 webserver-tester
+$ docker network create cs531
+$ docker container run -d --network=cs531 --name=cs531-tester -p 5000:5000 webserver-tester
 ```
 
 Then access it from http://localhost:5000 and provide the `<host>:<port>` information in the appropriate form then run tests.
+
+Now, run your web server in a container with a custom name and the same network as the tester to be able to test it using the tester interface.
+
+```
+$ cd /to/you/server/code/directory
+$ docker image build -t web-server .
+$ docker container run --rm -it --network=cs531 --name=my-server web-server [<any server arguments>]
+```
+
+Now, you should be able to use `my-server:<port>` in the web interface to test your server. Your server container's name can be used as the host name to access it from any other container running in the same Docker network.
 
 ## Deploy and Test on Course's Test Machine
 
