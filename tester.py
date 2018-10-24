@@ -327,11 +327,9 @@ class HTTPTester():
     def test_0_healthy_server(self, req, res):
         """Test healthy server root"""
         check_status_is(res, 200)
-        assert "date" in res["headers"], "`Date` header should be present"
-        datehdr = res["headers"].get("date", "")
-        assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
-        assert "content-type" in res["headers"], "`Content-Type` header should be present"
-        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
+        check_date_valid(res)
+        check_header_present(res, "Content-Type")
+        check_version_is(res, "HTTP/1.1")
 
 
     @make_request("malformed-header.http")
@@ -343,7 +341,7 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/2/index.html")
     def test_1_url_get_ok(self, req, res):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
-        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
+        check_version_is(res, "HTTP/1.1")
         check_status_is(res, 200)
 
 
@@ -375,14 +373,14 @@ class HTTPTester():
     @make_request("get-path.http", PATH="/1/1.1/go%20hokies.html")
     def test_1_get_missing(self, req, res):
         """Test whether a non-existing path returns 404 on GET"""
-        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
+        check_version_is(res, "HTTP/1.1")
         check_status_is(res, 404)
 
 
     @make_request("get-path.http", PATH="/a1-test/a1-test/")
     def test_1_get_duplicate_path_prefix(self, req, res):
         """Test tight path prefix checking"""
-        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
+        check_version_is(res, "HTTP/1.1")
         check_status_is(res, 404)
 
 
@@ -451,7 +449,7 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a1-test/2/0.JPEG")
     def test_1_get_case_sensitive_file_extension(self, req, res):
         """Test whether file extensions are treated case-sensitive"""
-        assert res["http_version"] == "HTTP/1.1", f"HTTP version expected `HTTP/1.1`, returned `{res['http_version']}`"
+        check_version_is(res, "HTTP/1.1")
         check_status_is(res, 404)
 
 
