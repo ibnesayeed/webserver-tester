@@ -412,7 +412,7 @@ class HTTPTester():
         """Test whether redirects path to trailing slashes when missing for existing directories"""
         assert res["status_code"] == 301, f"Status expected `301`, returned `{res['status_code']}`"
         loc = res["headers"].get("location", "[ABSENT]")
-        assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
+        assert loc.endswith("/a2-test/1/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
         assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
