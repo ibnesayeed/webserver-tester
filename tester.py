@@ -624,18 +624,18 @@ class HTTPTester():
         """Test whether multiple pipelined requests are processed and returned in the same order"""
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
-        pres, errors = self.parse_response(res["payload"])
+        res2, errors = self.parse_response(res["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
-        check_status_is(pres, 200)
-        check_mime_is(res, "text/html")
-        pres, errors = self.parse_response(pres["payload"])
+        check_status_is(res2, 200)
+        check_mime_is(res2, "text/html")
+        res3, errors = self.parse_response(res3["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
-        check_status_is(pres, 200)
-        check_mime_is(res, "text/html")
-        check_payload_contains(pres, "coolcar.html")
-        check_payload_contains(pres, "ford")
+        check_status_is(res3, 200)
+        check_mime_is(res3, "text/html")
+        check_payload_contains(res3, "coolcar.html")
+        check_payload_contains(res3, "ford")
         check_connection_closed(res)
 
 
