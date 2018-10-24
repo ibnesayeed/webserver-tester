@@ -629,7 +629,7 @@ class HTTPTester():
             return {"req": req, "res": res, "errors": errors}
         self.check_status_is(res2, 200)
         self.check_mime_is(res2, "text/html")
-        res3, errors = self.parse_response(res3["payload"])
+        res3, errors = self.parse_response(res2["payload"])
         if errors:
             return {"req": req, "res": res, "errors": errors}
         self.check_status_is(res3, 200)
