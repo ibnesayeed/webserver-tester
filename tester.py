@@ -498,18 +498,14 @@ class HTTPTester():
     @make_request("get-url.http", PATH="/a2-test/2")
     def test_2_redirect_to_trailing_slash_for_directory_url(self, req, res):
         """Test whether redirects URL to trailing slashes when missing for existing directories"""
-        check_status_is(res, 301)
-        loc = res["headers"].get("location", "[ABSENT]")
-        assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/2/`, returned `{loc}`"
+        check_redirects_to(res, 301, "/a2-test/2/")
         check_connection_closed(res)
 
 
     @make_request("get-path.http", PATH="/a2-test/1")
     def test_2_redirect_to_trailing_slash_for_directory_path(self, req, res):
         """Test whether redirects path to trailing slashes when missing for existing directories"""
-        check_status_is(res, 301)
-        loc = res["headers"].get("location", "[ABSENT]")
-        assert loc.endswith("/a2-test/1/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
+        check_redirects_to(res, 301, "/a2-test/1/")
         check_connection_closed(res)
 
 
@@ -527,17 +523,13 @@ class HTTPTester():
     @make_request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
     def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, req, res):
         """Test whether redirects as per the regular expression with wildcard trailing capture group"""
-        check_status_is(res, 302)
-        loc = res["headers"].get("location", "[ABSENT]")
-        assert loc.endswith("/a2-test/1/1.1/assignment1.ppt"), f"`Location` expected to end with `/a2-test/1/1.1/assignment1.ppt`, returned `{loc}`"
+        check_redirects_to(res, 302, "/a2-test/1/1.1/assignment1.ppt")
 
 
     @make_request("head-path.http", PATH="/a2-test/coolcar.html")
     def test_2_redirect_as_per_regexp_trailing_specific_file(self, req, res):
         """Test whether redirects as per the regular expression with a specific trailing file name"""
-        check_status_is(res, 302)
-        loc = res["headers"].get("location", "[ABSENT]")
-        assert loc.endswith("/a2-test/galaxie.html"), f"`Location` expected to end with `/a2-test/galaxie.html`, returned `{loc}`"
+        check_redirects_to(res, 302, "/a2-test/galaxie.html")
 
 
     @make_request("head-path.http", PATH="/a2-test/galaxie.html")
