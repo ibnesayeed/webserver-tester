@@ -421,7 +421,7 @@ class HTTPTester():
         """Test whether the server echoes back the request on TRACE"""
         check_status_is(res, 200)
         check_mime_is(res, "message/http")
-        assert res["payload"] and res["payload"].startswith(b"TRACE /a1-test/1/1.4/ HTTP/1.1"), f"Payload should start with `TRACE /a1-test/1/1.4/ HTTP/1.1`"
+        check_payload_begins(res, "TRACE /a1-test/1/1.4/ HTTP/1.1")
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/test%3A.html")
@@ -485,7 +485,7 @@ class HTTPTester():
     def test_1_get_magic_cookie_of_a_binary_file(self, req, res):
         """Test whether a GIF file contains identifying magic cookie"""
         check_status_is(res, 200)
-        assert res["payload"] and res["payload"].startswith(b"GIF89a"), f"Payload should contain `GIF89a` magic cookie for GIF"
+        check_payload_begins(res, "GIF89a")
 
 
     @make_request("get-url.http", PATH="/a2-test/")
@@ -625,7 +625,7 @@ class HTTPTester():
         """Test whether many unnecessary conditionals are not processed"""
         check_status_is(res, 200)
         check_mime_is(res, "message/http")
-        assert res["payload"] and res["payload"].startswith(b"TRACE /a2-test/2/index.html HTTP/1.1"), f"Payload should start with `TRACE /a2-test/2/index.html HTTP/1.1`"
+        check_payload_begins(res, "TRACE /a2-test/2/index.html HTTP/1.1")
 
 
     @make_request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
