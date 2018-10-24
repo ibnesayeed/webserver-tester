@@ -88,9 +88,9 @@ $ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>
 
 To add more test cases, first create an issue describing the test scenario. To avoid duplicate efforts, claim the ticket if you want to work on it. Fork the repository and submit a PR when done.
 
-Adding a test case is quite simple. First, check the `messages` director to see if any existing HTTP Request messages are suitable for your scenario. If not, then create a new Request message file and name it appropriately. You can use `<HOST>`, `<PORT>`, and `<HOSTPORT>` placeholders that will be replaced with the corresponding values of the server being tested. The latter is a combination of the other two in the form of `<HOST>:<PORT>`, but it does not include the port number if it is the default `80`.
+Adding a test case is quite simple. First, check the `messages` director to see if any existing HTTP Request messages are suitable for your scenario. If not, then create a new Request message file and name it appropriately. You can use `<HOST>`, `<PORT>`, and `<HOSTPORT>` placeholders that will be replaced with the corresponding values of the server being tested. The latter is a combination of the other two in the form of `<HOST>:<PORT>`, but it does not include the port number if it is the default `80`. Another special placeholder `<PIPELINE>` is used in messages where multiple messages are supposed to be sent as one. This is replaced with an empty string before making the request. The purpose of this placeholder is to distinguish separator of payload from another HTTP message. Apart from these special placeholders, any number of other placeholders can be used that are specified when defining a test case (e.g., `PATH`).
 
-In the `tester.py` file locate where existing test cases are present, then define a new method using the `test_<assignment-number>_<descriptive_name>` naming convention. Add a sentence or two to describe the test in the form of doc string. Add the `@make_request(<request-message-file.http>)` decorator above your method. This will perform the request, parse the response, and execute your test conditions if no connection or syntactic errors are found. Your test method will receive the request and response object. They contain various raw and parsed attributes to perform your test assertions on.
+In the `tester.py` file locate where existing test cases are present, then define a new method using the `test_<assignment-number>_<descriptive_name>` naming convention. Add a sentence or two to describe the test in the form of doc string. Add the `@make_request(<request-message-file.http>, [PLACEHOLDER1="VALUE1", ...])` decorator above your method. This will perform the request, parse the response, and execute your test conditions if no connection or syntactic errors are found. Your test method will receive the request and response objects. They contain various raw and parsed attributes to perform your test assertions on.
 
 ```py
 req = {
@@ -108,7 +108,13 @@ res = {
 }
 ```
 
-For example, if we want to test whether a server returns `400 Bad Request` response when the request has a malformed header, we can create a message file named `message/malformed-header.http`:
+We can have more than one assertions in a single test case, but the first one that fails will be reported otherwise the test will pass. Assertions take the following form:
+
+```py
+assert <test-condition>[, <optional-failure-message>]
+```
+
+We have included a number of helper methods for various common assertions. Check the `tester.py` file for method names using the `check_<helper_name>` format. Using these helpers is preferred when possible as they make the test case more readable. For example, if we want to test whether a server returns `400 Bad Request` response when the request has a malformed header, we can create a message file named `message/malformed-header.http`:
 
 ```http
 GET /foo HTTP/1.1
@@ -126,10 +132,34 @@ def test_0_bad_request_header(self, req, res):
     assert res["status_code"] == 400, f"Status expected '400', returned '{res['status_code']}'"
 ```
 
-We can have more than one assertions in a single test case, but the first one that fails will be reported otherwise the test will pass. Assertions take the following form:
+Alternatively, utilize an included assertion helper as following:
 
 ```py
-assert <test-condition>[, <optional-failure-message>]
+@make_request("malformed-header.http")
+def test_0_bad_request_header(self, req, res):
+    """Test whether the server recognizes malformed headers"""
+    self.check_status_is(res, 400)
 ```
 
-This is it! We got a brand new test case in place.
+Let's write another test case with a custom placeholder. In this case we will utilize the `messages/get-path.http` file and supply the `<PATH>` placeholder to a file that does not exist. We will expect a `404` response with HTTP version as `HTTP/1.1` that also includes a `Date` header.
+
+```http
+GET <PATH> HTTP/1.1
+Host: <HOSTPORT>
+Connection: close
+
+```
+
+With the above template message, add the following test case:
+
+```py
+@make_request("messages/get-path.http", PATH="/file-does-not-exist.html")
+def test_0_bad_request_header(self, req, res):
+    """Test HTTP version, inclusion of Date header, and 404 Not Found"""
+    self.check_version_is(res, "HTTP/1.1")
+    self.check_date_valid(res)
+    self.check_status_is(res, 404)
+```
+
+
+That's it! We got a couple of brand new test cases in place.
