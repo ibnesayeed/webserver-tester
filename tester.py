@@ -450,7 +450,7 @@ class HTTPTester():
         assert res["status_code"] == 200, f"Status expected `200`, returned `{res['status_code']}`"
         ctype = res["headers"].get("content-type", "[ABSENT]")
         assert ctype.startswith("text/html"), f"`Content-Type` should start with `text/html`, returned `{ctype}`"
-        assert res["payload"] and b"Pro Street 1966 Ford Galaxie" in res["payload"], "Payload should contain `Pro Street 1966 Ford Galaxie`"
+        assert not res["payload"], f"Payload length expected `0` bytes, returned `{res['payload_size']}`"
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 19 Oct 2018 22:33:21 GMT")
