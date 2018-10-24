@@ -237,25 +237,25 @@ class HTTPTester():
 
     def check_header_is(self, res, header, value):
         check_header_present(res, header)
-        val = res["headers"].get(header, "")
+        val = res["headers"].get(header.lower(), "")
         assert value == val, f"`{header}` header should be `{value}`, returned `{val}`"
 
 
     def check_header_contains(self, res, header, value):
         check_header_present(res, header)
-        val = res["headers"].get(header, "")
+        val = res["headers"].get(header.lower(), "")
         assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
 
 
     def check_header_begins(self, res, header, value):
         check_header_present(res, header)
-        val = res["headers"].get(header, "")
+        val = res["headers"].get(header.lower(), "")
         assert val.startswith(value), f"`{header}` header should begin with `{value}`, returned `{val}`"
 
 
     def check_header_ends(self, res, header, value):
         check_header_present(res, header)
-        val = res["headers"].get(header, "")
+        val = res["headers"].get(header.lower(), "")
         assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
 
 
@@ -442,8 +442,7 @@ class HTTPTester():
     def test_1_get_jpeg_image(self, req, res):
         """Test whether a JPEG image returns 200 with proper Content-Length on GET"""
         check_status_is(res, 200)
-        clength = res["headers"].get("content-length", "[ABSENT]")
-        assert clength == "38457", f"`Content-Length` expected `38457`, returned `{clength}`"
+        check_header_is(res, "Content-Length", "38457")
         assert res["payload"] and res["payload_size"] == 38457, f"Payload length expected `38457` bytes, returned `{res['payload_size']}`"
 
 
@@ -459,8 +458,7 @@ class HTTPTester():
         """Test whether an empty file returns zero bytes with 200 on GET"""
         check_status_is(res, 200)
         check_mime_is(res, "text/plain")
-        clength = res["headers"].get("content-length", "[ABSENT]")
-        assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
+        check_header_is(res, "Content-Length", "0")
         check_payload_empty(res)
 
 
@@ -469,8 +467,7 @@ class HTTPTester():
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
         check_status_is(res, 200)
         check_mime_is(res, "application/octet-stream")
-        clength = res["headers"].get("content-length", "[ABSENT]")
-        assert clength == "0", f"`Content-Length` expected `0`, returned `{clength}`"
+        check_header_is(res, "Content-Length", "0")
         check_payload_empty(res)
 
 
