@@ -228,7 +228,7 @@ class HTTPTester():
 
     def check_version_is(self, res, version):
         ver = res["http_version"]
-        assert version == ver, f"HTTP version expected `{status}`, returned `{ver}`"
+        assert version == ver, f"HTTP version expected `{version}`, returned `{ver}`"
 
 
     def check_header_present(self, res, header):
