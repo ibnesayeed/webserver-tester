@@ -443,7 +443,7 @@ class HTTPTester():
         """Test whether a JPEG image returns 200 with proper Content-Length on GET"""
         check_status_is(res, 200)
         check_header_is(res, "Content-Length", "38457")
-        assert res["payload"] and res["payload_size"] == 38457, f"Payload length expected `38457` bytes, returned `{res['payload_size']}`"
+        check_payload_size(res, 38457)
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.JPEG")
@@ -492,7 +492,7 @@ class HTTPTester():
         check_mime_is(res, "text/html")
         check_payload_contains(res, "coolcar.html")
         check_payload_contains(res, "ford")
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        check_connection_closed(res)
 
 
     @make_request("get-url.http", PATH="/a2-test/2")
@@ -501,7 +501,7 @@ class HTTPTester():
         check_status_is(res, 301)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/2/"), f"`Location` expected to end with `/a2-test/2/`, returned `{loc}`"
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        check_connection_closed(res)
 
 
     @make_request("get-path.http", PATH="/a2-test/1")
@@ -510,7 +510,7 @@ class HTTPTester():
         check_status_is(res, 301)
         loc = res["headers"].get("location", "[ABSENT]")
         assert loc.endswith("/a2-test/1/"), f"`Location` expected to end with `/a2-test/1/`, returned `{loc}`"
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        check_connection_closed(res)
 
 
     @make_request("get-url.http", PATH="/a2-test/2/")
@@ -521,7 +521,7 @@ class HTTPTester():
         req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         check_status_is(res2, 200)
         assert res["payload"] and res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        check_connection_closed(res)
 
 
     @make_request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
@@ -615,7 +615,7 @@ class HTTPTester():
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
         check_payload_empty(res)
-        assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+        check_connection_alive(res)
 
 
     @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
@@ -643,7 +643,7 @@ class HTTPTester():
         check_mime_is(res, "text/html")
         check_payload_contains(pres, "coolcar.html")
         check_payload_contains(pres, "ford")
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        check_connection_closed(res)
 
 
     @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
@@ -652,7 +652,7 @@ class HTTPTester():
         check_status_is(res, 200)
         check_mime_is(res, "text/html")
         check_payload_empty(res)
-        assert res["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+        check_connection_alive(res)
         req2, res2, errors = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
         req["raw"] += req2["raw"]
         res["connection"] = res2["connection"]
@@ -668,7 +668,7 @@ class HTTPTester():
                 check_status_is(res2, 200)
                 check_mime_is(res2, "text/html")
                 assert not res2["payload"], f"Payload length expected `0` bytes, returned `{res2['payload_size']}`"
-                assert res2["connection"] == "alive", "Socket connection should be kept `alive` due to no explicit `Connection: close` header"
+                check_connection_alive(res2)
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
         if errors:
@@ -685,7 +685,7 @@ class HTTPTester():
                 check_mime_is(res3, "text/html")
                 check_payload_contains(res3, "coolcar.html")
                 check_payload_contains(res3, "ford")
-                assert res3["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+                check_connection_closed(res3)
         except AssertionError as e:
             errors.append(f"ASSERTION: {e}")
         return {"req": req, "res": res, "errors": errors}
