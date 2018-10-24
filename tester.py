@@ -59,8 +59,9 @@ class HTTPTester():
 
 
     def reset_sock(self):
-        self.sock.close()
-        self.sock = None
+        if self.sock:
+            self.sock.close()
+            self.sock = None
 
 
     def netcat(self, msg_file, keep_alive=False, **kwargs):
