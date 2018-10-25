@@ -639,6 +639,7 @@ class HTTPTester():
         try:
             assert not report2["errors"], "Second response should be a valid `408 Request Timeout`"
             self.check_status_is(report2, 408)
+            self.check_header_is(report2, "Connection", "close")
             self.check_connection_closed(report2)
             report["notes"] += report2["notes"]
         except AssertionError:
