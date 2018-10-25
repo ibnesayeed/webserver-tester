@@ -692,6 +692,7 @@ class HTTPTester():
             self.check_mime_is(report2, "text/html")
             self.check_payload_empty(report2)
             self.check_connection_alive(report2)
+            report["notes"] += report2["notes"]
         except AssertionError:
             report["req"]["raw"] += report2["req"]["raw"]
             report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
@@ -710,6 +711,7 @@ class HTTPTester():
             self.check_payload_contains(report3, "coolcar.html")
             self.check_payload_contains(report3, "ford")
             self.check_connection_closed(report3)
+            report["notes"] += report3["notes"]
         except AssertionError:
             report["req"]["raw"] += report3["req"]["raw"]
             report["res"]["raw_headers"] += "\r\n\r\n" + report3["res"]["raw_headers"]
