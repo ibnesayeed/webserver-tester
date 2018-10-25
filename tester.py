@@ -177,7 +177,8 @@ class HTTPTester():
                 if k != kv[0]:
                     report["errors"].append(f"Header name `{kv[0]}` has spurious white-spaces")
                 report["res"]["headers"][k.lower()] = kv[1].strip()
-        report["notes"].append("Response parsed")
+        if not report["errors"]:
+            report["notes"].append("Response parsed")
 
 
     def run_single_test(self, test_id):
@@ -334,12 +335,12 @@ class HTTPTester():
     def check_connection_alive(self, report, explicit=False):
         reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
         assert report["res"]["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
-        report["notes"].append(f"Socket connection is kept alive")
+        report["notes"].append("Socket connection is kept alive")
 
 
     def check_connection_closed(self, report):
         assert report["res"]["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
-        report["notes"].append(f"Socket connection is closed")
+        report["notes"].append("Socket connection is closed")
 
 
 ############################### BEGIN TEST CASES ###############################
@@ -533,9 +534,11 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
         self.check_payload_not_empty(report)
+        report["notes"].append("Fetching `/a2-test/2/index.html` for content comparison")
         report2 = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         self.check_status_is(report2, 200)
         assert report["res"]["payload"] == report2["res"]["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
+        report["notes"].append("Contents of `/a2-test/2/` and `/a2-test/2/index.html` are the same")
         self.check_connection_closed(report)
 
 
@@ -603,6 +606,7 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
         etag = report["res"]["headers"].get("etag", "").strip('"')
+        report["notes"].append(f"`ETag` fetched for reuse as `{etag}` in the next request")
         report2 = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         for k in report2:
             report[k] = report2[k]
@@ -630,8 +634,9 @@ class HTTPTester():
         try:
             self.sock.settimeout(0.5)
             self.sock.sendall(b"STILL ALIVE?")
-            assert False, f"Server should timeout after {self.LIFETIME_TIMEOUT} seconds"
+            assert False, f"Server should timeout after `{self.LIFETIME_TIMEOUT}` seconds"
         except socket.error as e:
+            report["notes"].append(f"Server timed out after `{self.LIFETIME_TIMEOUT}` seconds")
             report["res"]["connection"] = "closed"
 
 
@@ -651,14 +656,14 @@ class HTTPTester():
         orig_hdr = report["res"]["raw_headers"]
         orig_pld = report["res"]["payload"]
         try:
+            report["notes"].append("Parsing second response")
             self.parse_response(report["res"]["payload"], report)
-            if report["errors"]:
-                assert False, "Second response should be a valid HTTP Message"
+            assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
+            report["notes"].append("Parsing third response")
             self.parse_response(report["res"]["payload"], report)
-            if report["errors"]:
-                assert False, "Third response should be a valid HTTP Message"
+            assert not report["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
             self.check_payload_contains(report, "coolcar.html")
@@ -679,13 +684,13 @@ class HTTPTester():
         self.check_mime_is(report, "text/html")
         self.check_payload_empty(report)
         self.check_connection_alive(report)
+        report["notes"].append("Making second request")
         report2 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
         report["req"]["raw"] += report2["req"]["raw"]
         report["res"]["connection"] = report2["res"]["connection"]
         report["res"]["payload"] += report2["res"]["raw_headers"].encode() + b"\r\n\r\n" + report2["res"]["payload"]
         try:
-            if report2["errors"]:
-                assert False, "Second response should be a valid HTTP Message"
+            assert not report2["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report2, 200)
             self.check_mime_is(report2, "text/html")
             self.check_payload_empty(report2)
@@ -693,13 +698,13 @@ class HTTPTester():
         except AssertionError:
             report["errors"] = report2["errors"]
             raise
+        report["notes"].append("Making third request")
         report3 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
         report["req"]["raw"] += report3["req"]["raw"]
         report["res"]["connection"] = report3["res"]["connection"]
         report["res"]["payload"] += report3["res"]["raw_headers"].encode() + b"\r\n\r\n" + report3["res"]["payload"]
         try:
-            if report3["errors"]:
-                assert False, "Third response should be a valid HTTP Message"
+            assert not report3["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report3, 200)
             self.check_mime_is(report3, "text/html")
             self.check_payload_contains(report3, "coolcar.html")
