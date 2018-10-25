@@ -605,7 +605,7 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
         etag = report["res"]["headers"].get("etag", "").strip('"')
-        report["notes"].append(f"`ETag` fetched for reuse as `"{etag}"` in the subsequent request")
+        report["notes"].append(f'`ETag` fetched for reuse as `"{etag}"` in the subsequent request')
         report2 = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         for k in report2:
             report[k] = report2[k]
