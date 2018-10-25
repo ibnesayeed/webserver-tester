@@ -511,9 +511,9 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
         self.check_payload_not_empty(report)
-        req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
+        report2 = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         self.check_status_is(report2, 200)
-        assert res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
+        assert report["res"]["payload"] == report2["res"]["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
         self.check_connection_closed(report)
 
 
