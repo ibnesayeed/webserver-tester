@@ -207,7 +207,7 @@ class HTTPTester():
                     if not report["errors"]:
                         func(self, report)
                 except AssertionError as e:
-                    errors.append(f"ASSERTION: {e}")
+                    report["errors"].append(f"ASSERTION: {e}")
                 self.reset_sock()
                 return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "req": report["req"], "res": report["res"]}
             return wrapper
