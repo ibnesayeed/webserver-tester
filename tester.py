@@ -309,25 +309,21 @@ class HTTPTester():
 
 
     def check_payload_is(self, report, value):
-        self.check_payload_not_empty(report)
         assert value.encode() == report["res"]["payload"], f"Payload should exactly be `{value}`"
         report["notes"].append(f"Payload is exactly `{value}`")
 
 
     def check_payload_contains(self, report, value):
-        self.check_payload_not_empty(report)
         assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
         report["notes"].append(f"Payload contains `{value}`")
 
 
     def check_payload_begins(self, report, value):
-        self.check_payload_not_empty(report)
         assert report["res"]["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
         report["notes"].append(f"Payload begins with `{value}`")
 
 
     def check_payload_ends(self, report, value):
-        self.check_payload_not_empty(report)
         assert report["res"]["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
         report["notes"].append(f"Payload ends with `{value}`")
 
@@ -698,7 +694,7 @@ class HTTPTester():
             report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
             report["res"]["payload"] = report2["res"]["payload"]
             report["res"]["payload_size"] = len(report2["res"]["payload"])
-            report["res"]["connection"] = report2["res"]["connection"]        
+            report["res"]["connection"] = report2["res"]["connection"]
             report["errors"] = report2["errors"]
             report["notes"] += report2["notes"]
             raise
