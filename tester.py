@@ -629,7 +629,7 @@ class HTTPTester():
         self.check_payload_empty(report)
         self.check_connection_alive(report)
         time.sleep(self.LIFETIME_TIMEOUT + 1)
-        report["notes"].append(f"Making a sebsequent request after {self.LIFETIME_TIMEOUT} seconds")
+        report["notes"].append(f"Making a sebsequent request after `{self.LIFETIME_TIMEOUT}` seconds")
         report2 = self.netcat("head-keep-alive.http", PATH="/a2-test/2/index.html")
         report["req"]["raw"] += report2["req"]["raw"]
         report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
