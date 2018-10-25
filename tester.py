@@ -305,7 +305,7 @@ class HTTPTester():
     def check_payload_size(self, report, value):
         val = report["res"]["payload_size"]
         assert value == val, f"Payload size expected `{value}` bytes, returned `{val}`"
-        report["notes"].append(f"Payload size is `{value}`")
+        report["notes"].append(f"Payload size is `{value}` bytes")
 
 
     def check_payload_is(self, report, value):
