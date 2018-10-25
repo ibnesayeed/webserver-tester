@@ -753,6 +753,8 @@ if __name__ == "__main__":
     def print_result(result, print_text_payload=False):
         print("-" * 79)
         print(f"{result['id']}: {colorize(result['description'], 96)}")
+        for note in result["notes"]:
+            print(f"* {note}")
         if result["errors"]:
             for err in result["errors"]:
                 print(colorize(f"[FAILED] {err}"))
