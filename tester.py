@@ -629,13 +629,22 @@ class HTTPTester():
         self.check_payload_empty(report)
         self.check_connection_alive(report)
         time.sleep(self.LIFETIME_TIMEOUT + 1)
+        report["notes"].append(f"Making a sebsequent request after {self.LIFETIME_TIMEOUT} seconds")
+        report2 = self.netcat("head-keep-alive.http", PATH="/a2-test/2/index.html")
+        report["req"]["raw"] += report2["req"]["raw"]
+        report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
+        report["res"]["payload"] = report2["res"]["payload"]
+        report["res"]["payload_size"] = len(report2["res"]["payload"])
+        report["res"]["connection"] = report2["res"]["connection"]
         try:
-            self.sock.settimeout(0.5)
-            self.sock.sendall(b"STILL ALIVE?")
-            assert False, f"Server should timeout after `{self.LIFETIME_TIMEOUT}` seconds"
-        except socket.error as e:
-            report["notes"].append(f"Server timed out after `{self.LIFETIME_TIMEOUT}` seconds")
-            report["res"]["connection"] = "closed"
+            assert not report2["errors"], "Second response should be a valid `408 Request Timeout`"
+            self.check_status_is(report2, 408)
+            self.check_connection_closed(report2)
+            report["notes"] += report2["notes"]
+        except AssertionError:
+            report["errors"] = report2["errors"]
+            report["notes"] += report2["notes"]
+            raise
 
 
     @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
