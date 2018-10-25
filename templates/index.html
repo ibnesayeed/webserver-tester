@@ -307,11 +307,13 @@
           return;
         }
         let r = JSON.parse(result);
-        let err = r.errors.map(e => `<li>${e}</li>`).join('')
+        let nt = r.notes.map(n => `<li>${n}</li>`).join('');
+        let err = r.errors.map(e => `<li>${e}</li>`).join('');
         let state = err ? 'FAILED' : 'PASSED';
         testResults[r.id] = state;
         document.getElementById(`box-${r.id}`).classList.add(state);
         let markup = `
+        ${nt ? `<h4>Notes</h4><ul>${nt.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</ul>` : ''}
         ${err ? `<h4>Failures</h4><ul class="failure reason">${err.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</ul>` : ''}
         <h4>Original Request</h4>
         <pre><code>${r.req.raw}</code></pre>`;
