@@ -54,10 +54,9 @@ class HTTPTester():
 
 
     def connect_sock(self):
-        if not self.sock:
-            self.sock = socket.socket()
-            self.sock.settimeout(self.CONNECTION_TIMEOUT)
-            self.sock.connect((self.host, self.port))
+        self.sock = socket.socket()
+        self.sock.settimeout(self.CONNECTION_TIMEOUT)
+        self.sock.connect((self.host, self.port))
 
 
     def reset_sock(self):
@@ -89,13 +88,16 @@ class HTTPTester():
             hdrs, sep, pld = self.split_http_message(msg)
             msg = hdrs.replace(b"<PIPELINE>", b"").replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
             report["req"]["raw"] = msg.decode()
-            try:
-                self.connect_sock()
-                report["notes"].append(f"Connected to the `{self.host}:{self.port}` server")
-            except Exception as e:
-                report["errors"].append(f"Connection to the server `{self.host}:{self.port}` failed: {e}")
-                self.reset_sock()
-                return report
+            if self.sock:
+                report["notes"].append(f"Reusing existing connection")
+            else:
+                report["notes"].append(f"Connecting to the `{self.host}:{self.port}` server")
+                try:
+                    self.connect_sock()
+                except Exception as e:
+                    report["errors"].append(f"Connection to the server `{self.host}:{self.port}` failed: {e}")
+                    self.reset_sock()
+                    return report
             try:
                 self.sock.settimeout(self.SEND_DATA_TIMEOUT)
                 self.sock.sendall(msg)
