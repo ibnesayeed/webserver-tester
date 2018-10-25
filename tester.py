@@ -286,8 +286,8 @@ class HTTPTester():
         etag = report["res"]["headers"].get("etag", "")
         m = re.match(r'(W/)?"(\S+)"', etag)
         assert m, f"Expected non-empty double-quoted ASCII `ETag` string without any spaces, returned `{etag}`"
-        assert not m[1], f"`Storng ETag` expected, returned `Weak ETag`"
-        report["notes"].append("`ETag` is not empty and properly formatted in double quotes")
+        assert not m[1], f"`Storng ETag` expected, returned `Weak ETag` as `{etag}`"
+        report["notes"].append(f"`ETag` is not empty and properly formatted in double quotes as `{etag}`")
 
 
     def check_redirects_to(self, report, status, location):
