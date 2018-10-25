@@ -198,7 +198,6 @@ class HTTPTester():
         """Test decorator generator that makes HTTP request using the msg_file.
         Makes the response available for assertions.
         Intended to be used as a decorator from within this class."""
-
         def test_decorator(func):
             @functools.wraps(func)
             def wrapper(self):
@@ -209,7 +208,7 @@ class HTTPTester():
                 except AssertionError as e:
                     report["errors"].append(f"ASSERTION: {e}")
                 self.reset_sock()
-                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "req": report["req"], "res": report["res"]}
+                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "notes": report["notes"], "req": report["req"], "res": report["res"]}
             return wrapper
         return test_decorator
 
