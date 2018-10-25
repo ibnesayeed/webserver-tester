@@ -700,7 +700,6 @@ class HTTPTester():
             report["errors"] = report2["errors"]
             report["notes"] += report2["notes"]
             raise
-        report["notes"] += report2["notes"]
         report["notes"].append("Making third request")
         report3 = self.netcat("get-path.http", PATH="/a2-test/")
         report["req"]["raw"] += report3["req"]["raw"]
@@ -720,7 +719,6 @@ class HTTPTester():
             report["errors"] = report3["errors"]
             report["notes"] += report3["notes"]
             raise
-        report["notes"] += report3["notes"]
 
 
     @make_request("get-path.http", PATH="/.well-known/access.log")
