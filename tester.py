@@ -284,8 +284,9 @@ class HTTPTester():
         self.check_header_present(report, "ETag")
         datehdr = report["res"]["headers"].get("etag", "")
         etag = report["res"]["headers"].get("etag", "")
-        assert etag.strip('"'), "`ETag` should not be empty"
-        assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+        m = re.match(r'(W/)?"(\S+)"', etag)
+        assert m, f"Expected non-empty double-quoted ASCII `ETag` string without any spaces, returned `{etag}`"
+        assert not m[1], f"`Storng ETag` expected, returned `Weak ETag`"
         report["notes"].append("`ETag` is not empty and properly formatted in double quotes")
 
 
@@ -604,7 +605,7 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
         etag = report["res"]["headers"].get("etag", "").strip('"')
-        report["notes"].append(f"`ETag` fetched for reuse as `{etag}` in the next request")
+        report["notes"].append(f"`ETag` fetched for reuse as `"{etag}"` in the subsequent request")
         report2 = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         for k in report2:
             report[k] = report2[k]
@@ -629,7 +630,7 @@ class HTTPTester():
         self.check_payload_empty(report)
         self.check_connection_alive(report)
         time.sleep(self.LIFETIME_TIMEOUT + 1)
-        report["notes"].append(f"Making a sebsequent request after `{self.LIFETIME_TIMEOUT}` seconds")
+        report["notes"].append(f"Making a subsequent request after `{self.LIFETIME_TIMEOUT}` seconds")
         report2 = self.netcat("head-keep-alive.http", PATH="/a2-test/2/index.html")
         report["req"]["raw"] += report2["req"]["raw"]
         report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
