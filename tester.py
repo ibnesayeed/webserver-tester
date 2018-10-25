@@ -67,38 +67,41 @@ class HTTPTester():
 
 
     def netcat(self, msg_file, keep_alive=False, **kwargs):
-        req = {
-            "raw": ""
+        report = {
+            "req": {
+                "raw": ""
+            },
+            "res": {
+                "raw_headers": "",
+                "http_version": "",
+                "status_code": 0,
+                "status_text": "",
+                "headers": {},
+                "payload": b"",
+                "payload_size": 0,
+                "connection": "closed"
+            },
+            "errors": [],
+            "notes": [],
         }
-        res = {
-            "raw_headers": "",
-            "http_version": "",
-            "status_code": 0,
-            "status_text": "",
-            "headers": {},
-            "payload": None,
-            "payload_size": 0,
-            "connection": "closed"
-        }
-        errors = []
         with open(os.path.join(self.MSGDIR, msg_file), "rb") as f:
             msg = self.replace_placeholders(f.read(), **kwargs)
             hdrs, sep, pld = self.split_http_message(msg)
             msg = hdrs.replace(b"<PIPELINE>", b"").replace(b"\r", b"").replace(b"\n", b"\r\n") + b"\r\n\r\n" + pld
-            req["raw"] = msg.decode()
+            report["req"]["raw"] = msg.decode()
             try:
                 self.connect_sock()
             except Exception as e:
-                errors.append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
+                report["errors"].append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
                 self.reset_sock()
-                return req, res, errors
+                return report
             try:
                 self.sock.settimeout(self.SEND_DATA_TIMEOUT)
                 self.sock.sendall(msg)
             except Exception as e:
-                errors.append(f"Sending data failed: {e}")
+                report["errors"].append(f"Sending data failed: {e}")
                 keep_alive or self.reset_sock()
-                return req, res, errors
+                return report
             try:
                 data = []
                 self.sock.settimeout(self.RECV_FIRST_BYTE_TIMEOUT)
@@ -108,13 +111,12 @@ class HTTPTester():
                     data.append(buf)
                     buf = self.sock.recv(4096)
             except socket.timeout as e:
-                res["connection"] = "alive"
+                report["res"]["connection"] = "alive"
             except Exception as e:
-                errors.append(f"Reading data failed: {e}")
+                report["errors"].append(f"Reading data failed: {e}")
             keep_alive or self.reset_sock()
-            pres, errors = self.parse_response(b"".join(data))
-            res = {**res, **pres}
-        return req, res, errors
+            self.parse_response(b"".join(data), report)
+        return report
 
 
     def replace_placeholders(self, msg, **kwargs):
@@ -139,41 +141,38 @@ class HTTPTester():
             return msg, b"", b""
 
 
-    def parse_response(self, msg):
-        res = {"headers": {}}
-        errors = []
+    def parse_response(self, msg, report):
         if not msg.strip():
-            errors.append("Empty response")
-            return res, errors
-        hdrs, sep, res["payload"] = self.split_http_message(msg)
+            report["errors"].append("Empty response")
+            return
+        hdrs, sep, pld = self.split_http_message(msg)
+        report["res"]["payload"] = pld
+        report["res"]["payload_size"] = len(pld)
         if not sep:
-            errors.append("Missing empty line after headers")
+            report["errors"].append("Missing empty line after headers")
         if sep == b"\n\n":
-            errors.append("Using `LF` as header separator instead of `CRLF`")
-        if res["payload"]:
-            res["payload_size"] = len(res["payload"])
+            report["errors"].append("Using `LF` as header separator instead of `CRLF`")
         hdrs = hdrs.decode()
-        res["raw_headers"] = hdrs
+        report["res"]["raw_headers"] = hdrs
         hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
         lines = hdrs.split("\n")
         status_line = lines.pop(0)
         m = re.match("^([\w\/\.]+)\s+(\d+)\s+(.*)$", status_line)
         if m:
-            res["http_version"] = m[1]
-            res["status_code"] = int(m[2])
-            res["status_text"] = m[3]
+            report["res"]["http_version"] = m[1]
+            report["res"]["status_code"] = int(m[2])
+            report["res"]["status_text"] = m[3]
         else:
-            errors.append(f"Malformed status line `{status_line}`")
+            report["errors"].append(f"Malformed status line `{status_line}`")
         for line in lines:
             kv = line.split(":", 1)
             if len(kv) < 2:
-                errors.append(f"Malformed header line `{line}`")
+                report["errors"].append(f"Malformed header line `{line}`")
             else:
                 k = kv[0].strip()
                 if k != kv[0]:
-                    errors.append(f"Header name `{kv[0]}` has spurious white-spaces")
-                res["headers"][k.lower()] = kv[1].strip()
-        return res, errors
+                    report["errors"].append(f"Header name `{kv[0]}` has spurious white-spaces")
+                report["res"]["headers"][k.lower()] = kv[1].strip()
 
 
     def run_single_test(self, test_id):
@@ -203,19 +202,14 @@ class HTTPTester():
         def test_decorator(func):
             @functools.wraps(func)
             def wrapper(self):
-                req, res, errors = self.netcat(msg_file, **kwargs)
-                overwrite = None
+                report = self.netcat(msg_file, **kwargs)
                 try:
-                    if not errors:
-                        overwrite = func(self, req, res)
+                    if not report["errors"]:
+                        func(self, report)
                 except AssertionError as e:
                     errors.append(f"ASSERTION: {e}")
-                if overwrite:
-                    req = overwrite["req"]
-                    res = overwrite["res"]
-                    errors = overwrite["errors"]
                 self.reset_sock()
-                return {"id": func.__name__, "description": func.__doc__, "errors": errors, "req": req, "res": res}
+                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "req": report["req"], "res": report["res"]}
             return wrapper
         return test_decorator
 
@@ -223,486 +217,486 @@ class HTTPTester():
 ############################### ASSERTION HELPERS ##############################
 
 
-    def check_status_is(self, res, status):
-        sc = res["status_code"]
+    def check_status_is(self, report, status):
+        sc = report["res"]["status_code"]
         assert status == sc, f"Status expected `{status}`, returned `{sc}`"
 
 
-    def check_version_is(self, res, version):
-        ver = res["http_version"]
+    def check_version_is(self, report, version):
+        ver = report["res"]["http_version"]
         assert version == ver, f"HTTP version expected `{version}`, returned `{ver}`"
 
 
-    def check_header_present(self, res, header):
-        assert header.lower() in res["headers"], f"`{header}` header should be present"
+    def check_header_present(self, report, header):
+        assert header.lower() in report["res"]["headers"], f"`{header}` header should be present"
 
 
-    def check_header_is(self, res, header, value):
-        self.check_header_present(res, header)
-        val = res["headers"].get(header.lower(), "")
+    def check_header_is(self, report, header, value):
+        self.check_header_present(report, header)
+        val = report["res"]["headers"].get(header.lower(), "")
         assert value == val, f"`{header}` header should be `{value}`, returned `{val}`"
 
 
-    def check_header_contains(self, res, header, value):
-        self.check_header_present(res, header)
-        val = res["headers"].get(header.lower(), "")
+    def check_header_contains(self, report, header, value):
+        self.check_header_present(report, header)
+        val = report["res"]["headers"].get(header.lower(), "")
         assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
 
 
-    def check_header_begins(self, res, header, value):
-        self.check_header_present(res, header)
-        val = res["headers"].get(header.lower(), "")
+    def check_header_begins(self, report, header, value):
+        self.check_header_present(report, header)
+        val = report["res"]["headers"].get(header.lower(), "")
         assert val.startswith(value), f"`{header}` header should begin with `{value}`, returned `{val}`"
 
 
-    def check_header_ends(self, res, header, value):
-        self.check_header_present(res, header)
-        val = res["headers"].get(header.lower(), "")
+    def check_header_ends(self, report, header, value):
+        self.check_header_present(report, header)
+        val = report["res"]["headers"].get(header.lower(), "")
         assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
 
 
-    def check_mime_is(self, res, value):
-        self.check_header_begins(res, "Content-Type", value)
+    def check_mime_is(self, report, value):
+        self.check_header_begins(report, "Content-Type", value)
 
 
-    def check_date_valid(self, res):
-        self.check_header_present(res, "Date")
-        datehdr = res["headers"].get("date", "")
+    def check_date_valid(self, report):
+        self.check_header_present(report, "Date")
+        datehdr = report["res"]["headers"].get("date", "")
         assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
 
 
-    def check_etag_valid(self, res):
-        self.check_header_present(res, "ETag")
-        datehdr = res["headers"].get("etag", "")
-        etag = res["headers"].get("etag", "")
+    def check_etag_valid(self, report):
+        self.check_header_present(report, "ETag")
+        datehdr = report["res"]["headers"].get("etag", "")
+        etag = report["res"]["headers"].get("etag", "")
         assert etag.strip('"'), "`ETag` should not be empty"
         assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
 
 
-    def check_redirects_to(self, res, status, location):
-        self.check_status_is(res, status)
-        self.check_header_ends(res, "Location", location)
+    def check_redirects_to(self, report, status, location):
+        self.check_status_is(report, status)
+        self.check_header_ends(report, "Location", location)
 
 
-    def check_payload_empty(self, res):
-        assert not res["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
+    def check_payload_empty(self, report):
+        assert not report["res"]["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
 
 
-    def check_payload_not_empty(self, res):
-        assert res["payload"], "Payload expected non-empty, returned empty"
+    def check_payload_not_empty(self, report):
+        assert report["res"]["payload"], "Payload expected non-empty, returned empty"
 
 
-    def check_payload_size(self, res, value):
-        val = res["payload_size"]
+    def check_payload_size(self, report, value):
+        val = report["res"]["payload_size"]
         assert value == val, f"Payload size expected `{value}` bytes, returned `{val}`"
 
 
-    def check_payload_is(self, res, value):
-        self.check_payload_not_empty(res)
-        assert value.encode() == res["payload"], f"Payload should exactly be `{value}`"
+    def check_payload_is(self, report, value):
+        self.check_payload_not_empty(report)
+        assert value.encode() == report["res"]["payload"], f"Payload should exactly be `{value}`"
 
 
-    def check_payload_contains(self, res, value):
-        self.check_payload_not_empty(res)
-        assert value.encode() in res["payload"], f"Payload should contain `{value}`"
+    def check_payload_contains(self, report, value):
+        self.check_payload_not_empty(report)
+        assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
 
 
-    def check_payload_begins(self, res, value):
-        self.check_payload_not_empty(res)
-        assert res["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
+    def check_payload_begins(self, report, value):
+        self.check_payload_not_empty(report)
+        assert report["res"]["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
 
 
-    def check_payload_ends(self, res, value):
-        self.check_payload_not_empty(res)
-        assert res["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
+    def check_payload_ends(self, report, value):
+        self.check_payload_not_empty(report)
+        assert report["res"]["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
 
 
-    def check_connection_alive(self, res, explicit=False):
+    def check_connection_alive(self, report, explicit=False):
         reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
-        assert res["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
+        assert report["res"]["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
 
 
-    def check_connection_closed(self, res):
-        assert res["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+    def check_connection_closed(self, report):
+        assert report["res"]["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
 
 
 ############################### BEGIN TEST CASES ###############################
 
 
     @make_request("get-root.http")
-    def test_0_healthy_server(self, req, res):
+    def test_0_healthy_server(self, report):
         """Test healthy server root"""
-        self.check_status_is(res, 200)
-        self.check_date_valid(res)
-        self.check_header_present(res, "Content-Type")
-        self.check_version_is(res, "HTTP/1.1")
+        self.check_status_is(report, 200)
+        self.check_date_valid(report)
+        self.check_header_present(report, "Content-Type")
+        self.check_version_is(report, "HTTP/1.1")
 
 
     @make_request("malformed-header.http")
-    def test_0_bad_request_header(self, req, res):
+    def test_0_bad_request_header(self, report):
         """Test whether the server recognizes malformed headers"""
-        self.check_status_is(res, 400)
+        self.check_status_is(report, 400)
 
 
     @make_request("get-url.http", PATH="/a1-test/2/index.html")
-    def test_1_url_get_ok(self, req, res):
+    def test_1_url_get_ok(self, report):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
-        self.check_version_is(res, "HTTP/1.1")
-        self.check_status_is(res, 200)
+        self.check_version_is(report, "HTTP/1.1")
+        self.check_status_is(report, 200)
 
 
     @make_request("method-url.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
-    def test_1_url_head_ok(self, req, res):
+    def test_1_url_head_ok(self, report):
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("method-path.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
-    def test_1_path_head_ok(self, req, res):
+    def test_1_path_head_ok(self, report):
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("method-path.http", METHOD="OPTIONS", PATH="/a1-test/2/index.html")
-    def test_1_path_options_ok(self, req, res):
+    def test_1_path_options_ok(self, report):
         """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
-        self.check_status_is(res, 200)
-        self.check_header_contains(res, "Allow", "GET")
+        self.check_status_is(report, 200)
+        self.check_header_contains(report, "Allow", "GET")
 
 
     @make_request("get-path.http", PATH="/1/1.1/go%20hokies.html")
-    def test_1_get_missing(self, req, res):
+    def test_1_get_missing(self, report):
         """Test whether a non-existing path returns 404 on GET"""
-        self.check_version_is(res, "HTTP/1.1")
-        self.check_status_is(res, 404)
+        self.check_version_is(report, "HTTP/1.1")
+        self.check_status_is(report, 404)
 
 
     @make_request("get-path.http", PATH="/a1-test/a1-test/")
-    def test_1_get_duplicate_path_prefix(self, req, res):
+    def test_1_get_duplicate_path_prefix(self, report):
         """Test tight path prefix checking"""
-        self.check_version_is(res, "HTTP/1.1")
-        self.check_status_is(res, 404)
+        self.check_version_is(report, "HTTP/1.1")
+        self.check_status_is(report, 404)
 
 
     @make_request("unsupported-version.http", VERSION="HTTP/2.3")
-    def test_1_unsupported_version(self, req, res):
+    def test_1_unsupported_version(self, report):
         """Test whether a request with unsupported version returns 505"""
-        self.check_status_is(res, 505)
+        self.check_status_is(report, 505)
 
 
     @make_request("unsupported-version.http", VERSION="HTTP/1.11")
-    def test_1_tight_unsupported_version_check(self, req, res):
+    def test_1_tight_unsupported_version_check(self, report):
         """Test tight HTTP version checking to not match HTTP/1.11"""
-        self.check_status_is(res, 505)
+        self.check_status_is(report, 505)
 
 
     @make_request("invalid-request.http")
-    def test_1_invalid_request(self, req, res):
+    def test_1_invalid_request(self, report):
         """Test whether an invalid request returns 400"""
-        self.check_status_is(res, 400)
+        self.check_status_is(report, 400)
 
 
     @make_request("missing-host.http")
-    def test_1_missing_host_header(self, req, res):
+    def test_1_missing_host_header(self, report):
         """Test whether missing Host header in a request returns 400"""
-        self.check_status_is(res, 400)
+        self.check_status_is(report, 400)
 
 
     @make_request("method-path.http", METHOD="POST", PATH="/a1-test/")
-    def test_1_post_not_implemented(self, req, res):
+    def test_1_post_not_implemented(self, report):
         """Test whether the assignment 1 returns 501 on POST"""
-        self.check_status_is(res, 501)
+        self.check_status_is(report, 501)
 
 
     @make_request("method-path.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
-    def test_1_trace_echoback(self, req, res):
+    def test_1_trace_echoback(self, report):
         """Test whether the server echoes back the request on TRACE"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "message/http")
-        self.check_payload_begins(res, "TRACE /a1-test/1/1.4/ HTTP/1.1")
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "message/http")
+        self.check_payload_begins(report, "TRACE /a1-test/1/1.4/ HTTP/1.1")
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/test%3A.html")
-    def test_1_get_escaped_file_name(self, req, res):
+    def test_1_get_escaped_file_name(self, report):
         """Test whether the escaped file name is respected"""
-        self.check_status_is(res, 200)
-        self.check_payload_contains(res, "lower case html")
+        self.check_status_is(report, 200)
+        self.check_payload_contains(report, "lower case html")
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.4/escape%25this.html")
-    def test_1_get_escape_escaping_character(self, req, res):
+    def test_1_get_escape_escaping_character(self, report):
         """Test whether the escaped escaping caracter in a file name is respected"""
-        self.check_status_is(res, 200)
-        self.check_payload_contains(res, "Go Monarchs!")
+        self.check_status_is(report, 200)
+        self.check_payload_contains(report, "Go Monarchs!")
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.jpeg")
-    def test_1_get_jpeg_image(self, req, res):
+    def test_1_get_jpeg_image(self, report):
         """Test whether a JPEG image returns 200 with proper Content-Length on GET"""
-        self.check_status_is(res, 200)
-        self.check_header_is(res, "Content-Length", "38457")
-        self.check_payload_size(res, 38457)
+        self.check_status_is(report, 200)
+        self.check_header_is(report, "Content-Length", "38457")
+        self.check_payload_size(report, 38457)
 
 
     @make_request("get-url.http", PATH="/a1-test/2/0.JPEG")
-    def test_1_get_case_sensitive_file_extension(self, req, res):
+    def test_1_get_case_sensitive_file_extension(self, report):
         """Test whether file extensions are treated case-sensitive"""
-        self.check_version_is(res, "HTTP/1.1")
-        self.check_status_is(res, 404)
+        self.check_version_is(report, "HTTP/1.1")
+        self.check_status_is(report, 404)
 
 
     @make_request("get-url.http", PATH="/a1-test/4/thisfileisempty.txt")
-    def test_1_get_empty_text_file(self, req, res):
+    def test_1_get_empty_text_file(self, report):
         """Test whether an empty file returns zero bytes with 200 on GET"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/plain")
-        self.check_header_is(res, "Content-Length", "0")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "0")
+        self.check_payload_empty(report)
 
 
     @make_request("get-url.http", PATH="/a1-test/4/directory3isempty")
-    def test_1_get_empty_directory(self, req, res):
+    def test_1_get_empty_directory(self, report):
         """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "application/octet-stream")
-        self.check_header_is(res, "Content-Length", "0")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "application/octet-stream")
+        self.check_header_is(report, "Content-Length", "0")
+        self.check_payload_empty(report)
 
 
     @make_request("get-url.http", PATH="/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml")
-    def test_1_get_filename_with_many_dots(self, req, res):
+    def test_1_get_filename_with_many_dots(self, report):
         """Test whether file names with multiple dots return 200 on GET"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/xml")
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/xml")
 
 
     @make_request("get-url.http", PATH="/a1-test/2/6.gif")
-    def test_1_get_magic_cookie_of_a_binary_file(self, req, res):
+    def test_1_get_magic_cookie_of_a_binary_file(self, report):
         """Test whether a GIF file contains identifying magic cookie"""
-        self.check_status_is(res, 200)
-        self.check_payload_begins(res, "GIF89a")
+        self.check_status_is(report, 200)
+        self.check_payload_begins(report, "GIF89a")
 
 
     @make_request("get-url.http", PATH="/a2-test/")
-    def test_2_get_directory_listing(self, req, res):
+    def test_2_get_directory_listing(self, report):
         """Test whether a2-test directory root returns directory listing"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_contains(res, "coolcar.html")
-        self.check_payload_contains(res, "ford")
-        self.check_connection_closed(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_contains(report, "coolcar.html")
+        self.check_payload_contains(report, "ford")
+        self.check_connection_closed(report)
 
 
     @make_request("get-url.http", PATH="/a2-test/2")
-    def test_2_redirect_to_trailing_slash_for_directory_url(self, req, res):
+    def test_2_redirect_to_trailing_slash_for_directory_url(self, report):
         """Test whether redirects URL to trailing slashes when missing for existing directories"""
-        self.check_redirects_to(res, 301, "/a2-test/2/")
-        self.check_connection_closed(res)
+        self.check_redirects_to(report, 301, "/a2-test/2/")
+        self.check_connection_closed(report)
 
 
     @make_request("get-path.http", PATH="/a2-test/1")
-    def test_2_redirect_to_trailing_slash_for_directory_path(self, req, res):
+    def test_2_redirect_to_trailing_slash_for_directory_path(self, report):
         """Test whether redirects path to trailing slashes when missing for existing directories"""
-        self.check_redirects_to(res, 301, "/a2-test/1/")
-        self.check_connection_closed(res)
+        self.check_redirects_to(report, 301, "/a2-test/1/")
+        self.check_connection_closed(report)
 
 
     @make_request("get-url.http", PATH="/a2-test/2/")
-    def test_2_get_default_index_file(self, req, res):
+    def test_2_get_default_index_file(self, report):
         """Test whether default index.html is returned instead of directory listing"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_not_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_not_empty(report)
         req2, res2, errors = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
-        self.check_status_is(res2, 200)
+        self.check_status_is(report2, 200)
         assert res["payload"] == res2["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
-        self.check_connection_closed(res)
+        self.check_connection_closed(report)
 
 
     @make_request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
-    def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, req, res):
+    def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, report):
         """Test whether redirects as per the regular expression with wildcard trailing capture group"""
-        self.check_redirects_to(res, 302, "/a2-test/1/1.1/assignment1.ppt")
+        self.check_redirects_to(report, 302, "/a2-test/1/1.1/assignment1.ppt")
 
 
     @make_request("head-path.http", PATH="/a2-test/coolcar.html")
-    def test_2_redirect_as_per_regexp_trailing_specific_file(self, req, res):
+    def test_2_redirect_as_per_regexp_trailing_specific_file(self, report):
         """Test whether redirects as per the regular expression with a specific trailing file name"""
-        self.check_redirects_to(res, 302, "/a2-test/galaxie.html")
+        self.check_redirects_to(report, 302, "/a2-test/galaxie.html")
 
 
     @make_request("head-path.http", PATH="/a2-test/galaxie.html")
-    def test_2_dont_redirect_target_file(self, req, res):
+    def test_2_dont_redirect_target_file(self, report):
         """Test whether the target of the configured redirect returns 200 OK"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:21 GMT")
-    def test_2_conditional_head_fresh(self, req, res):
+    def test_2_conditional_head_fresh(self, report):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
-        self.check_status_is(res, 304)
-        self.check_payload_empty(res)
+        self.check_status_is(report, 304)
+        self.check_payload_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:20 GMT")
-    def test_2_conditional_head_stale(self, req, res):
+    def test_2_conditional_head_stale(self, report):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="who-doesn't-want-a-fairlane?")
-    def test_2_conditional_head_invalid_datetime(self, req, res):
+    def test_2_conditional_head_invalid_datetime(self, report):
         """Test whether conditional HEAD with invalid datetime returns 200 OK"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-20 02:33:21.304307000 -0000")
-    def test_2_conditional_head_unsupported_datetime_format(self, req, res):
+    def test_2_conditional_head_unsupported_datetime_format(self, report):
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
-    def test_2_include_etag(self, req, res):
+    def test_2_include_etag(self, report):
         """Test whether the HEAD response contains an ETag"""
-        self.check_status_is(res, 200)
-        self.check_etag_valid(res)
+        self.check_status_is(report, 200)
+        self.check_etag_valid(report)
 
 
     @make_request("head-path.http", PATH="/a2-test/2/fairlane.html")
-    def test_2_valid_etag_ok(self, req, res):
+    def test_2_valid_etag_ok(self, report):
         """Test whether a valid ETag returns 200 OK"""
-        self.check_status_is(res, 200)
-        self.check_etag_valid(res)
-        etag = res["headers"].get("etag", "").strip('"')
-        req2, res2, errors = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
-        try:
-            if not errors:
-                self.check_status_is(res2, 200)
-                self.check_mime_is(res2, "text/html")
-                self.check_payload_contains(res2, "1966 Ford Fairlane")
-        except AssertionError as e:
-            errors.append(f"ASSERTION: {e}")
-        return {"req": req2, "res": res2, "errors": errors}
+        self.check_status_is(report, 200)
+        self.check_etag_valid(report)
+        etag = report["res"]["headers"].get("etag", "").strip('"')
+        report2 = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_contains(report, "1966 Ford Fairlane")
 
 
     @make_request("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG="203948kjaldsf002")
-    def test_2_etag_if_match_failure(self, req, res):
+    def test_2_etag_if_match_failure(self, report):
         """Test whether a random ETag returns 412 Precondition Failed"""
-        self.check_status_is(res, 412)
+        self.check_status_is(report, 412)
 
 
     @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
-    def test_2_implicit_keep_alive_until_timeout(self, req, res):
+    def test_2_implicit_keep_alive_until_timeout(self, report):
         """Test whether the socket connection is kept alive by default and closed after the set timeout"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
-        self.check_connection_alive(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
+        self.check_connection_alive(report)
         time.sleep(self.LIFETIME_TIMEOUT + 1)
         try:
             self.sock.settimeout(0.5)
             self.sock.sendall(b"STILL ALIVE?")
             assert False, f"Server should timeout after {self.LIFETIME_TIMEOUT} seconds"
-        except Exception as e:
-            res["connection"] = "closed"
-            return {"req": req, "res": res, "errors": []}
+        except socket.error as e:
+            report["res"]["connection"] = "closed"
 
 
     @make_request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
-    def test_2_trace_unnecessary_conditionals(self, req, res):
+    def test_2_trace_unnecessary_conditionals(self, report):
         """Test whether many unnecessary conditionals are not processed"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "message/http")
-        self.check_payload_begins(res, "TRACE /a2-test/2/index.html HTTP/1.1")
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "message/http")
+        self.check_payload_begins(report, "TRACE /a2-test/2/index.html HTTP/1.1")
 
 
     @make_request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
-    def test_2_pipeline_requests(self, req, res):
+    def test_2_pipeline_requests(self, report):
         """Test whether multiple pipelined requests are processed and returned in the same order"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        res2, errors = self.parse_response(res["payload"])
-        if errors:
-            return {"req": req, "res": res, "errors": errors}
-        self.check_status_is(res2, 200)
-        self.check_mime_is(res2, "text/html")
-        res3, errors = self.parse_response(res2["payload"])
-        if errors:
-            return {"req": req, "res": res, "errors": errors}
-        self.check_status_is(res3, 200)
-        self.check_mime_is(res3, "text/html")
-        self.check_payload_contains(res3, "coolcar.html")
-        self.check_payload_contains(res3, "ford")
-        self.check_connection_closed(res)
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        orig_hdr = report["res"]["raw_headers"]
+        orig_pld = report["res"]["payload"]
+        try:
+            self.parse_response(report["res"]["payload"], report)
+            if report["errors"]:
+                assert False, "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "text/html")
+            self.parse_response(report["res"]["payload"], report)
+            if report["errors"]:
+                assert False, "Third response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "text/html")
+            self.check_payload_contains(report, "coolcar.html")
+            self.check_payload_contains(report, "ford")
+            self.check_connection_closed(report)
+        except AssertionError:
+            report["res"]["raw_headers"] = orig_hdr
+            report["res"]["payload"] = orig_pld
+            raise
+        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["payload"] = orig_pld
 
 
     @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
-    def test_2_long_lived_connection(self, req, res):
+    def test_2_long_lived_connection(self, report):
         """Test whether the socket connection is kept alive to process multiple requests successively"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/html")
-        self.check_payload_empty(res)
-        self.check_connection_alive(res)
-        req2, res2, errors = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
-        req["raw"] += req2["raw"]
-        res["connection"] = res2["connection"]
-        pld = b""
-        if res["payload"]:
-            pld = res["payload"]
-        pld += res2["raw_headers"].encode()
-        if res2["payload"]:
-            pld += res2["payload"]
-        res["payload"] = pld
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
+        self.check_connection_alive(report)
+        report2 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+        report["req"]["raw"] += report2["req"]["raw"]
+        report["res"]["connection"] = report2["res"]["connection"]
+        report["res"]["payload"] += report2["res"]["raw_headers"].encode() + b"\r\n\r\n" + report2["res"]["payload"]
         try:
-            if not errors:
-                self.check_status_is(res2, 200)
-                self.check_mime_is(res2, "text/html")
-                self.check_payload_empty(res2)
-                self.check_connection_alive(res2)
-        except AssertionError as e:
-            errors.append(f"ASSERTION: {e}")
-        if errors:
-            return {"req": req, "res": res, "errors": errors}
-        req3, res3, errors = self.netcat("get-path.http", PATH="/a2-test/")
-        req["raw"] += req3["raw"]
-        res["connection"] = res3["connection"]
-        res["payload"] += res3["raw_headers"].encode()
-        if res3["payload"]:
-            res["payload"] += res3["payload"]
+            if report2["errors"]:
+                assert False, "Second response should be a valid HTTP Message"
+            self.check_status_is(report2, 200)
+            self.check_mime_is(report2, "text/html")
+            self.check_payload_empty(report2)
+            self.check_connection_alive(report2)
+        except AssertionError:
+            report["errors"] = report2["errors"]
+            raise
+        report3 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+        report["req"]["raw"] += report3["req"]["raw"]
+        report["res"]["connection"] = report3["res"]["connection"]
+        report["res"]["payload"] += report3["res"]["raw_headers"].encode() + b"\r\n\r\n" + report3["res"]["payload"]
         try:
-            if not errors:
-                self.check_status_is(res3, 200)
-                self.check_mime_is(res3, "text/html")
-                self.check_payload_contains(res3, "coolcar.html")
-                self.check_payload_contains(res3, "ford")
-                self.check_connection_closed(res3)
-        except AssertionError as e:
-            errors.append(f"ASSERTION: {e}")
-        return {"req": req, "res": res, "errors": errors}
+            if report3["errors"]:
+                assert False, "Third response should be a valid HTTP Message"
+            self.check_status_is(report3, 200)
+            self.check_mime_is(report3, "text/html")
+            self.check_payload_contains(report3, "coolcar.html")
+            self.check_payload_contains(report3, "ford")
+            self.check_connection_closed(report3)
+        except AssertionError:
+            report["errors"] = report3["errors"]
+            raise
 
 
     @make_request("get-path.http", PATH="/.well-known/access.log")
-    def test_2_access_log_as_virtual_uri(self, req, res):
+    def test_2_access_log_as_virtual_uri(self, report):
         """Test whether the access log is available as a Virtual URI in the Common Log Format"""
-        self.check_status_is(res, 200)
-        self.check_mime_is(res, "text/plain")
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/plain")
 
 
     @make_request("get-root.http")
-    def test_42_the_untimate_question(self, req, res):
+    def test_42_the_untimate_question(self, report):
         """Answer to the Ultimate Question of Life, the Universe, and Everything"""
         assert False, "A placeholder test, meant to always fail!"
 
