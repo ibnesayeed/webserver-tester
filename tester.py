@@ -91,13 +91,15 @@ class HTTPTester():
             report["req"]["raw"] = msg.decode()
             try:
                 self.connect_sock()
+                report["notes"].append(f"Connected to the `{self.host}:{self.port}` server")
             except Exception as e:
-                report["errors"].append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
+                report["errors"].append(f"Connection to the server `{self.host}:{self.port}` failed: {e}")
                 self.reset_sock()
                 return report
             try:
                 self.sock.settimeout(self.SEND_DATA_TIMEOUT)
                 self.sock.sendall(msg)
+                report["notes"].append("Request data sent")
             except Exception as e:
                 report["errors"].append(f"Sending data failed: {e}")
                 keep_alive or self.reset_sock()
@@ -115,7 +117,9 @@ class HTTPTester():
             except Exception as e:
                 report["errors"].append(f"Reading data failed: {e}")
             keep_alive or self.reset_sock()
-            self.parse_response(b"".join(data), report)
+            if not report["errors"]:
+                report["notes"].append("Response data read")
+                self.parse_response(b"".join(data), report)
         return report
 
 
@@ -173,6 +177,8 @@ class HTTPTester():
                 if k != kv[0]:
                     report["errors"].append(f"Header name `{kv[0]}` has spurious white-spaces")
                 report["res"]["headers"][k.lower()] = kv[1].strip()
+        if not report["errors"]:
+            report["notes"].append("Response parsed")
 
 
     def run_single_test(self, test_id):
@@ -198,7 +204,6 @@ class HTTPTester():
         """Test decorator generator that makes HTTP request using the msg_file.
         Makes the response available for assertions.
         Intended to be used as a decorator from within this class."""
-
         def test_decorator(func):
             @functools.wraps(func)
             def wrapper(self):
@@ -209,7 +214,7 @@ class HTTPTester():
                 except AssertionError as e:
                     report["errors"].append(f"ASSERTION: {e}")
                 self.reset_sock()
-                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "req": report["req"], "res": report["res"]}
+                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "notes": report["notes"], "req": report["req"], "res": report["res"]}
             return wrapper
         return test_decorator
 
@@ -220,39 +225,46 @@ class HTTPTester():
     def check_status_is(self, report, status):
         sc = report["res"]["status_code"]
         assert status == sc, f"Status expected `{status}`, returned `{sc}`"
+        report["notes"].append(f"Status is `{status}`")
 
 
     def check_version_is(self, report, version):
         ver = report["res"]["http_version"]
         assert version == ver, f"HTTP version expected `{version}`, returned `{ver}`"
+        report["notes"].append(f"HTTP version is `{version}`")
 
 
     def check_header_present(self, report, header):
         assert header.lower() in report["res"]["headers"], f"`{header}` header should be present"
+        report["notes"].append(f"`{header}` header is present")
 
 
     def check_header_is(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert value == val, f"`{header}` header should be `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header has value `{value}`")
 
 
     def check_header_contains(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header contains `{value}`")
 
 
     def check_header_begins(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert val.startswith(value), f"`{header}` header should begin with `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header begins with `{value}`")
 
 
     def check_header_ends(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header ends with `{value}`")
 
 
     def check_mime_is(self, report, value):
@@ -263,6 +275,7 @@ class HTTPTester():
         self.check_header_present(report, "Date")
         datehdr = report["res"]["headers"].get("date", "")
         assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
+        report["notes"].append("`Date` header is in the preferred RCF7231 format")
 
 
     def check_etag_valid(self, report):
@@ -271,6 +284,7 @@ class HTTPTester():
         etag = report["res"]["headers"].get("etag", "")
         assert etag.strip('"'), "`ETag` should not be empty"
         assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+        report["notes"].append("`ETag` is not empty and properly formatted in double quotes")
 
 
     def check_redirects_to(self, report, status, location):
@@ -280,44 +294,53 @@ class HTTPTester():
 
     def check_payload_empty(self, report):
         assert not report["res"]["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
+        report["notes"].append("Payload is empty")
 
 
     def check_payload_not_empty(self, report):
         assert report["res"]["payload"], "Payload expected non-empty, returned empty"
+        report["notes"].append("Payload is not empty")
 
 
     def check_payload_size(self, report, value):
         val = report["res"]["payload_size"]
         assert value == val, f"Payload size expected `{value}` bytes, returned `{val}`"
+        report["notes"].append(f"Payload size is `{value}` bytes")
 
 
     def check_payload_is(self, report, value):
         self.check_payload_not_empty(report)
         assert value.encode() == report["res"]["payload"], f"Payload should exactly be `{value}`"
+        report["notes"].append(f"Payload is exactly `{value}`")
 
 
     def check_payload_contains(self, report, value):
         self.check_payload_not_empty(report)
         assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
+        report["notes"].append(f"Payload contains `{value}`")
 
 
     def check_payload_begins(self, report, value):
         self.check_payload_not_empty(report)
         assert report["res"]["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
+        report["notes"].append(f"Payload begins with `{value}`")
 
 
     def check_payload_ends(self, report, value):
         self.check_payload_not_empty(report)
         assert report["res"]["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
+        report["notes"].append(f"Payload ends with `{value}`")
 
 
     def check_connection_alive(self, report, explicit=False):
         reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
         assert report["res"]["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
+        report["notes"].append("Socket connection is kept alive")
 
 
     def check_connection_closed(self, report):
         assert report["res"]["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        report["notes"].append("Socket connection is closed")
 
 
 ############################### BEGIN TEST CASES ###############################
@@ -511,9 +534,11 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
         self.check_payload_not_empty(report)
+        report["notes"].append("Fetching `/a2-test/2/index.html` for content comparison")
         report2 = self.netcat("get-url.http", PATH="/a2-test/2/index.html")
         self.check_status_is(report2, 200)
         assert report["res"]["payload"] == report2["res"]["payload"], f"Payload should contain contents of `/a2-test/2/index.html` file"
+        report["notes"].append("Contents of `/a2-test/2/` and `/a2-test/2/index.html` are the same")
         self.check_connection_closed(report)
 
 
@@ -581,6 +606,7 @@ class HTTPTester():
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
         etag = report["res"]["headers"].get("etag", "").strip('"')
+        report["notes"].append(f"`ETag` fetched for reuse as `{etag}` in the next request")
         report2 = self.netcat("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG=etag)
         for k in report2:
             report[k] = report2[k]
@@ -608,8 +634,9 @@ class HTTPTester():
         try:
             self.sock.settimeout(0.5)
             self.sock.sendall(b"STILL ALIVE?")
-            assert False, f"Server should timeout after {self.LIFETIME_TIMEOUT} seconds"
+            assert False, f"Server should timeout after `{self.LIFETIME_TIMEOUT}` seconds"
         except socket.error as e:
+            report["notes"].append(f"Server timed out after `{self.LIFETIME_TIMEOUT}` seconds")
             report["res"]["connection"] = "closed"
 
 
@@ -629,14 +656,14 @@ class HTTPTester():
         orig_hdr = report["res"]["raw_headers"]
         orig_pld = report["res"]["payload"]
         try:
+            report["notes"].append("Parsing second response")
             self.parse_response(report["res"]["payload"], report)
-            if report["errors"]:
-                assert False, "Second response should be a valid HTTP Message"
+            assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
+            report["notes"].append("Parsing third response")
             self.parse_response(report["res"]["payload"], report)
-            if report["errors"]:
-                assert False, "Third response should be a valid HTTP Message"
+            assert not report["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
             self.check_payload_contains(report, "coolcar.html")
@@ -657,34 +684,42 @@ class HTTPTester():
         self.check_mime_is(report, "text/html")
         self.check_payload_empty(report)
         self.check_connection_alive(report)
+        report["notes"].append("Making second request")
         report2 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
-        report["req"]["raw"] += report2["req"]["raw"]
-        report["res"]["connection"] = report2["res"]["connection"]
-        report["res"]["payload"] += report2["res"]["raw_headers"].encode() + b"\r\n\r\n" + report2["res"]["payload"]
         try:
-            if report2["errors"]:
-                assert False, "Second response should be a valid HTTP Message"
+            assert not report2["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report2, 200)
             self.check_mime_is(report2, "text/html")
             self.check_payload_empty(report2)
             self.check_connection_alive(report2)
+            report["notes"] += report2["notes"]
         except AssertionError:
+            report["req"]["raw"] += report2["req"]["raw"]
+            report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
+            report["res"]["payload"] = report2["res"]["payload"]
+            report["res"]["payload_size"] = len(report2["res"]["payload"])
+            report["res"]["connection"] = report2["res"]["connection"]        
             report["errors"] = report2["errors"]
+            report["notes"] += report2["notes"]
             raise
-        report3 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
-        report["req"]["raw"] += report3["req"]["raw"]
-        report["res"]["connection"] = report3["res"]["connection"]
-        report["res"]["payload"] += report3["res"]["raw_headers"].encode() + b"\r\n\r\n" + report3["res"]["payload"]
+        report["notes"].append("Making third request")
+        report3 = self.netcat("get-path.http", PATH="/a2-test/")
         try:
-            if report3["errors"]:
-                assert False, "Third response should be a valid HTTP Message"
+            assert not report3["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report3, 200)
             self.check_mime_is(report3, "text/html")
             self.check_payload_contains(report3, "coolcar.html")
             self.check_payload_contains(report3, "ford")
             self.check_connection_closed(report3)
+            report["notes"] += report3["notes"]
         except AssertionError:
+            report["req"]["raw"] += report3["req"]["raw"]
+            report["res"]["raw_headers"] += "\r\n\r\n" + report3["res"]["raw_headers"]
+            report["res"]["payload"] = report3["res"]["payload"]
+            report["res"]["payload_size"] = len(report3["res"]["payload"])
+            report["res"]["connection"] = report3["res"]["connection"]
             report["errors"] = report3["errors"]
+            report["notes"] += report3["notes"]
             raise
 
 
@@ -751,9 +786,11 @@ if __name__ == "__main__":
         if re.match("^[\d,]+$", sys.argv[2]):
             batches = sys.argv[2].split(",")
 
-    def print_result(result):
+    def print_result(result, print_text_payload=False):
         print("-" * 79)
         print(f"{result['id']}: {colorize(result['description'], 96)}")
+        for note in result["notes"]:
+            print(f"* {note}")
         if result["errors"]:
             for err in result["errors"]:
                 print(colorize(f"[FAILED] {err}"))
@@ -765,7 +802,10 @@ if __name__ == "__main__":
             print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
         if result["res"]["payload"]:
             print("< ")
-            print(f"< [Payload redacted ({result['res']['payload_size']} bytes)]")
+            if print_text_payload and result["res"]["headers"].get("content-type", "text/plain").split('/')[0] in ["text", "message"]:
+                print(result["res"]["payload"].decode())
+            else:
+                print(f"* [Payload redacted ({result['res']['payload_size']} bytes)]")
         print()
 
     def print_summary(hostport, test_results):
@@ -785,7 +825,7 @@ if __name__ == "__main__":
     try:
         if test_id:
             result = t.run_single_test(test_id)
-            print_result(result)
+            print_result(result, print_text_payload=True)
         else:
             test_results = {}
             for batch in batches:
