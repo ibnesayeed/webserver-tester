@@ -750,7 +750,7 @@ if __name__ == "__main__":
         if re.match("^[\d,]+$", sys.argv[2]):
             batches = sys.argv[2].split(",")
 
-    def print_result(result):
+    def print_result(result, print_text_payload=False):
         print("-" * 79)
         print(f"{result['id']}: {colorize(result['description'], 96)}")
         if result["errors"]:
@@ -764,7 +764,10 @@ if __name__ == "__main__":
             print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
         if result["res"]["payload"]:
             print("< ")
-            print(f"< [Payload redacted ({result['res']['payload_size']} bytes)]")
+            if print_text_payload and result["res"]["headers"].get("content-type", "text/plain").split('/')[0] in ["text", "message"]:
+                print(result["res"]["payload"].decode())
+            else:
+                print(f"* [Payload redacted ({result['res']['payload_size']} bytes)]")
         print()
 
     def print_summary(hostport, test_results):
@@ -784,7 +787,7 @@ if __name__ == "__main__":
     try:
         if test_id:
             result = t.run_single_test(test_id)
-            print_result(result)
+            print_result(result, print_text_payload=True)
         else:
             test_results = {}
             for batch in batches:
