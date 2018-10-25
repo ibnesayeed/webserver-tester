@@ -684,6 +684,11 @@ class HTTPTester():
         self.check_connection_alive(report)
         report["notes"].append("Making second request")
         report2 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+        report["req"]["raw"] += report2["req"]["raw"]
+        report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
+        report["res"]["payload"] = report2["res"]["payload"]
+        report["res"]["payload_size"] = len(report2["res"]["payload"])
+        report["res"]["connection"] = report2["res"]["connection"]
         try:
             assert not report2["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report2, 200)
@@ -692,16 +697,17 @@ class HTTPTester():
             self.check_connection_alive(report2)
             report["notes"] += report2["notes"]
         except AssertionError:
-            report["req"]["raw"] += report2["req"]["raw"]
-            report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
-            report["res"]["payload"] = report2["res"]["payload"]
-            report["res"]["payload_size"] = len(report2["res"]["payload"])
-            report["res"]["connection"] = report2["res"]["connection"]
             report["errors"] = report2["errors"]
             report["notes"] += report2["notes"]
             raise
+        report["notes"] += report2["notes"]
         report["notes"].append("Making third request")
         report3 = self.netcat("get-path.http", PATH="/a2-test/")
+        report["req"]["raw"] += report3["req"]["raw"]
+        report["res"]["raw_headers"] += "\r\n\r\n" + report3["res"]["raw_headers"]
+        report["res"]["payload"] = report3["res"]["payload"]
+        report["res"]["payload_size"] = len(report3["res"]["payload"])
+        report["res"]["connection"] = report3["res"]["connection"]
         try:
             assert not report3["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report3, 200)
@@ -711,14 +717,10 @@ class HTTPTester():
             self.check_connection_closed(report3)
             report["notes"] += report3["notes"]
         except AssertionError:
-            report["req"]["raw"] += report3["req"]["raw"]
-            report["res"]["raw_headers"] += "\r\n\r\n" + report3["res"]["raw_headers"]
-            report["res"]["payload"] = report3["res"]["payload"]
-            report["res"]["payload_size"] = len(report3["res"]["payload"])
-            report["res"]["connection"] = report3["res"]["connection"]
             report["errors"] = report3["errors"]
             report["notes"] += report3["notes"]
             raise
+        report["notes"] += report3["notes"]
 
 
     @make_request("get-path.http", PATH="/.well-known/access.log")
