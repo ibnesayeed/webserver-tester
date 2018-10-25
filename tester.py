@@ -537,14 +537,14 @@ class HTTPTester():
         self.check_payload_empty(report)
 
 
-    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:21 GMT")
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Sat, 20 Oct 2018 02:33:21 GMT")
     def test_2_conditional_head_fresh(self, report):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
         self.check_status_is(report, 304)
         self.check_payload_empty(report)
 
 
-    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Fri, 20 Oct 2018 02:33:20 GMT")
+    @make_request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Sat, 20 Oct 2018 02:33:20 GMT")
     def test_2_conditional_head_stale(self, report):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
         self.check_status_is(report, 200)
