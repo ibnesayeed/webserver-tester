@@ -91,13 +91,15 @@ class HTTPTester():
             report["req"]["raw"] = msg.decode()
             try:
                 self.connect_sock()
+                report["notes"].append(f"Connected to the `{self.host}:{self.port}` server")
             except Exception as e:
-                report["errors"].append(f"Connection to the server '{self.host}:{self.port}' failed: {e}")
+                report["errors"].append(f"Connection to the server `{self.host}:{self.port}` failed: {e}")
                 self.reset_sock()
                 return report
             try:
                 self.sock.settimeout(self.SEND_DATA_TIMEOUT)
                 self.sock.sendall(msg)
+                report["notes"].append("Request data sent")
             except Exception as e:
                 report["errors"].append(f"Sending data failed: {e}")
                 keep_alive or self.reset_sock()
@@ -115,7 +117,9 @@ class HTTPTester():
             except Exception as e:
                 report["errors"].append(f"Reading data failed: {e}")
             keep_alive or self.reset_sock()
-            self.parse_response(b"".join(data), report)
+            if not report["errors"]:
+                report["notes"].append("Response data read")
+                self.parse_response(b"".join(data), report)
         return report
 
 
@@ -173,6 +177,7 @@ class HTTPTester():
                 if k != kv[0]:
                     report["errors"].append(f"Header name `{kv[0]}` has spurious white-spaces")
                 report["res"]["headers"][k.lower()] = kv[1].strip()
+        report["notes"].append("Response parsed")
 
 
     def run_single_test(self, test_id):
@@ -219,39 +224,46 @@ class HTTPTester():
     def check_status_is(self, report, status):
         sc = report["res"]["status_code"]
         assert status == sc, f"Status expected `{status}`, returned `{sc}`"
+        report["notes"].append(f"Status is `{status}`")
 
 
     def check_version_is(self, report, version):
         ver = report["res"]["http_version"]
         assert version == ver, f"HTTP version expected `{version}`, returned `{ver}`"
+        report["notes"].append(f"HTTP version is `{version}`")
 
 
     def check_header_present(self, report, header):
         assert header.lower() in report["res"]["headers"], f"`{header}` header should be present"
+        report["notes"].append(f"`{header}` header is present")
 
 
     def check_header_is(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert value == val, f"`{header}` header should be `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header has value `{value}`")
 
 
     def check_header_contains(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header contains `{value}`")
 
 
     def check_header_begins(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert val.startswith(value), f"`{header}` header should begin with `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header begins with `{value}`")
 
 
     def check_header_ends(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
         assert val.endswith(value), f"`{header}` header should end with `{value}`, returned `{val}`"
+        report["notes"].append(f"`{header}` header ends with `{value}`")
 
 
     def check_mime_is(self, report, value):
@@ -262,6 +274,7 @@ class HTTPTester():
         self.check_header_present(report, "Date")
         datehdr = report["res"]["headers"].get("date", "")
         assert re.match("(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT", datehdr), f"`Date: {datehdr}` is not in the preferred format as per `RCF7231 (section-7.1.1.1)`"
+        report["notes"].append("`Date` header is in the preferred RCF7231 format")
 
 
     def check_etag_valid(self, report):
@@ -270,6 +283,7 @@ class HTTPTester():
         etag = report["res"]["headers"].get("etag", "")
         assert etag.strip('"'), "`ETag` should not be empty"
         assert etag.strip('"') != etag, f'`ETag` should be in double quotes like `"{etag}"`, returned `{etag}`'
+        report["notes"].append("`ETag` is not empty and properly formatted in double quotes")
 
 
     def check_redirects_to(self, report, status, location):
@@ -279,44 +293,53 @@ class HTTPTester():
 
     def check_payload_empty(self, report):
         assert not report["res"]["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
+        report["notes"].append("Payload is empty")
 
 
     def check_payload_not_empty(self, report):
         assert report["res"]["payload"], "Payload expected non-empty, returned empty"
+        report["notes"].append("Payload is not empty")
 
 
     def check_payload_size(self, report, value):
         val = report["res"]["payload_size"]
         assert value == val, f"Payload size expected `{value}` bytes, returned `{val}`"
+        report["notes"].append(f"Payload size is `{value}`")
 
 
     def check_payload_is(self, report, value):
         self.check_payload_not_empty(report)
         assert value.encode() == report["res"]["payload"], f"Payload should exactly be `{value}`"
+        report["notes"].append(f"Payload is exactly `{value}`")
 
 
     def check_payload_contains(self, report, value):
         self.check_payload_not_empty(report)
         assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
+        report["notes"].append(f"Payload contains `{value}`")
 
 
     def check_payload_begins(self, report, value):
         self.check_payload_not_empty(report)
         assert report["res"]["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
+        report["notes"].append(f"Payload begins with `{value}`")
 
 
     def check_payload_ends(self, report, value):
         self.check_payload_not_empty(report)
         assert report["res"]["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
+        report["notes"].append(f"Payload ends with `{value}`")
 
 
     def check_connection_alive(self, report, explicit=False):
         reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
         assert report["res"]["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
+        report["notes"].append(f"Socket connection is kept alive")
 
 
     def check_connection_closed(self, report):
         assert report["res"]["connection"] == "closed", "Socket connection should be closed due to explicit `Connection: close` header"
+        report["notes"].append(f"Socket connection is closed")
 
 
 ############################### BEGIN TEST CASES ###############################
