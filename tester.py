@@ -699,7 +699,7 @@ class HTTPTester():
             report["errors"] = report2["errors"]
             raise
         report["notes"].append("Making third request")
-        report3 = self.netcat("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
+        report3 = self.netcat("get-path.http", PATH="/a2-test/")
         report["req"]["raw"] += report3["req"]["raw"]
         report["res"]["connection"] = report3["res"]["connection"]
         report["res"]["payload"] += report3["res"]["raw_headers"].encode() + b"\r\n\r\n" + report3["res"]["payload"]
