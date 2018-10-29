@@ -241,6 +241,11 @@ class HTTPTester():
         report["notes"].append(f"`{header}` header is present")
 
 
+    def check_header_absent(self, report, header):
+        assert header.lower() not in report["res"]["headers"], f"`{header}` header should not be present"
+        report["notes"].append(f"`{header}` header is absent")
+
+
     def check_header_is(self, report, header, value):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
