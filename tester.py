@@ -813,7 +813,7 @@ if __name__ == "__main__":
         print()
         print("> " + result["req"]["raw"].replace("\n", "\n> ")[:-2])
         if result["res"]["raw_headers"]:
-            print("< " + result["res"]["raw_headers"].replace("\n", "\n< ")[:-2])
+            print("< " + result["res"]["raw_headers"].replace("\n", "\n< "))
         if result["res"]["payload"]:
             print("< ")
             if print_text_payload and result["res"]["headers"].get("content-type", "text/plain").split('/')[0] in ["text", "message"]:
