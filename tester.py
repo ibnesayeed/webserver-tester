@@ -667,14 +667,16 @@ class HTTPTester():
         """Test whether multiple pipelined requests are processed and returned in the same order"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
         orig_hdr = report["res"]["raw_headers"]
-        orig_pld = report["res"]["payload"]
         try:
             report["notes"].append("Parsing second response")
             self.parse_response(report["res"]["payload"], report)
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
+            self.check_payload_empty(report)
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
             report["notes"].append("Parsing third response")
             self.parse_response(report["res"]["payload"], report)
             assert not report["errors"], "Third response should be a valid HTTP Message"
@@ -683,12 +685,12 @@ class HTTPTester():
             self.check_payload_contains(report, "coolcar.html")
             self.check_payload_contains(report, "ford")
             self.check_connection_closed(report)
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
         except AssertionError:
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
             report["res"]["raw_headers"] = orig_hdr
-            report["res"]["payload"] = orig_pld
             raise
         report["res"]["raw_headers"] = orig_hdr
-        report["res"]["payload"] = orig_pld
 
 
     @make_request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
