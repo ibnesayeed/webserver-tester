@@ -129,14 +129,7 @@ def deploy_server(csid, gitref):
 
     try:
         print(f"Running new container {contname} using {imgname} image")
-        deployment_labels = {
-            "traefik.backend": csid,
-            "traefik.docker.network": COURCEID,
-            "traefik.frontend.entryPoints": "http",
-            "traefik.frontend.rule": f"Host:{csid}.{COURCEID}.cs.odu.edu",
-            "traefik.port": "80"
-        }
-        client.containers.run(imgname, detach=True, network=COURCEID, labels=deployment_labels, name=contname)
+        client.containers.run(imgname, detach=True, network=COURCEID, name=contname)
         msgs.append(f"A new container is created and the service `{contname}` is deployed successfully.")
     except Exception as e:
         return Response(f"Service deployment failed. Response from the Docker daemon: {e}", status=500)
