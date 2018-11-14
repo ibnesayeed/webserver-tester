@@ -744,109 +744,109 @@ class HTTPTester():
         self.check_mime_is(report, "text/plain")
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-url-ua.http", PATH="/a3-test/fairlane.txt", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_1(self, report):
         """TODO: Assignment 3 Test 1"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-url-range-referer.http", PATH="/a3-test/index.html", SUFFIX=".es", RANGE="bytes=0-99", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_2(self, report):
         """TODO: Assignment 3 Test 2"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-path-ua.http", PATH="/a3-test/index.htmll", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_3(self, report):
         """TODO: Assignment 3 Test 3"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 10 Nov 2018 20:46:11 GMT")
     def test_3_4(self, report):
         """TODO: Assignment 3 Test 4"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 27 Oct 2018 20:46:09 GMT")
     def test_3_5(self, report):
         """TODO: Assignment 3 Test 5"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path.http", PATH="/a3-test/fairlane")
     def test_3_6(self, report):
         """TODO: Assignment 3 Test 6"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/*; q=1.0")
     def test_3_7(self, report):
         """TODO: Assignment 3 Test 7"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/jpeg; q=0.9, image/png; q=0.91, image/tiff; q=0.95", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_8(self, report):
         """TODO: Assignment 3 Test 8"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_9(self, report):
         """TODO: Assignment 3 Test 9"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_10(self, report):
         """TODO: Assignment 3 Test 10"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.0, deflate; q=0.5")
     def test_3_11(self, report):
         """TODO: Assignment 3 Test 11"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html.Z", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.5")
     def test_3_12(self, report):
         """TODO: Assignment 3 Test 12"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept-attr.http", PATH="/a3-test/index.html", ACCEPTATTR="Language", ACCEPTVAL="en; q=1.0, de; q=1.0, fr; q=1.0")
     def test_3_13(self, report):
         """TODO: Assignment 3 Test 13"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("head-path-accept-language-charset.http", PATH="/a3-test/index.html.ja", LANGUAGE="en; q=1.0, ja; q=0.5", CHARSET="euc-jp; q=1.0, iso-2022-jp; q=0.0")
     def test_3_14(self, report):
         """TODO: Assignment 3 Test 14"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-path-range.http", PATH="/a3-test/fairlane.txt", RANGE="bytes=10-20")
     def test_3_15(self, report):
         """TODO: Assignment 3 Test 15"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-if-match.http", PATH="/a3-test/fairlane.txt", ETAG="20933948kjaldsf000002")
     def test_3_16(self, report):
         """TODO: Assignment 3 Test 16"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_17(self, report):
         """TODO: Assignment 3 Test 17"""
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path.http", PATH="/a3-test/")
+    @make_request("pipeline-range.http", PATH="/a3-test/index.html", SUFFIX1=".en", SUFFIX2=".ja.jis")
     def test_3_18(self, report):
         """TODO: Assignment 3 Test 18"""
         assert False, "TODO: Implement the test case!"
