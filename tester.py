@@ -744,6 +744,114 @@ class HTTPTester():
         self.check_mime_is(report, "text/plain")
 
 
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_1(self, report):
+        """TODO: Assignment 3 Test 1"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_2(self, report):
+        """TODO: Assignment 3 Test 2"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_3(self, report):
+        """TODO: Assignment 3 Test 3"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_4(self, report):
+        """TODO: Assignment 3 Test 4"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_5(self, report):
+        """TODO: Assignment 3 Test 5"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_6(self, report):
+        """TODO: Assignment 3 Test 6"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_7(self, report):
+        """TODO: Assignment 3 Test 7"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_8(self, report):
+        """TODO: Assignment 3 Test 8"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_9(self, report):
+        """TODO: Assignment 3 Test 9"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_10(self, report):
+        """TODO: Assignment 3 Test 10"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_11(self, report):
+        """TODO: Assignment 3 Test 11"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_12(self, report):
+        """TODO: Assignment 3 Test 12"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_13(self, report):
+        """TODO: Assignment 3 Test 13"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_14(self, report):
+        """TODO: Assignment 3 Test 14"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_15(self, report):
+        """TODO: Assignment 3 Test 15"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_16(self, report):
+        """TODO: Assignment 3 Test 16"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_17(self, report):
+        """TODO: Assignment 3 Test 17"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path.http", PATH="/a3-test/")
+    def test_3_18(self, report):
+        """TODO: Assignment 3 Test 18"""
+        assert False, "TODO: Implement the test case!"
+
+
     @make_request("get-root.http")
     def test_42_the_untimate_question(self, report):
         """Answer to the Ultimate Question of Life, the Universe, and Everything"""
