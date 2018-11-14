@@ -1,0 +1,5 @@
+GET <PATH> HTTP/1.1
+Accept: <ACCEPT>
+Host: <HOST>:<PORT>
+Connection: close
+
