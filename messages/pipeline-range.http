@@ -4,9 +4,9 @@ Host: <HOST>:<PORT>
 <PIPELINE>
 HEAD http://<HOSTPORT><PATH> HTTP/1.1
 Negotiate: 1.0
-Host: <HOSTPORT>
+Host: <HOST>:<PORT>
 <PIPELINE>
 HEAD http://<HOSTPORT><PATH><SUFFIX2> HTTP/1.1
-Host: <HOSTPORT>
+Host: <HOST>:<PORT>
 Connection: close
 
