@@ -798,7 +798,7 @@ class HTTPTester():
 
     @make_request("get-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/*; q=1.0")
     def test_3_ambiguous_accept_header_multiple_choices(self, report):
-        """Test whether an Accept header with the same q value for all image types yields multiple choices"""
+        """Test whether an Accept header with the same quality value for all image types yields multiple choices"""
         self.check_status_is(report, 300)
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
@@ -807,7 +807,7 @@ class HTTPTester():
 
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/jpeg; q=0.9, image/png; q=0.91, image/tiff; q=0.95", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_accept_header_png_ok(self, report):
-        """Test whether an Accept header with unique q value returns a PNG"""
+        """Test whether an Accept header with unique quality value returns a PNG"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "image/png")
         self.check_header_contains(report, "Content-Length")
@@ -816,7 +816,7 @@ class HTTPTester():
 
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_accept_header_text_ok(self, report):
-        """Test whether an Accept header with high q value returns plain text"""
+        """Test whether an Accept header with high quality value returns plain text"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Length", "193")
@@ -824,15 +824,22 @@ class HTTPTester():
 
 
     @make_request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.0, deflate; q=0.5")
-    def test_3_11(self, report):
-        """TODO: Assignment 3 Test 11"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_not_accptable_encoding(self, report):
+        """Test whether implicit zero quality value for all supported encodings returns 406 Not Acceptable"""
+        self.check_status_is(report, 406)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html.Z", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.5")
-    def test_3_12(self, report):
-        """TODO: Assignment 3 Test 12"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_explicit_extention_ignore_content_negotiation(self, report):
+        """Test whether an explicit existing file extension ignores contnet negotiation"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Content-Encoding", "compress")
+        self.check_header_is(report, "Content-Length", "42757")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path-accept-attr.http", PATH="/a3-test/index.html", ACCEPTATTR="Language", ACCEPTVAL="en; q=1.0, de; q=1.0, fr; q=1.0")
