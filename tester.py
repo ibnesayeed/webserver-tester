@@ -872,9 +872,12 @@ class HTTPTester():
 
 
     @make_request("get-if-match.http", PATH="/a3-test/fairlane.txt", ETAG="20933948kjaldsf000002")
-    def test_3_16(self, report):
-        """TODO: Assignment 3 Test 16"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_etag_precondition_failure(self, report):
+        """Test whether a random If-Match ETag returns 412 Precondition Failed"""
+        self.check_status_is(report, 412)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_not_empty(report)
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
