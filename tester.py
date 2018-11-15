@@ -788,21 +788,30 @@ class HTTPTester():
 
 
     @make_request("head-path.http", PATH="/a3-test/fairlane")
-    def test_3_6(self, report):
-        """TODO: Assignment 3 Test 6"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_no_accept_header_multiple_choices(self, report):
+        """Test whether missing Accept header yields multiple choices"""
+        self.check_status_is(report, 300)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_empty(report)
 
 
     @make_request("get-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/*; q=1.0")
-    def test_3_7(self, report):
-        """TODO: Assignment 3 Test 7"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_ambiguous_accept_header_multiple_choices(self, report):
+        """Test whether an Accept header with the same q value for all image types yields multiple choices"""
+        self.check_status_is(report, 300)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_not_empty(report)
 
 
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/jpeg; q=0.9, image/png; q=0.91, image/tiff; q=0.95", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_8(self, report):
-        """TODO: Assignment 3 Test 8"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_accept_header_png_ok(self, report):
+        """Test whether an Accept header with unique q value returns a PNG"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "image/png")
+        self.check_header_contains(report, "Content-Length")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
