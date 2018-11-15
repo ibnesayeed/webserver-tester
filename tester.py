@@ -745,33 +745,46 @@ class HTTPTester():
 
 
     @make_request("get-url-ua.http", PATH="/a3-test/fairlane.txt", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_1(self, report):
-        """TODO: Assignment 3 Test 1"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_useragent_get_text_ok(self, report):
+        """Test whether a request with a custom user-agent returns OK with corresponding text response"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "193")
+        self.check_payload_contains(report, "______________")
 
 
     @make_request("get-url-range-referer.http", PATH="/a3-test/index.html", SUFFIX=".es", RANGE="bytes=0-99", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_2(self, report):
-        """TODO: Assignment 3 Test 2"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_partial_content_range_language(self, report):
+        """Test whether a valid range request header returns partial content in a specific langaue"""
+        self.check_status_is(report, 206)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Content-Language", "es")
+        self.check_header_present(report, "Content-Range")
+        self.check_payload_size(report, "100")
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.htmll", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_3(self, report):
-        """TODO: Assignment 3 Test 3"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_chunked_404(self, report):
+        """Test whether a 404 Not Found page returns chunked encoded HTML"""
+        self.check_status_is(report, 404)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_not_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 10 Nov 2018 20:46:11 GMT")
-    def test_3_4(self, report):
-        """TODO: Assignment 3 Test 4"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_conditional_head_image_fresh(self, report):
+        """Test whether conditional HEAD of a fresh image file returns 304 Not Modified"""
+        self.check_status_is(report, 304)
+        self.check_payload_empty(report)
 
 
     @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 27 Oct 2018 20:46:09 GMT")
-    def test_3_5(self, report):
-        """TODO: Assignment 3 Test 5"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_conditional_head_image_stale(self, report):
+        """Test whether conditional HEAD of a stale image file returns 200 OK"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "image/gif")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path.http", PATH="/a3-test/fairlane")
