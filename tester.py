@@ -881,9 +881,11 @@ class HTTPTester():
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_9(self, report):
-        """TODO: Assignment 3 Test 9"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_explicit_language_charset_etag(self, report):
+        """Test whether explicit language and charset as extensions returns ETag and Content-Type with charset"""
+        self.check_status_is(report, 200)
+        self.check_header_is(report, "Content-Type", "text/html; charset=koi8-r")
+        self.check_etag_valid(report)
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
