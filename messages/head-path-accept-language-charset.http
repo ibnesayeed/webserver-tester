@@ -1,0 +1,6 @@
+HEAD <PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+Accept-Language: <LANGUAGE>
+Accept-Charset: <CHARSET>
+Connection: close
+

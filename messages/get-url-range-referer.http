@@ -1,0 +1,7 @@
+GET http://<HOSTPORT><PATH><SUFFIX> HTTP/1.1
+Host: <HOST>:<PORT>
+User-Agent: <USERAGENT>
+Referer: http://<HOSTPORT><PATH>
+Range: <RANGE>
+Connection: close
+
