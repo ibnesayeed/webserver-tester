@@ -815,9 +815,12 @@ class HTTPTester():
 
 
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_10(self, report):
-        """TODO: Assignment 3 Test 10"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_accept_header_text_ok(self, report):
+        """Test whether an Accept header with high q value returns plain text"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "193")
+        self.check_payload_empty(report)
 
 
     @make_request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.0, deflate; q=0.5")
