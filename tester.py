@@ -761,7 +761,7 @@ class HTTPTester():
         self.check_header_is(report, "Content-Language", "es")
         self.check_header_present(report, "Content-Range")
         self.check_header_is(report, "Content-Length", "100")
-        self.check_payload_size(report, "100")
+        self.check_payload_size(report, 100)
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.htmll", USERAGENT="CS 431/531 A3 Automated Checker")
@@ -868,7 +868,7 @@ class HTTPTester():
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Range", "bytes 10-20/193")
         self.check_header_is(report, "Content-Length", "11")
-        self.check_payload_size(report, "11")
+        self.check_payload_size(report, 11)
 
 
     @make_request("get-if-match.http", PATH="/a3-test/fairlane.txt", ETAG="20933948kjaldsf000002")
@@ -885,13 +885,28 @@ class HTTPTester():
         """Test whether explicit language and charset as extensions returns ETag and Content-Type with charset"""
         self.check_status_is(report, 200)
         self.check_header_is(report, "Content-Type", "text/html; charset=koi8-r")
+        self.check_header_is(report, "Content-Language", "ru")
         self.check_etag_valid(report)
+        self.check_payload_size(report, 7277)
 
 
     @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_17(self, report):
-        """TODO: Assignment 3 Test 17"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_valid_etag_conditional_get(self, report):
+        """Test whether conditional GET with a valid ETag returns 200 OK"""
+        self.check_status_is(report, 200)
+        self.check_etag_valid(report)
+        etag = report["res"]["headers"].get("etag", "").strip('"')
+        report["notes"].append(f'`ETag` fetched for reuse as `"{etag}"` in the subsequent request')
+        report2 = self.netcat("get-if-match.http", PATH="/a3-test/index.html.ru.koi8-r", ETAG=etag)
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Content-Type", "text/html; charset=koi8-r")
+        self.check_header_is(report, "Content-Language", "ru")
+        self.check_payload_size(report, 7277)
 
 
     @make_request("pipeline-range.http", PATH="/a3-test/index.html", SUFFIX1=".en", SUFFIX2=".ja.jis")
