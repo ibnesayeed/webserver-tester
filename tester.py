@@ -760,6 +760,7 @@ class HTTPTester():
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Content-Language", "es")
         self.check_header_present(report, "Content-Range")
+        self.check_header_is(report, "Content-Length", "100")
         self.check_payload_size(report, "100")
 
 
@@ -851,7 +852,6 @@ class HTTPTester():
         self.check_payload_empty(report)
 
 
-
     @make_request("head-path-accept-language-charset.http", PATH="/a3-test/index.html.ja", LANGUAGE="en; q=1.0, ja; q=0.5", CHARSET="euc-jp; q=1.0, iso-2022-jp; q=0.0")
     def test_3_not_accptable_incompatiple_charset(self, report):
         """Test whether explicit zero qvalue of charset associated with the explicit language extension returns 406 Not Acceptable"""
@@ -867,6 +867,7 @@ class HTTPTester():
         self.check_status_is(report, 206)
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Range", "bytes 10-20/193")
+        self.check_header_is(report, "Content-Length", "11")
         self.check_payload_size(report, "11")
 
 
