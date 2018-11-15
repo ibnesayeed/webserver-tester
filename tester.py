@@ -792,12 +792,6 @@ class HTTPTester():
         assert False, "TODO: Implement the test case!"
 
 
-    @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
-    def test_3_9(self, report):
-        """TODO: Assignment 3 Test 9"""
-        assert False, "TODO: Implement the test case!"
-
-
     @make_request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_3_10(self, report):
         """TODO: Assignment 3 Test 10"""
@@ -837,6 +831,12 @@ class HTTPTester():
     @make_request("get-if-match.http", PATH="/a3-test/fairlane.txt", ETAG="20933948kjaldsf000002")
     def test_3_16(self, report):
         """TODO: Assignment 3 Test 16"""
+        assert False, "TODO: Implement the test case!"
+
+
+    @make_request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
+    def test_3_9(self, report):
+        """TODO: Assignment 3 Test 9"""
         assert False, "TODO: Implement the test case!"
 
 
