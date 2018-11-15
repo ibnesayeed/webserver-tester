@@ -910,9 +910,38 @@ class HTTPTester():
 
 
     @make_request("pipeline-range.http", PATH="/a3-test/index.html", SUFFIX1=".en", SUFFIX2=".ja.jis")
-    def test_3_18(self, report):
-        """TODO: Assignment 3 Test 18"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_pipeline_range_negotiate(self, report):
+        """Test whether multiple pipelined requests with nontent negotiations are processed and returned in the same order"""
+        self.check_status_is(report, 206)
+        self.check_mime_is(report, "text/html")
+        self.check_header_present(report, "Content-Range")
+        self.check_header_is(report, "Content-Length", "100")
+        self.check_payload_empty(report)
+        orig_hdr = report["res"]["raw_headers"]
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 300)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
+            self.check_payload_empty(report)
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["notes"].append("Parsing third response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_header_is(report, "Content-Type", "text/html; charset=jis")
+            self.check_header_is(report, "Content-Language", "ja")
+            self.check_header_is(report, "Content-Length", "7635")
+            self.check_payload_empty(report)
+            self.check_connection_closed(report)
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @make_request("get-root.http")
