@@ -862,9 +862,12 @@ class HTTPTester():
 
 
     @make_request("get-path-range.http", PATH="/a3-test/fairlane.txt", RANGE="bytes=10-20")
-    def test_3_15(self, report):
-        """TODO: Assignment 3 Test 15"""
-        assert False, "TODO: Implement the test case!"
+    def test_3_partial_content_range_text(self, report):
+        """Test whether a valid range request header returns partial content in plain text"""
+        self.check_status_is(report, 206)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Range", "bytes 10-20/193")
+        self.check_payload_size(report, "11")
 
 
     @make_request("get-if-match.http", PATH="/a3-test/fairlane.txt", ETAG="20933948kjaldsf000002")
