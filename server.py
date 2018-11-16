@@ -87,12 +87,13 @@ def home():
     return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
 
 
-@app.route("/servers/<csid>", strict_slashes=False, defaults={"gitref": ""})
-@app.route("/servers/<csid>/<gitref>")
+@app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
+@app.route("/servers/deploy/<csid>/<gitref>")
 def deploy_server(csid, gitref):
-    repo = get_student_repo(csid.strip())
+    csid = csid.strip()
+    repo = get_student_repo(csid)
     if repo is None:
-        return Response(f"User record `{csid}` not present in `https://github.com/{COURSEREPO}/tree/master/users`.", status=404)
+        return Response(f"User record `{csid}` not present in `https://github.com/{COURSEREPO}/tree/master/users`.", mimetype="text/plain", status=404)
 
     msgs = []
     contname = f"{COURCEID}-{csid}"
@@ -116,7 +117,7 @@ def deploy_server(csid, gitref):
             client.images.build(path=repo_url, tag=imgname)
             msgs.append(f"Image `{imgname}` built from the `{gitref if gitref else 'master'}` branch/tag of the `https://github.com/{repo}` repo.")
         except Exception as e:
-            return Response(f"Building image `{imgname}` from the `{repo}` repo failed, ensure that the repo is accessible and contains a valid `Dockerfile`. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", status=500)
+            return Response(f"Building image `{imgname}` from the `{repo}` repo failed, ensure that the repo is accessible and contains a valid `Dockerfile`. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", mimetype="text/plain", status=500)
     else:
         msgs.append(f"Reusing existing image `{imgname}` to redeploy the service.")
 
@@ -132,9 +133,43 @@ def deploy_server(csid, gitref):
         client.containers.run(imgname, detach=True, network=COURCEID, name=contname)
         msgs.append(f"A new container is created and the service `{contname}` is deployed successfully.")
     except Exception as e:
-        return Response(f"Service deployment failed. Response from the Docker daemon: {e}", status=500)
+        return Response(f"Service deployment failed. Response from the Docker daemon: {e}", mimetype="text/plain", status=500)
 
-    return Response(" ".join(msgs), status=200)
+    return Response(" ".join(msgs), mimetype="text/plain", status=200)
+
+
+@app.route("/servers/destroy/<csid>", strict_slashes=False)
+def server_destroy(csid):
+    csid = csid.strip()
+    repo = get_student_repo(csid)
+    if repo is None:
+        return Response(f"Unrecognized student `{csid}`.", mimetype="text/plain", status=404)
+
+    contname = f"{COURCEID}-{csid}"
+    try:
+        print(f"Removing existing container {contname}")
+        client.containers.get(contname).remove(force=True)
+        return Response(f"Server `{contname}` destroyed successfully.", mimetype="text/plain", status=200)
+    except Exception as e:
+        print(f"Container {contname} does not exist")
+        return Response(f"Server `{contname}` does not exist.", mimetype="text/plain", status=404)
+
+
+@app.route("/servers/logs/<csid>", strict_slashes=False)
+def server_logs(csid):
+    csid = csid.strip()
+    repo = get_student_repo(csid)
+    if repo is None:
+        return Response(f"Unrecognized student `{csid}`.", mimetype="text/plain", status=404)
+
+    contname = f"{COURCEID}-{csid}"
+    try:
+        print(f"Finding an existing container {contname}")
+        cont = client.containers.get(contname)
+        return Response(cont.logs(stream=True), mimetype="text/plain")
+    except Exception as e:
+        print(f"Container {contname} does not exist")
+        return Response(f"Server `{contname}` does not exist.", mimetype="text/plain", status=404)
 
 
 @app.route("/tests", strict_slashes=False)

@@ -51,7 +51,7 @@ Now, you should be able to use `my-server:<port>` in the web interface to test y
 
 ## Deploy and Test on Course's Test Machine
 
-A machine is configured to build Docker images from students' private GitHub repositories that contain a `Dockerfile`. Go to http://cs531.cs.odu.edu/ and provide your CS ID in the appropriate form field then click "Deploy the Web Server" button. Depending on the network speed and complexity of the image, it might take some time to pull the source code and build an image. If an image is built successfully then it will automatically remove any existing containers of the corresponding student and deploy a new one. This newly deployed server will be accessible from `http://<cs-id>.cs531.cs.odu.edu/`.
+A machine is configured to build Docker images from students' private GitHub repositories that contain a `Dockerfile`. Go to http://cs531.cs.odu.edu/ and provide your CS ID in the appropriate form field then click "Deploy the Web Server" button. Depending on the network speed and complexity of the image, it might take some time to pull the source code and build an image. If an image is built successfully then it will automatically remove any existing containers of the corresponding student and deploy a new one. This newly deployed server will be accessible from `cs531-<cs-id>[:<server-port>]` host name from within the tester interface.
 
 **It is important that your `Dockerfile` is setup in a way that it runs the server on the network interface `0.0.0.0` and port `80` by default.**
 
@@ -62,13 +62,25 @@ Alternatively, you can use command line to both deploy and test your server on t
 To deploy your instance:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/servers/<cs-id>
+$ curl -i http://cs531.cs.odu.edu/servers/deploy/<cs-id>
 ```
 
 To deploy your instance with a specific code version:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/servers/<cs-id>/<git-ref>
+$ curl -i http://cs531.cs.odu.edu/servers/deploy/<cs-id>/<git-ref>
+```
+
+To destroy your instance:
+
+```
+$ curl -i http://cs531.cs.odu.edu/servers/destroy/<cs-id>
+```
+
+To see `STDOUT/STDERR` logs of your instance:
+
+```
+$ curl -i http://cs531.cs.odu.edu/servers/logs/<cs-id>
 ```
 
 To list available tests:

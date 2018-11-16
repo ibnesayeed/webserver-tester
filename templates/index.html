@@ -130,6 +130,12 @@
         border: 1px dotted #999;
         max-height: 100px;
       }
+      .box pre.terminal {
+        background: #000;
+        color: #fff;
+        max-height: 200px;
+        margin: 10px auto;
+      }
       footer {
         text-align: center;
         background: #000;
@@ -167,6 +173,10 @@
         <input type="checkbox" id="rebuild" value="force" checked>
         <label for="rebuild">Force rebuild</label>
         <div class="results" id="deployment-results"></div>
+        <div class="hidden" id="logs-container">
+          <pre class="terminal"><code id="server-logs"></code></pre>
+          <button id="destroy-server">Destroy the Web Server</button>
+        </div>
       </section>
       {%- endif %}
 
@@ -198,6 +208,9 @@
       const deployerBtn = document.getElementById('deploy-server');
       const rebuildCheck = document.getElementById('rebuild');
       const deployerResDiv = document.getElementById('deployment-results');
+      const logsContainer = document.getElementById('logs-container');
+      const serverLogsCode = document.getElementById('server-logs');
+      const destroyerBtn = document.getElementById('destroy-server');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
       const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
@@ -209,6 +222,9 @@
         '"': '&quot;',
         "'": '&#039;'
       };
+      const utf8decoder = new TextDecoder('utf-8');
+      let controller = new AbortController();
+      let signal = controller.signal;
 
       let testCases = [];
       let testResults = {};
@@ -255,10 +271,11 @@
         let gitref = gitRefInp.value;
         let state = msg = '';
         if (csid) {
+          resetLogs();
           resetTests();
           activateFavicon(0);
           msg = `Deploying server for \`${csid}\`${gitref ? ` with code branch/tag \`${gitref}\`` : ''}...`;
-          fetch(`/servers/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
+          fetch(`/servers/deploy/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
             state = r.ok ? 'success' : 'failure';
             return r.text();
           }).then(text => {
@@ -266,6 +283,7 @@
             m = msg.match(/the service `([\w\-]+)` is deployed successfully/);
             if (m) {
               hostportInp.value = m[1];
+              streamServerLogs();
             }
           }).catch(e => {
             state = 'failure';
@@ -282,6 +300,76 @@
       }
       if (deployerBtn) {
         deployerBtn.onclick = deployServer;
+      }
+
+      function destroyServer() {
+        let csid = csidInp.value;
+        let state = msg = '';
+        if (csid) {
+          resetLogs();
+          resetTests();
+          msg = `Destroying server for \`${csid}\`...`;
+          fetch(`/servers/destroy/${csid}`).then(r => {
+            state = r.ok ? 'success' : 'failure';
+            return r.text();
+          }).then(text => {
+            msg = text;
+          }).catch(e => {
+            state = 'failure';
+            msg = e;
+          }).finally(() => {
+            ShowResMsg(deployerResDiv, msg, state);
+          });
+        } else {
+          state = 'failure';
+          msg = 'Enter a valid CS-ID (e.g., `mln`)';
+        }
+        ShowResMsg(deployerResDiv, msg, state);
+      }
+      if (destroyerBtn) {
+        destroyerBtn.onclick = destroyServer;
+      }
+
+      function resetLogs() {
+        controller.abort();
+        serverLogsCode.innerText = '';
+        logsContainer.classList.add('hidden');
+      }
+
+      function showLogs(txt) {
+        logsContainer.classList.remove('hidden');
+        serverLogsCode.innerText += txt;
+        serverLogsCode.parentElement.scrollTop = serverLogsCode.parentElement.scrollHeight;
+      }
+
+      function streamServerLogs() {
+        if (typeof ReadableStream === 'undefined') {
+          showLogs('This browser does not support log streaming!');
+          return;
+        }
+        resetLogs();
+        let csid = csidInp.value;
+        if (csid) {
+          showLogs(`Streaming ${csid}'s server logs...\n`);
+          controller = new AbortController();
+          signal = controller.signal;
+          fetch(`/servers/logs/${csid}`, {signal}).then(r => {
+            const reader = r.body.getReader();
+            reader.read().then(function processLogs({done, value}) {
+              if (!done) {
+                showLogs(utf8decoder.decode(value));
+                return reader.read().then(processLogs);
+              }
+              return;
+            }).catch(e => {
+              console.log(e);
+            });
+          }).catch(e => {
+            console.log(e);
+          });
+        } else {
+          ShowResMsg(deployerResDiv, 'Enter a valid CS-ID (e.g., `mln`)', 'failure');
+        }
       }
 
       function showTestSummary(hostport) {
