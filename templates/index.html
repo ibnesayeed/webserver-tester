@@ -130,6 +130,11 @@
         border: 1px dotted #999;
         max-height: 100px;
       }
+      .box pre.terminal {
+        background: #000;
+        color: #fff;
+        max-height: 200px;
+      }
       footer {
         text-align: center;
         background: #000;
@@ -271,6 +276,7 @@
             if (m) {
               hostportInp.value = m[1];
             }
+            streamServerLogs();
           }).catch(e => {
             state = 'failure';
             msg = e;
@@ -299,6 +305,10 @@
       }
 
       function streamServerLogs() {
+        if (typeof ReadableStream === 'undefined') {
+          showLogs('This browser does not support log streaming!');
+          return;
+        }
         resetLogs();
         let csid = csidInp.value;
         if (csid) {
