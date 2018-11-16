@@ -811,7 +811,7 @@ class HTTPTester():
         """Test whether an Accept header with unique qvalue returns a PNG"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "image/png")
-        self.check_header_contains(report, "Content-Length")
+        self.check_header_is(report, "Content-Length", "98203")
         self.check_payload_empty(report)
 
 
