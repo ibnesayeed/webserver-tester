@@ -327,6 +327,8 @@
                 return reader.read().then(processLogs);
               }
               return;
+            }).catch(e => {
+              console.log(e);
             });
           }).catch(e => {
             console.log(e);
