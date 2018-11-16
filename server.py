@@ -155,6 +155,23 @@ def server_destroy(csid):
         return Response(f"Server `{contname}` does not exist.", status=404)
 
 
+@app.route("/servers/logs/<csid>", strict_slashes=False)
+def server_logs(csid):
+    csid = csid.strip()
+    repo = get_student_repo(csid)
+    if repo is None:
+        return Response(f"Unrecognized student `{csid}`.", status=404)
+
+    contname = f"{COURCEID}-{csid}"
+    try:
+        print(f"Finding an existing container {contname}")
+        cont = client.containers.get(contname)
+        return Response(cont.logs(stream=True), mimetype="text/plain")
+    except Exception as e:
+        print(f"Container {contname} does not exist")
+        return Response(f"Server `{contname}` does not exist.", status=404)
+
+
 @app.route("/tests", strict_slashes=False)
 def list_tests():
     return Response(test_cases, mimetype="application/json")
