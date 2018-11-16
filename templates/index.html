@@ -312,6 +312,7 @@
         resetLogs();
         let csid = csidInp.value;
         if (csid) {
+          showLogs(`Streaming ${csid}'s server logs...`);
           fetch(`/servers/logs/${csid}`).then(r => {
             const reader = r.body.getReader();
             reader.read().then(function processLogs({done, value}) {
