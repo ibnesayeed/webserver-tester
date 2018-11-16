@@ -258,7 +258,7 @@
           resetTests();
           activateFavicon(0);
           msg = `Deploying server for \`${csid}\`${gitref ? ` with code branch/tag \`${gitref}\`` : ''}...`;
-          fetch(`/servers/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
+          fetch(`/servers/deploy/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
             state = r.ok ? 'success' : 'failure';
             return r.text();
           }).then(text => {

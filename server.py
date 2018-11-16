@@ -87,8 +87,8 @@ def home():
     return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
 
 
-@app.route("/servers/<csid>", strict_slashes=False, defaults={"gitref": ""})
-@app.route("/servers/<csid>/<gitref>")
+@app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
+@app.route("/servers/deploy/<csid>/<gitref>")
 def deploy_server(csid, gitref):
     repo = get_student_repo(csid.strip())
     if repo is None:
