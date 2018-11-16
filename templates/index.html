@@ -172,7 +172,10 @@
         <input type="checkbox" id="rebuild" value="force" checked>
         <label for="rebuild">Force rebuild</label>
         <div class="results" id="deployment-results"></div>
-        <div class="hidden" id="logs-container"><pre class="terminal"><code id="server-logs"></code></pre></div>
+        <div class="hidden" id="logs-container">
+          <pre class="terminal"><code id="server-logs"></code></pre>
+          <button id="destroy-server">Destroy the Web Server</button>
+        </div>
       </section>
       {%- endif %}
 
@@ -206,6 +209,7 @@
       const deployerResDiv = document.getElementById('deployment-results');
       const logsContainer = document.getElementById('logs-container');
       const serverLogsCode = document.getElementById('server-logs');
+      const destroyerBtn = document.getElementById('destroy-server');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
       const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
@@ -295,6 +299,34 @@
       }
       if (deployerBtn) {
         deployerBtn.onclick = deployServer;
+      }
+
+      function destroyServer() {
+        let csid = csidInp.value;
+        let state = msg = '';
+        if (csid) {
+          resetLogs();
+          resetTests();
+          msg = `Destroying server for \`${csid}\`...`;
+          fetch(`/servers/destroy/${csid}`).then(r => {
+            state = r.ok ? 'success' : 'failure';
+            return r.text();
+          }).then(text => {
+            msg = text;
+          }).catch(e => {
+            state = 'failure';
+            msg = e;
+          }).finally(() => {
+            ShowResMsg(deployerResDiv, msg, state);
+          });
+        } else {
+          state = 'failure';
+          msg = 'Enter a valid CS-ID (e.g., `mln`)';
+        }
+        ShowResMsg(deployerResDiv, msg, state);
+      }
+      if (destroyerBtn) {
+        destroyerBtn.onclick = destroyServer;
       }
 
       function resetLogs() {
