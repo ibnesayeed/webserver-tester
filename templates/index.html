@@ -182,7 +182,12 @@
 
       <section class="testing box">
         <h2>Test a Web Server</h2>
-        <input type="search" id="hostport" class="text-input" value="" placeholder="<HOST>[:<PORT>]">
+        <input type="search" id="hostport" class="text-input" value="" list="contnames" placeholder="<HOST>[:<PORT>]">
+        <datalist id="contnames">
+          {%- for sid in student_ids %}
+          <option value="{{ courseid }}-{{ sid }}">
+          {%- endfor %}
+        </datalist>
         <select id="batch-selector">
           <option value="">All Test Cases</option>
           {%- for batch in test_batches %}

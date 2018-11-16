@@ -84,7 +84,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER)
+    return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER, courseid=COURCEID)
 
 
 @app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
