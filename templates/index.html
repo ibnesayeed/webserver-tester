@@ -327,7 +327,7 @@
               return;
             });
           }).catch(e => {
-            ShowResMsg(deployerResDiv, e, 'failure');
+            console.log(e);
           });
         } else {
           ShowResMsg(deployerResDiv, 'Enter a valid CS-ID (e.g., `mln`)', 'failure');
