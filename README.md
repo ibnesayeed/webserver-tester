@@ -71,6 +71,18 @@ To deploy your instance with a specific code version:
 $ curl -i http://cs531.cs.odu.edu/servers/deploy/<cs-id>/<git-ref>
 ```
 
+To destroy your instance:
+
+```
+$ curl -i http://cs531.cs.odu.edu/servers/destroy/<cs-id>
+```
+
+To see `STDOUT/STDERR` logs of your instance:
+
+```
+$ curl -i http://cs531.cs.odu.edu/servers/logs/<cs-id>
+```
+
 To list available tests:
 
 ```
