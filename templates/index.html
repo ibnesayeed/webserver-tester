@@ -167,6 +167,7 @@
         <input type="checkbox" id="rebuild" value="force" checked>
         <label for="rebuild">Force rebuild</label>
         <div class="results" id="deployment-results"></div>
+        <div class="hidden" id="logs-container"><pre class="terminal"><code id="server-logs"></code></pre></div>
       </section>
       {%- endif %}
 
@@ -198,6 +199,8 @@
       const deployerBtn = document.getElementById('deploy-server');
       const rebuildCheck = document.getElementById('rebuild');
       const deployerResDiv = document.getElementById('deployment-results');
+      const logsContainer = document.getElementById('logs-container');
+      const serverLogsCode = document.getElementById('server-logs');
       const testBatchRunnerBtn = document.getElementById('run-batch-tests');
       const testResetterBtn = document.getElementById('test-resetter');
       const testSummaryDiv = document.getElementById('test-summary');
@@ -209,6 +212,7 @@
         '"': '&quot;',
         "'": '&#039;'
       };
+      const utf8decoder = new TextDecoder('utf-8');
 
       let testCases = [];
       let testResults = {};
@@ -282,6 +286,37 @@
       }
       if (deployerBtn) {
         deployerBtn.onclick = deployServer;
+      }
+
+      function resetLogs() {
+        serverLogsCode.innerText = '';
+        logsContainer.classList.add('hidden');
+      }
+
+      function showLogs(txt) {
+        logsContainer.classList.remove('hidden');
+        serverLogsDiv.innerText += txt;
+      }
+
+      function streamServerLogs() {
+        resetLogs();
+        let csid = csidInp.value;
+        if (csid) {
+          fetch(`/servers/logs/${csid}`).then(r => {
+            const reader = r.body.getReader();
+            reader.read().then(function processLogs({done, value}) {
+              if (!done) {
+                showLogs(utf8decoder.decode(value));
+                return reader.read().then(processLogs);
+              }
+              return;
+            });
+          }).catch(e => {
+            ShowResMsg(deployerResDiv, e, 'failure');
+          });
+        } else {
+          ShowResMsg(deployerResDiv, 'Enter a valid CS-ID (e.g., `mln`)', 'failure');
+        }
       }
 
       function showTestSummary(hostport) {
