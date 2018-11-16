@@ -305,6 +305,7 @@
       function showLogs(txt) {
         logsContainer.classList.remove('hidden');
         serverLogsCode.innerText += txt;
+        serverLogsCode.scrollTop = serverLogsCode.scrollHeight;
       }
 
       function streamServerLogs() {
