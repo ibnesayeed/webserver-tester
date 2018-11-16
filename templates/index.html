@@ -266,6 +266,7 @@
         let gitref = gitRefInp.value;
         let state = msg = '';
         if (csid) {
+          resetLogs();
           resetTests();
           activateFavicon(0);
           msg = `Deploying server for \`${csid}\`${gitref ? ` with code branch/tag \`${gitref}\`` : ''}...`;
@@ -305,7 +306,7 @@
       function showLogs(txt) {
         logsContainer.classList.remove('hidden');
         serverLogsCode.innerText += txt;
-        serverLogsCode.scrollTop = serverLogsCode.scrollHeight;
+        serverLogsCode.parentElement.scrollTop = serverLogsCode.parentElement.scrollHeight;
       }
 
       function streamServerLogs() {
