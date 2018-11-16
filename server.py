@@ -90,7 +90,8 @@ def home():
 @app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
 @app.route("/servers/deploy/<csid>/<gitref>")
 def deploy_server(csid, gitref):
-    repo = get_student_repo(csid.strip())
+    csid = csid.strip()
+    repo = get_student_repo(csid)
     if repo is None:
         return Response(f"User record `{csid}` not present in `https://github.com/{COURSEREPO}/tree/master/users`.", status=404)
 
@@ -135,6 +136,23 @@ def deploy_server(csid, gitref):
         return Response(f"Service deployment failed. Response from the Docker daemon: {e}", status=500)
 
     return Response(" ".join(msgs), status=200)
+
+
+@app.route("/servers/destroy/<csid>", strict_slashes=False)
+def server_destroy(csid):
+    csid = csid.strip()
+    repo = get_student_repo(csid)
+    if repo is None:
+        return Response(f"Unrecognized student `{csid}`.", status=404)
+
+    contname = f"{COURCEID}-{csid}"
+    try:
+        print(f"Removing existing container {contname}")
+        client.containers.get(contname).remove(force=True)
+        return Response(f"Server `{contname}` destroyed successfully.", status=200)
+    except Exception as e:
+        print(f"Container {contname} does not exist")
+        return Response(f"Server `{contname}` does not exist.", status=404)
 
 
 @app.route("/tests", strict_slashes=False)
