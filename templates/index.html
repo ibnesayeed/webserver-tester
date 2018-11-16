@@ -317,7 +317,7 @@
         resetLogs();
         let csid = csidInp.value;
         if (csid) {
-          showLogs(`Streaming ${csid}'s server logs...`);
+          showLogs(`Streaming ${csid}'s server logs...\n`);
           controller = new AbortController();
           signal = controller.signal;
           fetch(`/servers/logs/${csid}`, {signal}).then(r => {
