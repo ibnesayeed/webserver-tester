@@ -123,7 +123,7 @@ def deploy_server(csid, gitref):
 
     try:
         print(f"Removing existing container {contname}")
-        client.containers.get(contname).remove(force=True)
+        client.containers.get(contname).remove(v=True, force=True)
         msgs.append("Related existing container removed.")
     except Exception as e:
         print(f"Container {contname} does not exist")
@@ -148,7 +148,7 @@ def server_destroy(csid):
     contname = f"{COURCEID}-{csid}"
     try:
         print(f"Removing existing container {contname}")
-        client.containers.get(contname).remove(force=True)
+        client.containers.get(contname).remove(v=True, force=True)
         return Response(f"Server `{contname}` destroyed successfully.", mimetype="text/plain", status=200)
     except Exception as e:
         print(f"Container {contname} does not exist")
