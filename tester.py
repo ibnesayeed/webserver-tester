@@ -929,7 +929,8 @@ class HTTPTester():
             self.parse_response(report["res"]["payload"], report)
             assert not report["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report, 200)
-            self.check_header_is(report, "Content-Type", "text/html; charset=jis")
+            self.check_mime_is(report, "text/html")
+            self.check_header_contains(report, "Content-Type", "charset")
             self.check_header_is(report, "Content-Language", "ja")
             self.check_header_is(report, "Content-Length", "7635")
             self.check_payload_empty(report)
