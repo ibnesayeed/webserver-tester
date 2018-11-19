@@ -50,7 +50,6 @@ def extract_repo_from_url(github_url):
     match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
     if match is not None:
         return f"{match[1]}/{match[2]}"
-    print(f"{github_url} is not a recognized GitHub URL")
     return None
 
 
@@ -62,7 +61,7 @@ def fetch_student_repo(csid):
             student_repos[csid] = extract_repo_from_url(req.text.strip())
             return student_repos[csid]
     except Exception as e:
-        print(f"Cannot fetch repo URI from GitHub: {e}")
+        pass
     return None
 
 
@@ -113,7 +112,6 @@ def deploy_server(csid, gitref):
 
     if buildimg:
         try:
-            print(f"Building image {imgname}")
             msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref if gitref else 'master'}` branch/tag out")
             img, logs = client.images.build(path=repo_url, tag=imgname)
             msgs.append("".join([l.get("stream", "") for l in logs]))
@@ -126,14 +124,12 @@ def deploy_server(csid, gitref):
         msgs.append(f"Reusing existing image `{imgname}` to redeploy the service")
 
     try:
-        print(f"Removing existing container {contname}")
         client.containers.get(contname).remove(v=True, force=True)
         msgs.append("Related existing container removed")
     except Exception as e:
-        print(f"Container {contname} does not exist")
+        pass
 
     try:
-        print(f"Running new container {contname} using {imgname} image")
         client.containers.run(imgname, detach=True, network=COURCEID, name=contname)
         msgs.append(f"A new container is created and the server `{contname}` is deployed successfully")
     except Exception as e:
@@ -153,11 +149,9 @@ def server_destroy(csid):
 
     contname = f"{COURCEID}-{csid}"
     try:
-        print(f"Removing existing container {contname}")
         client.containers.get(contname).remove(v=True, force=True)
         return Response(f"Server `{contname}` destroyed successfully.", mimetype="text/plain", status=200)
     except Exception as e:
-        print(f"Container {contname} does not exist")
         return Response(f"Server `{contname}` does not exist.", mimetype="text/plain", status=404)
 
 
@@ -170,11 +164,9 @@ def server_logs(csid):
 
     contname = f"{COURCEID}-{csid}"
     try:
-        print(f"Finding an existing container {contname}")
         cont = client.containers.get(contname)
         return Response(cont.logs(stream=True), mimetype="text/plain")
     except Exception as e:
-        print(f"Container {contname} does not exist")
         return Response(f"Server `{contname}` does not exist.", mimetype="text/plain", status=404)
 
 
