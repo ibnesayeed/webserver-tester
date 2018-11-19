@@ -10,7 +10,7 @@
         padding: 0;
       }
       a {
-        color: #337ab7;
+        color: #17a2b8;
       }
       #wrapper {
         max-width: 800px;
@@ -28,14 +28,14 @@
         text-align: center;
       }
       .box h2 {
-        background: #333;
+        background: #343a40;
         color: #ccc;
         padding: 5px;
         margin: -10px -10px 10px -10px;
         line-height: 30px;
       }
       .box h3 {
-        background: #888;
+        background: #6c757d;
         color: #fff;
         padding: 5px;
         margin: -10px -10px 10px -10px;
@@ -63,7 +63,7 @@
       }
       .box .description {
         font-style: italic;
-        color: #337ab7;
+        color: #17a2b8;
       }
       .results:not(:empty) {
         margin-top: 10px;
@@ -87,14 +87,22 @@
         padding: 4px;
       }
       button {
-        background: #337ab7;
-        border: 1px solid #2e6da4;
+        background: #007bff;
+        border: 1px solid #007bff;
         color: #fff;
         font-size: 14px;
         padding: 5px 10px;
         border-radius: 4px;
         cursor: pointer;
         user-select: none;
+      }
+      button.secondary {
+        background: #6c757d;
+        border: 1px solid #6c757d;
+      }
+      button.danger {
+        background: #dc3545;
+        border: 1px solid #dc3545;
       }
       button.run-single-test {
         float: right;
@@ -103,19 +111,19 @@
         display: none;
       }
       .success, li.PASSED {
-        color: #398439;
+        color: #28a745;
       }
       .failure, li.FAILED {
-        color: #d9534f;
+        color: #dc3545;
       }
       .PASSED h3 {
-        background-color: #398439;
+        background-color: #28a745;
       }
       .FAILED h3 {
-        background-color: #d9534f;
+        background-color: #dc3545;
       }
       i.highlight {
-        background-color: #ffc;
+        background-color: #ffc107;
         border: 1px dotted;
         border-radius: 4px;
         padding: 0 2px;
@@ -175,7 +183,7 @@
         <div class="results" id="deployment-results"></div>
         <div class="hidden" id="logs-container">
           <pre class="terminal"><code id="server-logs"></code></pre>
-          <button id="destroy-server">Destroy the Web Server</button>
+          <button id="destroy-server" class="danger">Destroy the Web Server</button>
         </div>
       </section>
       {%- endif %}
@@ -195,7 +203,7 @@
           {%- endfor %}
         </select>
         <button id="run-batch-tests">Run Tests</button>
-        <button id="test-resetter">Reset Tests</button>
+        <button id="test-resetter" class="secondary">Reset Tests</button>
         <div class="results" id="test-summary"></div>
       </section>
 
