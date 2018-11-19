@@ -205,6 +205,8 @@
     <footer><a href="https://github.com/ibnesayeed/webserver-tester">WebServer Tester</a> by <a href="https://twitter.com/ibnesayeed">Sawood Alam</a></footer>
 
     <script type="text/javascript">
+      const courseId = '{{ courseid }}';
+
       const testCaseContainer = document.getElementById('testcases');
       const batchSelector = document.getElementById('batch-selector');
       const csidInp = document.getElementById('csid');
@@ -280,15 +282,23 @@
           resetTests();
           activateFavicon(0);
           msg = `Deploying server for \`${csid}\`${gitref ? ` with code branch/tag \`${gitref}\`` : ''}...`;
+          let status = 0;
           fetch(`/servers/deploy/${csid}/${gitref}${rebuildCheck.checked ? '' : '?rebuild=skip'}`).then(r => {
             state = r.ok ? 'success' : 'failure';
+            status = r.status;
             return r.text();
           }).then(text => {
-            msg = text;
-            m = msg.match(/the service `([\w\-]+)` is deployed successfully/);
-            if (m) {
-              hostportInp.value = m[1];
+            const service = `${courseId}-${csid}`;
+            if (status == 200) {
+              msg = `Server \`${service}\` deployed successfully, ready to test!`;
+              hostportInp.value = service;
+              showLogs(text + '\n\n');
               streamServerLogs();
+            } else if (status == 500) {
+              msg = `Server \`${service}\` deployment failed!`;
+              showLogs(text);
+            } else {
+              msg = text;
             }
           }).catch(e => {
             state = 'failure';
@@ -352,10 +362,9 @@
           showLogs('This browser does not support log streaming!');
           return;
         }
-        resetLogs();
         let csid = csidInp.value;
         if (csid) {
-          showLogs(`Streaming ${csid}'s server logs...\n`);
+          showLogs(`Streaming \`${courseId}-${csid}\`'s server logs...\n`);
           controller = new AbortController();
           signal = controller.signal;
           fetch(`/servers/logs/${csid}`, {signal}).then(r => {

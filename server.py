@@ -109,33 +109,39 @@ def deploy_server(csid, gitref):
             client.images.get(imgname)
             buildimg = False
         except Exception as e:
-            msgs.append(f"Image `{imgname}` is not present.")
+            msgs.append(f"Image `{imgname}` is not present")
 
     if buildimg:
         try:
             print(f"Building image {imgname}")
-            client.images.build(path=repo_url, tag=imgname)
-            msgs.append(f"Image `{imgname}` built from the `{gitref if gitref else 'master'}` branch/tag of the `https://github.com/{repo}` repo.")
+            msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref if gitref else 'master'}` branch/tag out")
+            img, logs = client.images.build(path=repo_url, tag=imgname)
+            msgs.append("".join([l.get("stream", "") for l in logs]))
         except Exception as e:
-            return Response(f"Building image `{imgname}` from the `{repo}` repo failed, ensure that the repo is accessible and contains a valid `Dockerfile`. Response from the Docker daemon: {str(e).replace(CREDENTIALS + '@', '')}", mimetype="text/plain", status=500)
+            msgs.append(str(e).replace(CREDENTIALS + '@', ''))
+            msgs.append(f"Building image `{imgname}` failed")
+            msgs.append("Ensure that the repo is accessible and contains a valid `Dockerfile`")
+            return Response("\n".join(msgs), mimetype="text/plain", status=500)
     else:
-        msgs.append(f"Reusing existing image `{imgname}` to redeploy the service.")
+        msgs.append(f"Reusing existing image `{imgname}` to redeploy the service")
 
     try:
         print(f"Removing existing container {contname}")
         client.containers.get(contname).remove(v=True, force=True)
-        msgs.append("Related existing container removed.")
+        msgs.append("Related existing container removed")
     except Exception as e:
         print(f"Container {contname} does not exist")
 
     try:
         print(f"Running new container {contname} using {imgname} image")
         client.containers.run(imgname, detach=True, network=COURCEID, name=contname)
-        msgs.append(f"A new container is created and the service `{contname}` is deployed successfully.")
+        msgs.append(f"A new container is created and the server `{contname}` is deployed successfully")
     except Exception as e:
-        return Response(f"Service deployment failed. Response from the Docker daemon: {e}", mimetype="text/plain", status=500)
+        msgs.append(str(e))
+        msgs.append("Service deployment failed")
+        return Response("\n".join(msgs), mimetype="text/plain", status=500)
 
-    return Response(" ".join(msgs), mimetype="text/plain", status=200)
+    return Response("\n".join(msgs), mimetype="text/plain", status=200)
 
 
 @app.route("/servers/destroy/<csid>", strict_slashes=False)
