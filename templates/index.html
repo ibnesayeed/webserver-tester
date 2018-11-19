@@ -364,7 +364,7 @@
         }
         let csid = csidInp.value;
         if (csid) {
-          showLogs(`Streaming \`${courseId}-${csid}\`'s server logs...\n`);
+          showLogs(`Streaming STDOUT/STDERR logs of \`${courseId}-${csid}\` server...\n`);
           controller = new AbortController();
           signal = controller.signal;
           fetch(`/servers/logs/${csid}`, {signal}).then(r => {
