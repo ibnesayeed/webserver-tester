@@ -911,7 +911,7 @@ class HTTPTester():
 
     @make_request("pipeline-range.http", PATH="/a3-test/index.html", SUFFIX1=".en", SUFFIX2=".ja.jis")
     def test_3_pipeline_range_negotiate(self, report):
-        """Test whether multiple pipelined requests with nontent negotiations are processed and returned in the same order"""
+        """Test whether multiple pipelined requests with content negotiations are processed and returned in the same order"""
         self.check_status_is(report, 206)
         self.check_mime_is(report, "text/html")
         self.check_header_present(report, "Content-Range")
