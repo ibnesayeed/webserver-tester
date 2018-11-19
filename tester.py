@@ -773,7 +773,7 @@ class HTTPTester():
         self.check_payload_not_empty(report)
 
 
-    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 10 Nov 2018 20:46:11 GMT")
+    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sat, 10 Nov 2018 20:46:11 GMT")
     def test_3_conditional_head_image_fresh(self, report):
         """Test whether conditional HEAD of a fresh image file returns 304 Not Modified"""
         self.check_status_is(report, 304)
