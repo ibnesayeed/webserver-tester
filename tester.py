@@ -301,7 +301,7 @@ class HTTPTester():
 
 
     def check_payload_empty(self, report):
-        assert not report["res"]["payload"], f"Payload expected empty, returned `{res['payload_size']}` bytes"
+        assert not report["res"]["payload"], f"Payload expected empty, returned `{report['res']['payload_size']}` bytes"
         report["notes"].append("Payload is empty")
 
 
@@ -338,7 +338,7 @@ class HTTPTester():
 
     def check_connection_alive(self, report, explicit=False):
         reason = "explicit `Connection: keep-alive` header" if explicit else "no explicit `Connection: close` header"
-        assert report["res"]["connection"] == "alive", "Socket connection should be kept alive due to {reason}"
+        assert report["res"]["connection"] == "alive", f"Socket connection should be kept alive due to {reason}"
         report["notes"].append("Socket connection is kept alive")
 
 
