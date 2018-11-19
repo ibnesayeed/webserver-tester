@@ -916,7 +916,6 @@ class HTTPTester():
         self.check_mime_is(report, "text/html")
         self.check_header_present(report, "Content-Range")
         self.check_header_is(report, "Content-Length", "100")
-        self.check_payload_empty(report)
         orig_hdr = report["res"]["raw_headers"]
         try:
             report["notes"].append("Parsing second response")
@@ -925,7 +924,6 @@ class HTTPTester():
             self.check_status_is(report, 300)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
-            self.check_payload_empty(report)
             orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
             report["notes"].append("Parsing third response")
             self.parse_response(report["res"]["payload"], report)
