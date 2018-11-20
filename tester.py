@@ -780,7 +780,7 @@ class HTTPTester():
         self.check_payload_empty(report)
 
 
-    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sun, 27 Oct 2018 20:46:09 GMT")
+    @make_request("conditional-head.http", PATH="/a3-test/fairlane.gif", MODTIME="Sat, 27 Oct 2018 20:46:09 GMT")
     def test_3_conditional_head_image_stale(self, report):
         """Test whether conditional HEAD of a stale image file returns 200 OK"""
         self.check_status_is(report, 200)
