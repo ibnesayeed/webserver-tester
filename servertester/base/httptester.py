@@ -6,14 +6,14 @@ import functools
 import socket
 
 
-class WebServerTester():
-    """WebServerTester is a generic HTTP server tester base class that can be inherited to write test cases for specific web servers"""
+class HTTPTester():
+    """HTTPTester is a generic HTTP server tester base class that can be inherited to write test cases for specific web servers"""
 
     def __init__(self, hostport="localhost:80"):
-        """Initialize a WebServerTester instance for a server specified by the hostport"""
+        """Initialize a HTTPTester instance for a server specified by the hostport"""
 
         # Directory where sample HTTP Message files are stored
-        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "messages")
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages")
         # Test function name pattern
         self.TFPATTERN = re.compile("^test_(\d+)_(.+)")
 
@@ -199,6 +199,26 @@ class WebServerTester():
 
 
     def make_request(msg_file, **kwargs):
+        """Test decorator generator that makes HTTP request using the msg_file.
+        Makes the response available for assertions.
+        Intended to be used as a decorator from within this class."""
+        def test_decorator(func):
+            @functools.wraps(func)
+            def wrapper(self):
+                report = self.netcat(msg_file, **kwargs)
+                try:
+                    if not report["errors"]:
+                        func(self, report)
+                except AssertionError as e:
+                    report["errors"].append(f"ASSERTION: {e}")
+                self.reset_sock()
+                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "notes": report["notes"], "req": report["req"], "res": report["res"]}
+            return wrapper
+        return test_decorator
+
+
+    @classmethod
+    def request(cls, msg_file, **kwargs):
         """Test decorator generator that makes HTTP request using the msg_file.
         Makes the response available for assertions.
         Intended to be used as a decorator from within this class."""
