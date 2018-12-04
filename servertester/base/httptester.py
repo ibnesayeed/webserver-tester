@@ -39,6 +39,14 @@ class HTTPTester():
         # Create reusable socket reference
         self.sock = None
 
+        # Create a dict of all test cases
+        self.testcases = {}
+        tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if f[0].startswith("test_")]
+        for tf in tfuncs:
+            tf[1].__func__.__orig_lineno__ = tf[1].__wrapped__.__code__.co_firstlineno if hasattr(tf[1], "__wrapped__") else tf[1].__code__.co_firstlineno
+        for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
+            self.testcases[fname] = func
+
         # Create batches of test methods in their defined order
         self.test_batches = collections.defaultdict(dict)
         tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if self.TFPATTERN.match(f[0])]
