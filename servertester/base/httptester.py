@@ -185,14 +185,6 @@ class HTTPTester():
         raise Exception(err)
 
 
-    def run_batch_tests(self, batch):
-        if not self.test_batches.get(batch):
-            err = f"Assignment {batch} not implemented"
-            raise Exception(err)
-        for fname, func in self.test_batches[batch].items():
-            yield func()
-
-
     def run_all_tests(self):
         for fname, func in self.testcases.items():
             yield func()
