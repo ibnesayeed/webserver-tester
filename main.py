@@ -12,12 +12,12 @@ if __name__ == "__main__":
     def print_help():
         print("")
         print("Usage:")
-        print("./main.py [[<host>]:[<port>] [<test-id>|<assignment-numbers>]]")
+        print("./main.py [[<host>]:[<port>] [<test-suite> [<test-id>]]]")
         print("")
-        print("<host>               : Hostname or IP address of the server to be tested (default: 'localhost')")
-        print("<port>               : Port number of the server to be tested (default: '80')")
-        print("<test-id>            : ID of an individual test function (e.g., 'test_0_healthy_server')")
-        print("<assignment-numbers> : Comma separated list of assignment numbers (default: all assignments)")
+        print("<host>        Hostname or IP address of the server to be tested (default: 'localhost')")
+        print("<port>        Port number of the server to be tested (default: '80')")
+        print("<test-suite>  Name of the test suite (e.g., 'example', default: all test suits)")
+        print("<test-id>     ID of an individual test function (e.g., 'test_healthy_server')")
         print("")
 
     def colorize(str, code=91):
