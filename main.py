@@ -4,7 +4,7 @@ import sys
 import re
 import collections
 
-from servertester.testsuites.cs531tester import CS531Tester
+from servertester.testsuites import *
 
 
 if __name__ == "__main__":
@@ -26,11 +26,13 @@ if __name__ == "__main__":
         print_help()
         sys.exit(0)
 
+    suit = Example
+
     if len(sys.argv) < 2:
         print()
         print("Following test cases are available:")
         print()
-        for batch, tests in CS531Tester().test_batches.items():
+        for batch, tests in suit().test_batches.items():
             for fname, func in tests.items():
                 print(f"[Assignment {batch}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
@@ -39,7 +41,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     try:
-        t = CS531Tester(sys.argv[1])
+        t = suit(sys.argv[1])
     except ValueError as e:
         print(colorize(e))
         print_help()
