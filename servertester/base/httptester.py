@@ -14,8 +14,6 @@ class HTTPTester():
 
         # Directory where sample HTTP Message files are stored
         self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages")
-        # Test function name pattern
-        self.TFPATTERN = re.compile("^test_(\d+)_(.+)")
 
         # Socket timeouts
         self.CONNECTION_TIMEOUT = 0.2
@@ -46,16 +44,6 @@ class HTTPTester():
             tf[1].__func__.__orig_lineno__ = tf[1].__wrapped__.__code__.co_firstlineno if hasattr(tf[1], "__wrapped__") else tf[1].__code__.co_firstlineno
         for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
             self.testcases[fname] = func
-
-        # Create batches of test methods in their defined order
-        self.test_batches = collections.defaultdict(dict)
-        tfuncs = [f for f in inspect.getmembers(self, inspect.ismethod) if self.TFPATTERN.match(f[0])]
-        for tf in tfuncs:
-            tf[1].__func__.__orig_lineno__ = tf[1].__wrapped__.__code__.co_firstlineno if hasattr(tf[1], "__wrapped__") else tf[1].__code__.co_firstlineno
-        for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
-            m = self.TFPATTERN.match(fname)
-            self.test_batches[m[1]][fname] = func
-
 
     def connect_sock(self):
         self.sock = socket.socket()
