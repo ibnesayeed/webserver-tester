@@ -4,6 +4,7 @@ import sys
 import re
 import collections
 
+from servertester.base.httptester import HTTPTester
 from servertester.testsuites import *
 
 
@@ -26,8 +27,6 @@ if __name__ == "__main__":
         print_help()
         sys.exit(0)
 
-    suit = Example
-
     if len(sys.argv) < 2:
         print()
         print("Following test cases are available:")
@@ -42,20 +41,22 @@ if __name__ == "__main__":
         sys.exit(0)
 
     try:
-        t = suit(sys.argv[1])
+        t = HTTPTester(sys.argv[1])
     except ValueError as e:
         print(colorize(e))
         print_help()
         sys.exit(1)
     hostport = f"{t.host}:{t.port}"
 
-    batches = list(t.test_batches.keys())
-    test_id = None
+    batches = list(testsuites)
     if len(sys.argv) > 2:
-        if t.TFPATTERN.match(sys.argv[2]):
-            test_id = sys.argv[2]
-        if re.match("^[\d,]+$", sys.argv[2]):
-            batches = sys.argv[2].split(",")
+        batches = sys.argv[2].lower().split(",")
+        if not set(batches).issubset(testsuites):
+            print(f"Available test suites include: {colorize(','.join(testsuites))}")
+            sys.exit(1)
+    test_id = None
+    if len(sys.argv) > 3 and len(batches) == 1 and sys.argv[3].startswith("test_"):
+        test_id = sys.argv[3]
 
     def print_result(result, print_text_payload=False):
         print("-" * 80)
@@ -95,12 +96,14 @@ if __name__ == "__main__":
 
     try:
         if test_id:
+            t = testsuites[batches[0]](hostport)
             result = t.run_single_test(test_id)
             print_result(result, print_text_payload=True)
         else:
             test_results = {}
             for batch in batches:
-                for result in t.run_batch_tests(batch):
+                t = testsuites[batch](hostport)
+                for result in t.run_all_tests():
                     test_results[result["id"]] = "FAILED" if result["errors"] else "PASSED"
                     print_result(result)
             print_summary(hostport, test_results)

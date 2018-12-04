@@ -189,10 +189,9 @@ class HTTPTester():
 
     def run_single_test(self, test_id):
         err = f"Test {test_id} not valid"
-        m = self.TFPATTERN.match(test_id)
-        if m:
+        if test_id.startswith("test_"):
             try:
-                return self.test_batches[m[1]][test_id]()
+                return self.testcases[test_id]()
             except KeyError as e:
                 err = f"Test {test_id} not implemented"
         raise Exception(err)
@@ -203,6 +202,11 @@ class HTTPTester():
             err = f"Assignment {batch} not implemented"
             raise Exception(err)
         for fname, func in self.test_batches[batch].items():
+            yield func()
+
+
+    def run_all_tests(self):
+        for fname, func in self.testcases.items():
             yield func()
 
 
