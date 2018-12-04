@@ -3,7 +3,7 @@ import time
 from ..base.httptester import HTTPTester
 
 
-class CS531A2(HTTPTester):
+class CS531A1(HTTPTester):
     """CS531A1 is a special purpose HTTPTester with test cases for Assignment 1 of the CS531 (Web Server Design) course"""
 
 
