@@ -31,12 +31,13 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print()
         print("Following test cases are available:")
+        for suite in testsuites:
+            print()
+            print(f"{'=' * 10} Test Suite: {colorize(suite)} {'=' * 10}")
+            for fname, func in testsuites[suite]().testcases.items():
+                print(f"* {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
-        for batch, tests in suit().test_batches.items():
-            for fname, func in tests.items():
-                print(f"[Assignment {batch}] {colorize(fname)}: {colorize(func.__doc__, 96)}")
-        print()
-        print(f"For help run: {colorize('./tester.py -h')}")
+        print(f"For help run: {colorize('./main.py -h')}")
         print()
         sys.exit(0)
 
