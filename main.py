@@ -33,7 +33,7 @@ if __name__ == "__main__":
         print("Following test cases are available:")
         for suite in testsuites:
             print()
-            print(f"{'=' * 10} Test Suite: {colorize(suite)} {'=' * 10}")
+            print(f"{f' Test Suite: {colorize(suite)} ':=^80}")
             for fname, func in testsuites[suite]().testcases.items():
                 print(f"* {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             batches = sys.argv[2].split(",")
 
     def print_result(result, print_text_payload=False):
-        print("-" * 79)
+        print("-" * 80)
         print(f"{result['id']}: {colorize(result['description'], 96)}")
         for note in result["notes"]:
             print(f"* {note}")
@@ -82,12 +82,12 @@ if __name__ == "__main__":
     def print_summary(hostport, test_results):
         counts = collections.Counter(test_results.values())
         colors = {"PASSED": 92, "FAILED": 91}
-        print("=" * 35, "SUMMARY", "=" * 35)
+        print(f"{' SUMMARY ':=^80}")
         print(f"Server: {colorize(hostport, 96)}")
         print("Test Case Results:")
         for test, result in test_results.items():
             print(f"{colorize(result, colors[result])}: {test}")
-        print("-" * 79)
+        print("-" * 80)
         print(f"TOTAL: {len(test_results)}, {colorize('PASSED', 92)}: {counts['PASSED']}, {colorize('FAILED', 91)}: {counts['FAILED']}")
         print("=" * 79)
 
