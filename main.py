@@ -48,14 +48,17 @@ if __name__ == "__main__":
         sys.exit(1)
     hostport = f"{t.host}:{t.port}"
 
-    batches = list(testsuites)
+    suite = None
     if len(sys.argv) > 2:
-        batches = sys.argv[2].lower().split(",")
-        if not set(batches).issubset(testsuites):
-            print(f"Available test suites include: {colorize(','.join(testsuites))}")
+        try:
+            suite = testsuites[sys.argv[2].lower()]
+        except KeyError as e:
+            print(f"Test suite {colorize(sys.argv[2])} is not available")
+            print(f"Available test suites: {colorize(', '.join(testsuites))}")
             sys.exit(1)
+
     test_id = None
-    if len(sys.argv) > 3 and len(batches) == 1 and sys.argv[3].startswith("test_"):
+    if len(sys.argv) > 3 and suite and sys.argv[3].startswith("test_"):
         test_id = sys.argv[3]
 
     def print_result(result, print_text_payload=False):
@@ -96,13 +99,14 @@ if __name__ == "__main__":
 
     try:
         if test_id:
-            t = testsuites[batches[0]](hostport)
+            t = suite(hostport)
             result = t.run_single_test(test_id)
             print_result(result, print_text_payload=True)
         else:
             test_results = {}
-            for batch in batches:
-                t = testsuites[batch](hostport)
+            suites = {sys.argv[2].lower(): suite} if suite else testsuites
+            for _, suite in suites.items():
+                t = suite(hostport)
                 for result in t.run_all_tests():
                     test_results[result["id"]] = "FAILED" if result["errors"] else "PASSED"
                     print_result(result)
