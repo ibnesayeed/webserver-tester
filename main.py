@@ -30,10 +30,10 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print()
         print("Following test cases are available:")
-        for suite in testsuites:
+        for sname, suite in testsuites.items():
             print()
-            print(f"{f' Test Suite: {colorize(suite)} ':=^80}")
-            for fname, func in testsuites[suite]().testcases.items():
+            print(f"{f' Test Suite: {colorize(sname)} ':=^80}")
+            for fname, func in suite().testcases.items():
                 print(f"* {colorize(fname)}: {colorize(func.__doc__, 96)}")
         print()
         print(f"For help run: {colorize('./main.py -h')}")
