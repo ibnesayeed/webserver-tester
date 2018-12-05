@@ -174,7 +174,9 @@
         <datalist id="gitrefs">
           <option value="master">Latest</option>
           {%- for batch in test_batches %}
-          <option value="a{{ batch }}">Assignment {{ batch }}</option>
+            {%- if batch.startswith("cs531") %}
+            <option value="{{ batch[5:] }}">Assignment {{ batch[6:] }}</option>
+            {%- endif %}
           {%- endfor %}
         </datalist>
         <button id="deploy-server">Deploy the Web Server</button>
@@ -199,7 +201,7 @@
         <select id="batch-selector">
           <option value="">All Test Cases</option>
           {%- for batch in test_batches %}
-          <option value="{{ batch }}">Assignment {{ batch }}</option>
+          <option value="{{ batch }}">Test Suite: {{ batch }}</option>
           {%- endfor %}
         </select>
         <button id="run-batch-tests">Run Tests</button>
@@ -251,13 +253,13 @@
 
       function renderTestCases() {
         let markup = testCases.map(tc => `
-        <section class="testcase box batch-${tc.batch}" id="box-${tc.id}">
+        <section class="testcase box suite-${tc.suite}" id="box-${tc.suite}-${tc.id}">
           <h3>
-            <button class="run-single-test" value="${tc.batch}-${tc.id}" id="run-${tc.id}">Run This Test</button>
-            <span>${tc.batch}: ${tc.id}</span>
+            <button class="run-single-test" value="${tc.suite}-${tc.id}" id="run-${tc.id}">Run This Test</button>
+            <span>${tc.suite}: ${tc.id}</span>
           </h3>
           <p class="description">${tc.description}</p>
-          <div class="results" id="result-${tc.id}"></div>
+          <div class="results" id="result-${tc.suite}-${tc.id}"></div>
         </section>`).join('');
         testCaseContainer.innerHTML = markup;
       }
@@ -276,7 +278,7 @@
       function showBatchTestCases() {
         let batch = batchSelector.value;
         Array.from(testCaseContainer.querySelectorAll('.testcase')).forEach(box => {
-          box.classList.toggle('hidden', batch && !box.classList.contains('batch-' + batch));
+          box.classList.toggle('hidden', batch && !box.classList.contains('suite-' + batch));
         });
       }
       batchSelector.onchange = showBatchTestCases;
@@ -402,7 +404,7 @@
         let markup = `
         <h4>Server: <span class="description">${hostport}</span></h4>
         <ul class="summary-list">
-          ${Object.entries(testResults).map(r => `<li class="${r[1]}">[${r[1]}]: <a href="#box-${r[0]}">${r[0]}</a></li>`).join('')}
+          ${Object.entries(testResults).map(r => `<li class="${r[1]}">[${r[1]}]: <a href="#box-${r[0].replace(': ', '-')}">${r[0]}</a></li>`).join('')}
         </ul>
         <p class="counts">
           <span class="total">TOTAL:</span> <span>${Object.keys(testResults).length}</span>,
@@ -420,8 +422,8 @@
         let nt = r.notes.map(n => `<li>${n}</li>`).join('');
         let err = r.errors.map(e => `<li>${e}</li>`).join('');
         let state = err ? 'FAILED' : 'PASSED';
-        testResults[r.id] = state;
-        document.getElementById(`box-${r.id}`).classList.add(state);
+        testResults[`${r.suite}: ${r.id}`] = state;
+        document.getElementById(`box-${r.suite}-${r.id}`).classList.add(state);
         let markup = `
         ${nt ? `<h4>Notes</h4><ul class="notes">${nt.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</ul>` : ''}
         ${err ? `<h4>Failures</h4><ul class="failure reason">${err.replace(/`(.*?)`/g, '<i class="highlight">$1</i>')}</ul>` : ''}
@@ -434,7 +436,7 @@
           <h4>Original Response <span class="description">(Payload: ${r.res.payload_size} bytes, Connection: ${r.res.connection})</span></h4>
           <pre><code>${r.res.raw_headers}\r\n\r\n${pld}</code></pre>`;
         }
-        document.getElementById(`result-${r.id}`).innerHTML = markup;
+        document.getElementById(`result-${r.suite}-${r.id}`).innerHTML = markup;
       }
 
       function runTestBatch() {
@@ -477,8 +479,8 @@
       function runSingleTest(e) {
         if (e.target.matches('button.run-single-test')) {
           let [suiteId, testId] = e.target.value.split('-');
-          let box = document.getElementById(`box-${testId}`);
-          let testResDiv = document.getElementById(`result-${testId}`);
+          let box = document.getElementById(`box-${suiteId}-${testId}`);
+          let testResDiv = document.getElementById(`result-${suiteId}-${testId}`);
           let hostport = hostportInp.value;
           let state = msg = '';
           if (hostport) {

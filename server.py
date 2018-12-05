@@ -38,7 +38,7 @@ def generate_test_cases_json():
     test_cases = []
     for sname, suite in testsuites.items():
         for fname, func in suite().testcases.items():
-            test_cases.append({"id": fname, "description": func.__doc__, "batch": sname})
+            test_cases.append({"id": fname, "description": func.__doc__, "suite": sname})
     return json.dumps(test_cases)
 
 test_cases = generate_test_cases_json()
