@@ -4,11 +4,11 @@ from ..base.httptester import HTTPTester
 class CS531A4(HTTPTester):
     """CS531A4 is a special purpose HTTPTester with test cases for Assignment 4 of the CS531 (Web Server Design) course"""
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_1(self, report):
-        """Test case 1"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/protected", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_basic_auth_realm(self, report):
+        """Test whether files are protected with HTTP Basic auth and return configured realm"""
         self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
@@ -18,11 +18,11 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 200)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_3(self, report):
-        """Test case 3"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_nested_digest_auth(self, report):
+        """Test whether files in nested directories are protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
@@ -60,11 +60,11 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 401)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_9(self, report):
-        """Test case 9"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_nested_basic_auth(self, report):
+        """Test whether files in nested directories are protected with HTTP Basic auth"""
         self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
