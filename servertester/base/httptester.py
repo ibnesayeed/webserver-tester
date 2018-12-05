@@ -190,25 +190,6 @@ class HTTPTester():
             yield func()
 
 
-    def make_request(msg_file, **kwargs):
-        """Test decorator generator that makes HTTP request using the msg_file.
-        Makes the response available for assertions.
-        Intended to be used as a decorator from within this class."""
-        def test_decorator(func):
-            @functools.wraps(func)
-            def wrapper(self):
-                report = self.netcat(msg_file, **kwargs)
-                try:
-                    if not report["errors"]:
-                        func(self, report)
-                except AssertionError as e:
-                    report["errors"].append(f"ASSERTION: {e}")
-                self.reset_sock()
-                return {"id": func.__name__, "description": func.__doc__, "errors": report["errors"], "notes": report["notes"], "req": report["req"], "res": report["res"]}
-            return wrapper
-        return test_decorator
-
-
     @classmethod
     def request(cls, msg_file, **kwargs):
         """Test decorator generator that makes HTTP request using the msg_file.
