@@ -121,9 +121,7 @@ class CS531A4(HTTPTester):
         assert False, "Yet to be implemented!"
         self.check_status_is(report, 416)
 
-
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_17(self, report):
-        """Test case 17"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("method-path-range.http", METHOD="HEAD", PATH="/a4-test/index.html.ru.koi8-r", RANGE="bytes=20000-29999")
+    def test_large_range_not_satisfiable(self, report):
+        """Test whether a Range larger than the file returns 416 Range Not Satisfiable"""
         self.check_status_is(report, 416)

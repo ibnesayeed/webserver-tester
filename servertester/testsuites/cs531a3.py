@@ -121,7 +121,7 @@ class CS531A3(HTTPTester):
         self.check_payload_empty(report)
 
 
-    @HTTPTester.request("get-path-range.http", PATH="/a3-test/fairlane.txt", RANGE="bytes=10-20")
+    @HTTPTester.request("method-path-range.http", METHOD="GET", PATH="/a3-test/fairlane.txt", RANGE="bytes=10-20")
     def test_partial_content_range_text(self, report):
         """Test whether a valid range request header returns partial content in plain text"""
         self.check_status_is(report, 206)
