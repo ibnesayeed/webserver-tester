@@ -11,11 +11,13 @@ class CS531A4(HTTPTester):
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_2(self, report):
-        """Test case 2"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ref-auth.http", PATH="/a4-test/limited1/protected", REFERER="/a4-test/index.html", AUTH="Basic bWxuOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_basic_auth_ok(self, report):
+        """Test whether access is granted with valid Authorization header"""
         self.check_status_is(report, 200)
+        self.check_mime_is(report, "application/octet-stream")
+        self.check_header_is(report, "Content-Length", "24")
+        self.check_payload_contains(report, "this file is protected")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")

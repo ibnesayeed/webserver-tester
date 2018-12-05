@@ -1,0 +1,7 @@
+GET http://<HOSTPORT><PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+User-Agent: <USERAGENT>
+Referer: http://<HOSTPORT><REFERER>
+Authorization: <AUTH>
+Connection: close
+
