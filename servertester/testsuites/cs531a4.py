@@ -78,18 +78,18 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 200)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_11(self, report):
-        """Test case 11"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("method-url-ua.http", METHOD="HEAD", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_head_nested_digest_auth(self, report):
+        """Test whether HEAD method in nested directories is protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_12(self, report):
-        """Test case 12"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_options_nested_digest_auth(self, report):
+        """Test whether OPTIONS method in nested directories is protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
