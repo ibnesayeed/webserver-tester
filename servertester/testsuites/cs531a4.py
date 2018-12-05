@@ -60,7 +60,7 @@ class CS531A4(HTTPTester):
         authobj = self.parse_equal_sign_delimited_keys_values(authstr)
         report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
         nonce = authobj.get("nonce", "")
-        digval = self.generate_digest_values(self, nonce)
+        digval = self.generate_digest_values(nonce)
         report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="mln", REALM="ColonialPlace", NONCE=nonce, NC=digval["nc1"], CNONCE=digval["cnonce"], RESPONSE=digval["resp1"])
         for k in report2:
             report[k] = report2[k]
