@@ -10,15 +10,15 @@ To test your server, run your server first, note down the host and port of the s
 $ git clone https://github.com/ibnesayeed/webserver-tester.git
 $ cd webserver-tester
 $ pip install -r requirements.txt
-$ ./tester.py -h
+$ ./main.py -h
 
 Usage:
-./tester.py [[<host>]:[<port>] [<test-id>|<assignment-numbers>]]
+./main.py [[<host>]:[<port>] [<suite-id> [<test-id>]]]
 
-<host>               : Hostname or IP address of the server to be tested (e.g., 'localhost')
-<port>               : Port number of the server to be tested (default: '80')
-<test-id>            : ID of an individual test function (e.g., 'test_0_healthy_server')
-<assignment-numbers> : Comma separated list of assignment numbers (default: all assignments)
+<host>      Hostname or IP address of the server to be tested (default: 'localhost')
+<port>      Port number of the server to be tested (default: '80')
+<suite-id>  ID of a test suite (e.g., 'example', default: all test suits)
+<test-id>   ID of an individual test function (e.g., 'test_healthy_server')
 ```
 
 Alternatively, build a Docker image from the source to ensure all the dependencies are available and run tester script inside.
@@ -92,13 +92,13 @@ $ curl -i http://cs531.cs.odu.edu/tests
 To run a specific test:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<test-id>
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<suite-id>/<test-id>
 ```
 
-To run all tests in an assignment:
+To run all tests in a test suite:
 
 ```
-$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<assignment-number>
+$ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>/<suite-id>
 ```
 
 To run all tests:
