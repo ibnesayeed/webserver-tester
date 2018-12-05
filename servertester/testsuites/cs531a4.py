@@ -7,100 +7,117 @@ class CS531A4(HTTPTester):
     @HTTPTester.request("get-root.http")
     def test_1(self, report):
         """Test case 1"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_2(self, report):
         """Test case 2"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 200)
 
 
     @HTTPTester.request("get-root.http")
     def test_3(self, report):
         """Test case 3"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_4(self, report):
         """Test case 4"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 200)
 
 
     @HTTPTester.request("get-root.http")
     def test_5(self, report):
         """Test case 5"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_6(self, report):
         """Test case 6"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_7(self, report):
         """Test case 7"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 200)
 
 
     @HTTPTester.request("get-root.http")
     def test_8(self, report):
         """Test case 8"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_9(self, report):
         """Test case 9"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_10(self, report):
         """Test case 10"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 200)
 
 
     @HTTPTester.request("get-root.http")
     def test_11(self, report):
         """Test case 11"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_12(self, report):
         """Test case 12"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_13(self, report):
         """Test case 13"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 400)
 
 
     @HTTPTester.request("get-root.http")
     def test_14(self, report):
         """Test case 14"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_15(self, report):
         """Test case 15"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 401)
 
 
     @HTTPTester.request("get-root.http")
     def test_16(self, report):
         """Test case 16"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 416)
 
 
     @HTTPTester.request("get-root.http")
     def test_17(self, report):
         """Test case 17"""
+        assert False, "Yet to be implemented!"
         self.check_status_is(report, 416)
