@@ -43,11 +43,11 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 401)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_6(self, report):
-        """Test case 6"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-auth.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_basic_wrong_auth_unauthorized(self, report):
+        """Test whether access is unauthorized with wrong Authorization header"""
         self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
