@@ -253,8 +253,8 @@
         let markup = testCases.map(tc => `
         <section class="testcase box batch-${tc.batch}" id="box-${tc.id}">
           <h3>
-            <button class="run-single-test" value="${tc.id}" id="run-${tc.id}">Run This Test</button>
-            <span>${tc.id}</span>
+            <button class="run-single-test" value="${tc.batch}-${tc.id}" id="run-${tc.id}">Run This Test</button>
+            <span>${tc.batch}: ${tc.id}</span>
           </h3>
           <p class="description">${tc.description}</p>
           <div class="results" id="result-${tc.id}"></div>
@@ -476,7 +476,7 @@
 
       function runSingleTest(e) {
         if (e.target.matches('button.run-single-test')) {
-          let testId = e.target.value;
+          let [suiteId, testId] = e.target.value.split('-');
           let box = document.getElementById(`box-${testId}`);
           let testResDiv = document.getElementById(`result-${testId}`);
           let hostport = hostportInp.value;
@@ -485,7 +485,7 @@
             activateFavicon(2);
             msg = `Running this test against the server \`${hostport}\`...`;
             box.classList.remove('FAILED', 'PASSED');
-            fetch(`/tests/${hostport}/${testId}`).then(r => {
+            fetch(`/tests/${hostport}/${suiteId}/${testId}`).then(r => {
               state = r.ok ? '' : 'failure';
               return r.text();
             }).then(text => {

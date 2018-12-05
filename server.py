@@ -10,7 +10,8 @@ import docker
 import json
 import base64
 
-from tester import HTTPTester
+from servertester.base.httptester import HTTPTester
+from servertester.testsuites import *
 
 # This should be changed inline or supplied via the environment variable each semester the course is offered
 COURSEREPO = os.getenv("COURSEREPO", "phonedude/cs531-f18")
@@ -33,16 +34,14 @@ except Exception as e:
     print("Docker daemon is not reachable, disabling deployment")
 
 
-def generate_test_cases_json(test_batches):
+def generate_test_cases_json():
     test_cases = []
-    for batch, tests in test_batches.items():
-        for fname, func in tests.items():
-            test_cases.append({"id": fname, "description": func.__doc__, "batch": batch})
+    for sname, suite in testsuites.items():
+        for fname, func in suite().testcases.items():
+            test_cases.append({"id": fname, "description": func.__doc__, "batch": sname})
     return json.dumps(test_cases)
 
-default_tester = HTTPTester()
-batch_numbers = default_tester.test_batches.keys()
-test_cases = generate_test_cases_json(default_tester.test_batches)
+test_cases = generate_test_cases_json()
 
 
 def extract_repo_from_url(github_url):
@@ -83,7 +82,7 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", test_batches=batch_numbers, student_ids=student_repos.keys(), show_deployer=DEPLOYER, courseid=COURCEID)
+    return render_template("index.html", test_batches=testsuites.keys(), student_ids=student_repos.keys(), show_deployer=DEPLOYER, courseid=COURCEID)
 
 
 @app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
@@ -175,13 +174,17 @@ def list_tests():
     return Response(test_cases, mimetype="application/json")
 
 
-@app.route("/tests/<hostport>/test_<int:batch>_<tid>")
-def run_test(hostport, batch, tid):
+@app.route("/tests/<hostport>/<suiteid>/test_<tid>")
+def run_test(hostport, suiteid, tid):
     try:
-        t = HTTPTester(hostport)
+        suite = testsuites[suiteid.lower()]
+    except KeyError as e:
+        Response(f"{e}", status=404)
+    try:
+        t = suite(hostport)
     except ValueError as e:
         return Response(f"{e}", status=400)
-    test_id = f"test_{batch}_{tid}"
+    test_id = f"test_{tid}"
     try:
         result = t.run_single_test(test_id)
         return Response(jsonify_result(result), mimetype="application/json")
@@ -189,21 +192,22 @@ def run_test(hostport, batch, tid):
         return Response(f"{e}", status=404)
 
 
-@app.route("/tests/<hostport>", strict_slashes=False, defaults={"batch": ""})
-@app.route("/tests/<hostport>/<int:batch>")
-def run_tests(hostport, batch):
+@app.route("/tests/<hostport>", strict_slashes=False, defaults={"suiteid": ""})
+@app.route("/tests/<hostport>/<suiteid>")
+def run_tests(hostport, suiteid):
+    suiteid = suiteid.lower()
     try:
         t = HTTPTester(hostport)
     except ValueError as e:
         return Response(f"{e}", status=400)
-    batch = str(batch)
-    if batch and batch not in t.test_batches.keys():
-        return Response(f"Assignment `{batch}` not implemented", status=404)
-    batches = [batch] if batch else t.test_batches.keys()
+    if suiteid and suiteid not in testsuites:
+        return Response(f"Test suite `{suiteid}` not implemented", status=404)
+    suites = {suiteid: testsuites[suiteid]} if suiteid else testsuites
 
     def generate():
-        for batch in batches:
-            for result in t.run_batch_tests(batch):
+        for _, suite in suites.items():
+            t = suite(hostport)
+            for result in t.run_all_tests():
                 yield jsonify_result(result)
 
     return Response(generate(), mimetype="application/ors")
