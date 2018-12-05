@@ -125,3 +125,4 @@ class CS531A4(HTTPTester):
     def test_large_range_not_satisfiable(self, report):
         """Test whether a Range larger than the file returns 416 Range Not Satisfiable"""
         self.check_status_is(report, 416)
+        self.check_payload_empty(report)
