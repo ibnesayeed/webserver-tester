@@ -27,11 +27,13 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_4(self, report):
-        """Test case 4"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-auth.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_nested_basic_auth_ok(self, report):
+        """Test whether access is granted with valid Authorization header in nested directories"""
         self.check_status_is(report, 200)
+        self.check_mime_is(report, "application/octet-stream")
+        self.check_header_is(report, "Content-Length", "29")
+        self.check_payload_contains(report, "this file is protected too!")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
