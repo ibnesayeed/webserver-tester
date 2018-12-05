@@ -1,8 +1,23 @@
+import hashlib
+
 from ..base.httptester import HTTPTester
 
 
 class CS531A4(HTTPTester):
     """CS531A4 is a special purpose HTTPTester with test cases for Assignment 4 of the CS531 (Web Server Design) course"""
+
+    def generate_digest_values(self, nonce):
+        cnonce = hashlib.md5(b"go hokies").hexdigest()
+        ncount1 = "00000001"
+        ncount2 = "00000002"
+        a1 = hashlib.md5("mln:Colonial Place:mln".encode()).hexdigest()
+        a2 = hashlib.md5(f"GET:http://{self.hostport}/a4-test/limited2/foo/bar.txt".encode()).hexdigest()
+        a2_rspauth = hashlib.md5(f":http://{self.hostport}/a4-test/limited2/foo/bar.txt".encode()).hexdigest()
+        response1 = hashlib.md5(f"{a1}:{nonce}:{ncount1}:{cnonce}:auth:{a2}".encode()).hexdigest()
+        response2 = hashlib.md5(f"{a1}:{nonce}:{ncount2}:{cnonce}:auth:{a2}".encode()).hexdigest()
+        rspauth = hashlib.md5(f"{a1}:{nonce}:{ncount1}:{cnonce}:auth:{a2_rspauth}".encode()).hexdigest()
+        return {"cnonce": cnonce, "nc1": ncount1, "nc2": ncount2, "resp1": response1, "resp2": response2, "rspauth": rspauth}
+
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/protected", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_basic_auth_realm(self, report):
@@ -36,11 +51,23 @@ class CS531A4(HTTPTester):
         self.check_payload_contains(report, "this file is protected too!")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_5(self, report):
-        """Test case 5"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_wrong_realm_unauthorized(self, report):
+        """Test whether an incorrect realm prevents authorization"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        authstr = report["res"]["headers"].get("www-authenticate", "")
+        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
+        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
+        nonce = authobj.get("nonce", "")
+        digval = self.generate_digest_values(self, nonce)
+        report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="mln", REALM="ColonialPlace", NONCE=nonce, NC=digval["nc1"], CNONCE=digval["cnonce"], RESPONSE=digval["resp1"])
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
