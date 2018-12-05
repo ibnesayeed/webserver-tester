@@ -108,11 +108,11 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 401)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_15(self, report):
-        """Test case 15"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-if-match.http", PATH="/a4-test/limited2/foo/bar.txt", ETAG="x248kjaldsf00000000002")
+    def test_auth_over_conditional_get(self, report):
+        """Test whether authorization is ensured before conditional GET precondition check"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
