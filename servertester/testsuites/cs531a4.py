@@ -96,11 +96,23 @@ class CS531A4(HTTPTester):
         self.check_header_contains(report, "Authentication-Info", digval["rspauth"])
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_8(self, report):
-        """Test case 8"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_wrong_ncount_unauthorized(self, report):
+        """Test whether an incorrect nonce count prevents authorization"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        authstr = report["res"]["headers"].get("www-authenticate", "")
+        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
+        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
+        nonce = authobj.get("nonce", "")
+        digval = self.generate_digest_values(nonce)
+        report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="mln", REALM="Colonial Place", NONCE=nonce, NC=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE=digval["resp1"])
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2", USERAGENT="CS 531-f18 A4 automated Checker")
