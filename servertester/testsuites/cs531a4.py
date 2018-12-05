@@ -115,11 +115,48 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_16(self, report):
-        """Test case 16"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("pipeline-auth.http", PATH1="/a4-test/limited1/protected", PATH2="/a4-test/index.html.de", PATH3="/a4-test/index.html.en", PATH4="/a4-test/index.html.ja.jis", RANGE="bytes=20000-29999", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic YmRhOmJkYQxx", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_pipeline_auth(self, report):
+        """Test whether authorization is respected in pipeline requests"""
         self.check_status_is(report, 416)
+        orig_hdr = report["res"]["raw_headers"]
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Content-Language", "de")
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["notes"].append("Parsing third response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.check_status_is(report, 401)
+            self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["notes"].append("Parsing fourth response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Fourth response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Content-Language", "en")
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["notes"].append("Parsing fifth response")
+            self.parse_response(report["res"]["payload"], report)
+            assert not report["errors"], "Fifth response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_header_is(report, "Content-Type", "text/html; charset=iso-2022-jp")
+            self.check_header_is(report, "Content-Language", "ja")
+            self.check_header_is(report, "Content-Length", "7635")
+            self.check_payload_empty(report)
+            self.check_connection_closed(report)
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
+
 
     @HTTPTester.request("method-path-range.http", METHOD="HEAD", PATH="/a4-test/index.html.ru.koi8-r", RANGE="bytes=20000-29999")
     def test_large_range_not_satisfiable(self, report):
