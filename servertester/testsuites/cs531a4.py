@@ -164,11 +164,23 @@ class CS531A4(HTTPTester):
         self.check_payload_not_empty(report)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_14(self, report):
-        """Test case 14"""
-        assert False, "Yet to be implemented!"
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_wrong_digest_user_unauthorized(self, report):
+        """Test whether an incorrect digest user prevents authorization"""
         self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        authstr = report["res"]["headers"].get("www-authenticate", "")
+        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
+        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
+        nonce = authobj.get("nonce", "")
+        digval = self.generate_digest_values(nonce)
+        report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="bda", REALM="Colonial Place", NONCE=nonce, NC=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE=digval["resp2"])
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-if-match.http", PATH="/a4-test/limited2/foo/bar.txt", ETAG="x248kjaldsf00000000002")
