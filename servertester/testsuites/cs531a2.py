@@ -6,9 +6,8 @@ from ..base.httptester import HTTPTester
 class CS531A2(HTTPTester):
     """CS531A2 is a special purpose HTTPTester with test cases for Assignment 2 of the CS531 (Web Server Design) course"""
 
-
     @HTTPTester.request("get-url.http", PATH="/a2-test/")
-    def test_2_get_directory_listing(self, report):
+    def test_get_directory_listing(self, report):
         """Test whether a2-test directory root returns directory listing"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -18,21 +17,21 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a2-test/2")
-    def test_2_redirect_to_trailing_slash_for_directory_url(self, report):
+    def test_redirect_to_trailing_slash_for_directory_url(self, report):
         """Test whether redirects URL to trailing slashes when missing for existing directories"""
         self.check_redirects_to(report, 301, "/a2-test/2/")
         self.check_connection_closed(report)
 
 
     @HTTPTester.request("get-path.http", PATH="/a2-test/1")
-    def test_2_redirect_to_trailing_slash_for_directory_path(self, report):
+    def test_redirect_to_trailing_slash_for_directory_path(self, report):
         """Test whether redirects path to trailing slashes when missing for existing directories"""
         self.check_redirects_to(report, 301, "/a2-test/1/")
         self.check_connection_closed(report)
 
 
     @HTTPTester.request("get-url.http", PATH="/a2-test/2/")
-    def test_2_get_default_index_file(self, report):
+    def test_get_default_index_file(self, report):
         """Test whether default index.html is returned instead of directory listing"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -46,19 +45,19 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("head-path.http", PATH="/a2-test/1/1.3/assignment1.ppt")
-    def test_2_redirect_as_per_regexp_trailing_wildcard_capture(self, report):
+    def test_redirect_as_per_regexp_trailing_wildcard_capture(self, report):
         """Test whether redirects as per the regular expression with wildcard trailing capture group"""
         self.check_redirects_to(report, 302, "/a2-test/1/1.1/assignment1.ppt")
 
 
     @HTTPTester.request("head-path.http", PATH="/a2-test/coolcar.html")
-    def test_2_redirect_as_per_regexp_trailing_specific_file(self, report):
+    def test_redirect_as_per_regexp_trailing_specific_file(self, report):
         """Test whether redirects as per the regular expression with a specific trailing file name"""
         self.check_redirects_to(report, 302, "/a2-test/galaxie.html")
 
 
     @HTTPTester.request("head-path.http", PATH="/a2-test/galaxie.html")
-    def test_2_dont_redirect_target_file(self, report):
+    def test_dont_redirect_target_file(self, report):
         """Test whether the target of the configured redirect returns 200 OK"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -66,14 +65,14 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Sat, 20 Oct 2018 02:33:21 GMT")
-    def test_2_conditional_head_fresh(self, report):
+    def test_conditional_head_fresh(self, report):
         """Test whether conditional HEAD of a fresh file returns 304 Not Modified"""
         self.check_status_is(report, 304)
         self.check_payload_empty(report)
 
 
     @HTTPTester.request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="Sat, 20 Oct 2018 02:33:20 GMT")
-    def test_2_conditional_head_stale(self, report):
+    def test_conditional_head_stale(self, report):
         """Test whether conditional HEAD of a stale file returns 200 OK"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -81,7 +80,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="who-doesn't-want-a-fairlane?")
-    def test_2_conditional_head_invalid_datetime(self, report):
+    def test_conditional_head_invalid_datetime(self, report):
         """Test whether conditional HEAD with invalid datetime returns 200 OK"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -89,7 +88,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("conditional-head.http", PATH="/a2-test/2/fairlane.html", MODTIME="2018-10-20 02:33:21.304307000 -0000")
-    def test_2_conditional_head_unsupported_datetime_format(self, report):
+    def test_conditional_head_unsupported_datetime_format(self, report):
         """Test whether conditional HEAD with unsupported datetime format returns 200 OK"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -97,14 +96,14 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("head-path.http", PATH="/a2-test/2/fairlane.html")
-    def test_2_include_etag(self, report):
+    def test_include_etag(self, report):
         """Test whether the HEAD response contains an ETag"""
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
 
 
     @HTTPTester.request("head-path.http", PATH="/a2-test/2/fairlane.html")
-    def test_2_valid_etag_ok(self, report):
+    def test_valid_etag_ok(self, report):
         """Test whether a valid ETag returns 200 OK"""
         self.check_status_is(report, 200)
         self.check_etag_valid(report)
@@ -121,13 +120,13 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("get-if-match.http", PATH="/a2-test/2/fairlane.html", ETAG="203948kjaldsf002")
-    def test_2_etag_if_match_failure(self, report):
+    def test_etag_if_match_failure(self, report):
         """Test whether a random ETag returns 412 Precondition Failed"""
         self.check_status_is(report, 412)
 
 
     @HTTPTester.request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/2/index.html")
-    def test_2_implicit_keep_alive_until_timeout(self, report):
+    def test_implicit_keep_alive_until_timeout(self, report):
         """Test whether the socket connection is kept alive by default and closed after the set timeout"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -154,7 +153,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
-    def test_2_trace_unnecessary_conditionals(self, report):
+    def test_trace_unnecessary_conditionals(self, report):
         """Test whether many unnecessary conditionals are not processed"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "message/http")
@@ -162,7 +161,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("pipeline.http", PATH="/a2-test/", SUFFIX="2/index.html")
-    def test_2_pipeline_requests(self, report):
+    def test_pipeline_requests(self, report):
         """Test whether multiple pipelined requests are processed and returned in the same order"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -191,7 +190,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("head-keep-alive.http", keep_alive=True, PATH="/a2-test/")
-    def test_2_long_lived_connection(self, report):
+    def test_long_lived_connection(self, report):
         """Test whether the socket connection is kept alive to process multiple requests successively"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
@@ -237,7 +236,7 @@ class CS531A2(HTTPTester):
 
 
     @HTTPTester.request("get-path.http", PATH="/.well-known/access.log")
-    def test_2_access_log_as_virtual_uri(self, report):
+    def test_access_log_as_virtual_uri(self, report):
         """Test whether the access log is available as a Virtual URI in the Common Log Format"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/plain")
