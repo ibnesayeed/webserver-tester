@@ -27,7 +27,7 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-auth.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_nested_basic_auth_ok(self, report):
         """Test whether access is granted with valid Authorization header in nested directories"""
         self.check_status_is(report, 200)
@@ -43,7 +43,7 @@ class CS531A4(HTTPTester):
         self.check_status_is(report, 401)
 
 
-    @HTTPTester.request("get-url-auth.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_basic_wrong_auth_unauthorized(self, report):
         """Test whether access is unauthorized with wrong Authorization header"""
         self.check_status_is(report, 401)
