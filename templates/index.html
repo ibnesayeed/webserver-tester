@@ -419,8 +419,8 @@
           return;
         }
         let r = JSON.parse(result);
-        let nt = r.notes.map(n => `<li>${n}</li>`).join('');
-        let err = r.errors.map(e => `<li>${e}</li>`).join('');
+        let nt = r.notes.map(n => `<li>${n.replace(/[&<>"']/g, m => htmlEscapes[m])}</li>`).join('');
+        let err = r.errors.map(e => `<li>${e.replace(/[&<>"']/g, m => htmlEscapes[m])}</li>`).join('');
         let state = err ? 'FAILED' : 'PASSED';
         testResults[`${r.suite}: ${r.id}`] = state;
         document.getElementById(`box-${r.suite}-${r.id}`).classList.add(state);
