@@ -52,6 +52,7 @@ class CS531A3(HTTPTester):
     def test_no_accept_header_multiple_choices(self, report):
         """Test whether missing Accept header yields multiple choices"""
         self.check_status_is(report, 300)
+        self.check_header_present(report, "Alternatives")
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_empty(report)
@@ -61,6 +62,7 @@ class CS531A3(HTTPTester):
     def test_ambiguous_accept_header_multiple_choices(self, report):
         """Test whether an Accept header with the same qvalue for all image types yields multiple choices"""
         self.check_status_is(report, 300)
+        self.check_header_present(report, "Alternatives")
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_not_empty(report)
@@ -107,6 +109,7 @@ class CS531A3(HTTPTester):
     def test_ambiguous_accept_language_multiple_choices(self, report):
         """Test whether an Accept-Language header with the same qvalue for more than one available languages yields multiple choices"""
         self.check_status_is(report, 300)
+        self.check_header_present(report, "Alternatives")
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_empty(report)
@@ -182,6 +185,7 @@ class CS531A3(HTTPTester):
             self.parse_response(report["res"]["payload"], report)
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 300)
+            self.check_header_present(report, "Alternatives")
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
