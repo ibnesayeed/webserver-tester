@@ -175,6 +175,11 @@ class HTTPTester():
             report["notes"].append("Response parsed")
 
 
+    def parse_equal_sign_delimited_keys_values(self, str):
+        kvreg = re.compile('([\w-]+)\s*=\s*"?([\w\s-]*)"?')
+        return dict(kvreg.findall(str))
+
+
     def run_single_test(self, test_id):
         err = f"Test {test_id} not valid"
         if test_id.startswith("test_"):

@@ -1,0 +1,5 @@
+GET http://<HOSTPORT><PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+Authorization: Digest username="<USER>", realm="<REALM>", uri="http://<HOSTPORT><PATH>", qop=auth, nonce="<NONCE>", nc=<NC>, cnonce="<CNONCE>", response="<RESPONSE>"
+Connection: close
+
