@@ -6,6 +6,7 @@ from ..base.httptester import HTTPTester
 class CS531A4(HTTPTester):
     """CS531A4 is a special purpose HTTPTester with test cases for Assignment 4 of the CS531 (Web Server Design) course"""
 
+    # A helper method to be used in testing Digest authentication
     def generate_digest_values(self, nonce):
         cnonce = hashlib.md5(b"go hokies").hexdigest()
         ncount1 = "00000001"
@@ -26,6 +27,20 @@ class CS531A4(HTTPTester):
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
+    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_basic_wrong_auth_unauthorized(self, report):
+        """Test whether access is unauthorized with wrong Authorization header"""
+        self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+
+
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_nested_basic_auth(self, report):
+        """Test whether files in nested directories are protected with HTTP Basic auth"""
+        self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+
+
     @HTTPTester.request("get-url-ref-auth.http", PATH="/a4-test/limited1/protected", REFERER="/a4-test/index.html", AUTH="Basic bWxuOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_basic_auth_ok(self, report):
         """Test whether access is granted with valid Authorization header"""
@@ -35,13 +50,6 @@ class CS531A4(HTTPTester):
         self.check_payload_contains(report, "this file is protected")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_nested_digest_auth(self, report):
-        """Test whether files in nested directories are protected with HTTP Digest auth"""
-        self.check_status_is(report, 401)
-        self.check_header_begins(report, "WWW-Authenticate", "Digest")
-
-
     @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_nested_basic_auth_ok(self, report):
         """Test whether access is granted with valid Authorization header in nested directories"""
@@ -49,6 +57,36 @@ class CS531A4(HTTPTester):
         self.check_mime_is(report, "application/octet-stream")
         self.check_header_is(report, "Content-Length", "29")
         self.check_payload_contains(report, "this file is protected too!")
+
+
+    @HTTPTester.request("get-url-bad-auth.http", PATH="/a4-test/limited1/protected", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic ZZRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_double_auth_bad(self, report):
+        """Test whether two Authorization headers report a bad request"""
+        self.check_status_is(report, 400)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        self.check_payload_not_empty(report)
+
+
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_nested_digest_auth(self, report):
+        """Test whether files in nested directories are protected with HTTP Digest auth"""
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+
+
+    @HTTPTester.request("method-url-ua.http", METHOD="HEAD", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_head_nested_digest_auth(self, report):
+        """Test whether HEAD method in nested directories is protected with HTTP Digest auth"""
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+
+
+    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_options_nested_digest_auth(self, report):
+        """Test whether OPTIONS method in nested directories is protected with HTTP Digest auth"""
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
@@ -70,32 +108,6 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_basic_wrong_auth_unauthorized(self, report):
-        """Test whether access is unauthorized with wrong Authorization header"""
-        self.check_status_is(report, 401)
-        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
-
-
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_correct_realm_authorized(self, report):
-        """Test whether a correct realm with other values grants authorization"""
-        self.check_status_is(report, 401)
-        self.check_header_begins(report, "WWW-Authenticate", "Digest")
-        authstr = report["res"]["headers"].get("www-authenticate", "")
-        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
-        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
-        nonce = authobj.get("nonce", "")
-        digval = self.generate_digest_values(nonce)
-        report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="mln", REALM="Colonial Place", NONCE=nonce, NC=digval["nc1"], CNONCE=digval["cnonce"], RESPONSE=digval["resp1"])
-        for k in report2:
-            report[k] = report2[k]
-        if report["errors"]:
-            return
-        self.check_status_is(report, 200)
-        self.check_header_contains(report, "Authentication-Info", digval["rspauth"])
-
-
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_wrong_ncount_unauthorized(self, report):
         """Test whether an incorrect nonce count prevents authorization"""
@@ -113,13 +125,6 @@ class CS531A4(HTTPTester):
             return
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
-
-
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_nested_basic_auth(self, report):
-        """Test whether files in nested directories are protected with HTTP Basic auth"""
-        self.check_status_is(report, 401)
-        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
@@ -141,29 +146,6 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("method-url-ua.http", METHOD="HEAD", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_head_nested_digest_auth(self, report):
-        """Test whether HEAD method in nested directories is protected with HTTP Digest auth"""
-        self.check_status_is(report, 401)
-        self.check_header_begins(report, "WWW-Authenticate", "Digest")
-
-
-    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_options_nested_digest_auth(self, report):
-        """Test whether OPTIONS method in nested directories is protected with HTTP Digest auth"""
-        self.check_status_is(report, 401)
-        self.check_header_begins(report, "WWW-Authenticate", "Digest")
-
-
-    @HTTPTester.request("get-url-bad-auth.http", PATH="/a4-test/limited1/protected", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic ZZRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
-    def test_double_auth_bad(self, report):
-        """Test whether two Authorization headers report a bad request"""
-        self.check_status_is(report, 400)
-        self.check_mime_is(report, "text/html")
-        self.check_header_is(report, "Transfer-Encoding", "chunked")
-        self.check_payload_not_empty(report)
-
-
     @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
     def test_wrong_digest_user_unauthorized(self, report):
         """Test whether an incorrect digest user prevents authorization"""
@@ -183,11 +165,37 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    def test_correct_realm_authorized(self, report):
+        """Test whether a correct realm with other values grants authorization"""
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        authstr = report["res"]["headers"].get("www-authenticate", "")
+        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
+        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
+        nonce = authobj.get("nonce", "")
+        digval = self.generate_digest_values(nonce)
+        report2 = self.netcat("get-url-auth-digest.http", PATH="/a4-test/limited2/foo/bar.txt", USER="mln", REALM="Colonial Place", NONCE=nonce, NC=digval["nc1"], CNONCE=digval["cnonce"], RESPONSE=digval["resp1"])
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        self.check_status_is(report, 200)
+        self.check_header_contains(report, "Authentication-Info", digval["rspauth"])
+
+
     @HTTPTester.request("get-if-match.http", PATH="/a4-test/limited2/foo/bar.txt", ETAG="x248kjaldsf00000000002")
     def test_auth_over_conditional_get(self, report):
         """Test whether authorization is ensured before conditional GET precondition check"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
+
+
+    @HTTPTester.request("method-path-range.http", METHOD="HEAD", PATH="/a4-test/index.html.ru.koi8-r", RANGE="bytes=20000-29999")
+    def test_large_range_not_satisfiable(self, report):
+        """Test whether a Range larger than the file returns 416 Range Not Satisfiable"""
+        self.check_status_is(report, 416)
+        self.check_payload_empty(report)
 
 
     @HTTPTester.request("pipeline-auth.http", PATH1="/a4-test/limited1/protected", PATH2="/a4-test/index.html.de", PATH3="/a4-test/index.html.en", PATH4="/a4-test/index.html.ja.jis", RANGE="bytes=20000-29999", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic YmRhOmJkYQxx", USERAGENT="CS 531-f18 A4 automated Checker")
@@ -231,10 +239,3 @@ class CS531A4(HTTPTester):
             report["res"]["raw_headers"] = orig_hdr
             raise
         report["res"]["raw_headers"] = orig_hdr
-
-
-    @HTTPTester.request("method-path-range.http", METHOD="HEAD", PATH="/a4-test/index.html.ru.koi8-r", RANGE="bytes=20000-29999")
-    def test_large_range_not_satisfiable(self, report):
-        """Test whether a Range larger than the file returns 416 Range Not Satisfiable"""
-        self.check_status_is(report, 416)
-        self.check_payload_empty(report)
