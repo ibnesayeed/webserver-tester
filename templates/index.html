@@ -447,7 +447,7 @@
         if (hostport) {
           activateFavicon(2);
           msg = `Testing server \`${hostport}\` with all test cases${batch ? ` of \`Assignment ${batch}\`` : ''}...`;
-          let selector = batch ? `.batch-${batch}` : '.testcase';
+          let selector = batch ? `.suite-${batch}` : '.testcase';
           Array.from(testCaseContainer.querySelectorAll(selector)).forEach(box => {
             box.classList.remove('FAILED', 'PASSED');
             ShowResMsg(box.querySelector('.results'), `Running this test against the server \`${hostport}\`...`, '');
