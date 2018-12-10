@@ -63,7 +63,7 @@ class CS531A5(HTTPTester):
         assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/limited4/foo/barbar.txt")
+    @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
     def test_7(self, report):
         """TODO: Yet to implement!"""
         self.check_status_is(report, 401)
@@ -87,7 +87,7 @@ class CS531A5(HTTPTester):
         assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/limited4/foo/barbar.txt")
+    @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
     def test_9(self, report):
         """TODO: Yet to implement!"""
         self.check_status_is(report, 401)
@@ -117,7 +117,7 @@ class CS531A5(HTTPTester):
         assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/limited4/foo/barbar.txt")
+    @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
     def test_12(self, report):
         """TODO: Yet to implement!"""
         self.check_status_is(report, 401)
