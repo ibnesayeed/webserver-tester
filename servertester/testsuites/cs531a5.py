@@ -111,10 +111,10 @@ class CS531A5(HTTPTester):
         assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/")
+    @HTTPTester.request("pipeline-auth-pg.http", PATH1="/a5-test/limited2/test.txt", PATH2="/a5-test/limited3/foobar.txt", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic alsdkfjlasjd", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_11(self, report):
         """TODO: Yet to implement!"""
-        assert False, "Yet to implement!"
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("get-root.http", PATH="/a5-test/")
