@@ -1,0 +1,7 @@
+GET http://<HOSTPORT><PATH1> HTTP/1.1
+Host: <HOST>:<PORT>
+<PIPELINE>
+GET http://<HOSTPORT><PATH2> HTTP/1.1
+Host: <HOST>:<PORT>
+Connection: close
+
