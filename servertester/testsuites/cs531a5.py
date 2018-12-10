@@ -70,8 +70,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
-    def test_7(self, report):
-        """TODO: Yet to implement!"""
+    def test_put_allowed(self, report):
+        """Test whether PUT method is allowed and returns OK with the request payload"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         authstr = report["res"]["headers"].get("www-authenticate", "")
@@ -84,7 +84,12 @@ class CS531A5(HTTPTester):
             report[k] = report2[k]
         if report["errors"]:
             return
-        assert False, "Assertions not added yet!"
+        self.check_status_is(report, 200)
+        self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "65")
+        self.check_payload_size(report, 65)
+        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!!!")
 
 
     @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
