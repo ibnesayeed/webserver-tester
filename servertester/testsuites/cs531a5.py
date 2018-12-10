@@ -46,9 +46,11 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a5-test/env.cgi", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_4(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_allow_no_put_delete(self, report):
+        """Test whether Allow header is present with values other than PUT and DELETE"""
+        self.check_status_is(report, 200)
+        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE")
+        self.check_header_doesnt_contain(report, "Allow", "PUT", "DELETE")
 
 
     @HTTPTester.request("method-path.http", METHOD="DELETE", PATH="/a5-test/index.html.denmark")
