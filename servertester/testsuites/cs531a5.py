@@ -70,8 +70,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
-    def test_put_allowed(self, report):
-        """Test whether PUT method is allowed and returns OK with the request payload"""
+    def test_put_update(self, report):
+        """Test whether PUT method updates an existing resource and returns OK with the request payload"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         authstr = report["res"]["headers"].get("www-authenticate", "")
@@ -85,6 +85,7 @@ class CS531A5(HTTPTester):
         if report["errors"]:
             return
         self.check_status_is(report, 200)
+        self.check_etag_valid(report)
         self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Length", "65")
@@ -93,9 +94,14 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_8(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_put_create(self, report):
+        """Test whether PUT method creates a new resource with the request payload"""
+        self.check_status_is(report, 201)
+        self.check_etag_valid(report)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "63")
+        self.check_payload_size(report, 63)
+        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!")
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
