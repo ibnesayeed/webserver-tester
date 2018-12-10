@@ -153,9 +153,11 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_13(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_cgi_env_query_str(self, report):
+        """Test whether CGI script can see and report environment variables like QUERY_STRING and HTTP_USER_AGENT"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_contains(report, "QUERY_STRING = var1=foo&var2=bar", "HTTP_USER_AGENT = CS 531-F18 A5 automated Checker")
 
 
     @HTTPTester.request("get-path.http", PATH="/a5-test/limited3/env.cgi?var1=foo&var2=bar")
