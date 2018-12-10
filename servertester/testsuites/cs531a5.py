@@ -168,12 +168,16 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("post-path-www-urlencoded.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
-    def test_15(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_post_www_urlencoded(self, report):
+        """Test whether CGI script reads and echoes back URL-encoded POST data"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "var1=foo&var2=bar")
 
 
     @HTTPTester.request("post-path-multipart.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
-    def test_16(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_post_www_multipart(self, report):
+        """Test whether CGI script reads and echoes back multipart POST data"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "var1=foo&var2=bar", "userinput", "test 1 2 3")
