@@ -161,9 +161,10 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-path.http", PATH="/a5-test/limited3/env.cgi?var1=foo&var2=bar")
-    def test_14(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_cgi_protected_auth_basic(self, report):
+        """Test whether CGI script is protected with HTTP Basic auth"""
+        self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
     @HTTPTester.request("post-path-www-urlencoded.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
