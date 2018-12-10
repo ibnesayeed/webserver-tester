@@ -127,7 +127,7 @@ class CS531A5(HTTPTester):
         report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
         nonce = authobj.get("nonce", "")
         digval = self.generate_digest_values(nonce)
-        report2 = self.netcat("pipeline-auth-bd.http", PATH="/a5-test/limited4/foo/barbar.txt", USER="bda", REALM="Colonial Place", NONCE=nonce, NC1=digval["nc1"], NC2=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE1=digval["resp3g"], RESPONSE2=digval["resp4d"])
+        report2 = self.netcat("pipeline-auth-gd.http", PATH="/a5-test/limited4/foo/barbar.txt", USER="bda", REALM="Colonial Place", NONCE=nonce, NC1=digval["nc1"], NC2=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE1=digval["resp3g"], RESPONSE2=digval["resp4d"])
         for k in report2:
             report[k] = report2[k]
         if report["errors"]:
