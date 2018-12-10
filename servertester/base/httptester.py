@@ -247,11 +247,12 @@ class HTTPTester():
         report["notes"].append(f"`{header}` header has value `{value}`")
 
 
-    def check_header_contains(self, report, header, value):
+    def check_header_contains(self, report, header, *values):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
-        assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
-        report["notes"].append(f"`{header}` header contains `{value}`")
+        for value in values:
+            assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
+            report["notes"].append(f"`{header}` header contains `{value}`")
 
 
     def check_header_begins(self, report, header, value):
@@ -315,9 +316,10 @@ class HTTPTester():
         report["notes"].append(f"Payload is exactly `{value}`")
 
 
-    def check_payload_contains(self, report, value):
-        assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
-        report["notes"].append(f"Payload contains `{value}`")
+    def check_payload_contains(self, report, *values):
+        for value in values:
+            assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
+            report["notes"].append(f"Payload contains `{value}`")
 
 
     def check_payload_begins(self, report, value):

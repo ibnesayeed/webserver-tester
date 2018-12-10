@@ -11,8 +11,7 @@ class CS531A2(HTTPTester):
         """Test whether a2-test directory root returns directory listing"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
-        self.check_payload_contains(report, "coolcar.html")
-        self.check_payload_contains(report, "ford")
+        self.check_payload_contains(report, "coolcar.html", "ford")
         self.check_connection_closed(report)
 
 
@@ -178,8 +177,7 @@ class CS531A2(HTTPTester):
             assert not report["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/html")
-            self.check_payload_contains(report, "coolcar.html")
-            self.check_payload_contains(report, "ford")
+            self.check_payload_contains(report, "coolcar.html", "ford")
             self.check_connection_closed(report)
             orig_hdr += "\r\n\r\n" + report["res"]["raw_headers"]
         except AssertionError:
@@ -225,8 +223,7 @@ class CS531A2(HTTPTester):
             assert not report3["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report3, 200)
             self.check_mime_is(report3, "text/html")
-            self.check_payload_contains(report3, "coolcar.html")
-            self.check_payload_contains(report3, "ford")
+            self.check_payload_contains(report3, "coolcar.html", "ford")
             self.check_connection_closed(report3)
             report["notes"] += report3["notes"]
         except AssertionError:
