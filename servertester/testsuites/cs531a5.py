@@ -138,22 +138,22 @@ class CS531A5(HTTPTester):
     @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_13(self, report):
         """TODO: Yet to implement!"""
-    assert False, "Assertions not added yet!"
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("get-path.http", PATH="/a5-test/limited3/env.cgi?var1=foo&var2=bar")
     def test_14(self, report):
         """TODO: Yet to implement!"""
-    assert False, "Assertions not added yet!"
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("post-path-www-urlencoded.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
     def test_15(self, report):
         """TODO: Yet to implement!"""
-    assert False, "Assertions not added yet!"
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("post-path-multipart.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
     def test_16(self, report):
         """TODO: Yet to implement!"""
-    assert False, "Assertions not added yet!"
+        assert False, "Assertions not added yet!"
