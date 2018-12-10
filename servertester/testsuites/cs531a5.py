@@ -87,10 +87,22 @@ class CS531A5(HTTPTester):
         assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/")
+    @HTTPTester.request("get-root.http", PATH="/a5-test/limited4/foo/barbar.txt")
     def test_9(self, report):
         """TODO: Yet to implement!"""
-        assert False, "Yet to implement!"
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        authstr = report["res"]["headers"].get("www-authenticate", "")
+        authobj = self.parse_equal_sign_delimited_keys_values(authstr)
+        report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
+        nonce = authobj.get("nonce", "")
+        digval = self.generate_digest_values(nonce)
+        report2 = self.netcat("pipeline-auth-bd.http", PATH1="/a5-test/limited3/foobar.txt", PATH2="/a5-test/limited4/foo/barbar.txt", AUTH="Basic YmRhOmJkYQ==", USER="bda", REALM="Colonial Place", NONCE=nonce, NC=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE=digval["resp2g"], USERAGENT="CS 531-F18 A5 automated Checker")
+        for k in report2:
+            report[k] = report2[k]
+        if report["errors"]:
+            return
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("get-root.http", PATH="/a5-test/")
