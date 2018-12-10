@@ -55,16 +55,18 @@ class CS531A5(HTTPTester):
 
     @HTTPTester.request("method-path.http", METHOD="DELETE", PATH="/a5-test/index.html.denmark")
     def test_delete_not_allowed(self, report):
-        """Test whether Allow header is present with appropriate values in the 405 Not Allowed response"""
+        """Test whether Allow header is present with appropriate values other than DELETE in the 405 Not Allowed response"""
         self.check_status_is(report, 405)
         self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE")
         self.check_header_doesnt_contain(report, "Allow", "DELETE")
 
 
     @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited1/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_6(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_put_not_allowed(self, report):
+        """Test whether Allow header is present with appropriate values other than PUT in the 405 Not Allowed response"""
+        self.check_status_is(report, 405)
+        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "DELETE")
+        self.check_header_doesnt_contain(report, "Allow", "PUT")
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
