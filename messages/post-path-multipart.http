@@ -1,0 +1,16 @@
+POST <PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+Authorization: <AUTH>
+Connection: close
+Content-Type: multipart/form-data; boundary=---------------------------4739460061587540926829627201
+Content-Length: 295
+
+-----------------------------4739460061587540926829627201
+Content-Disposition: form-data; name="userinput"
+
+test 1 2 3
+-----------------------------4739460061587540926829627201
+Content-Disposition: form-data; name="domain"
+
+cs.odu.edu
+-----------------------------4739460061587540926829627201--
