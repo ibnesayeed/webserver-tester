@@ -147,10 +147,10 @@ class CS531A5(HTTPTester):
     assert False, "Assertions not added yet!"
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/")
+    @HTTPTester.request("post-url-auth-basic.http", PATH="/a5-test/limited3/env.cgi", AUTH="Basic YmRhOmJkYQ==")
     def test_15(self, report):
         """TODO: Yet to implement!"""
-        assert False, "Yet to implement!"
+    assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("get-root.http", PATH="/a5-test/")

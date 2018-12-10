@@ -1,0 +1,8 @@
+POST <PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+Authorization: <AUTH>
+Connection: close
+Content-Type: application/x-form-www-urlencoded
+Content-Length: 18
+
+var1=foo&var2=bar
