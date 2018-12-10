@@ -70,8 +70,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
-    def test_put_update(self, report):
-        """Test whether PUT method updates an existing resource and returns OK with the request payload"""
+    def test_put_success_auth_digest(self, report):
+        """Test whether PUT method creates a new resource with the request payload after successful Digest auth"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         authstr = report["res"]["headers"].get("www-authenticate", "")
@@ -84,7 +84,7 @@ class CS531A5(HTTPTester):
             report[k] = report2[k]
         if report["errors"]:
             return
-        self.check_status_is(report, 200)
+        self.check_status_is(report, 201)
         self.check_etag_valid(report)
         self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
         self.check_mime_is(report, "text/plain")
@@ -94,8 +94,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_put_create(self, report):
-        """Test whether PUT method creates a new resource with the request payload"""
+    def test_put_success_auth_basic(self, report):
+        """Test whether PUT method creates a new resource with the request payload after successful Basic auth"""
         self.check_status_is(report, 201)
         self.check_etag_valid(report)
         self.check_mime_is(report, "text/plain")
