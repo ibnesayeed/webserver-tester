@@ -27,10 +27,10 @@ class CS531A5(HTTPTester):
         return {"cnonce": cnonce, "nc1": ncount1, "nc2": ncount2, "resp1": response1, "resp2": response2, "resp2g": response2_get, "resp3g": response3_get, "resp4d": response4_delete, "rspauth2": rspauth2, "rspauth3": rspauth3, "rspauth4": rspauth4}
 
 
-    @HTTPTester.request("get-root.http", PATH="/a5-test/")
+    @HTTPTester.request("pipeline-oto.http", PATH1="/a5-test/limited3/protected", PATH2="/a5-test/env.cgi?var1=foo&var2=bar", PATH3="/a5-test/limited3/env.cgi", REFERER="/a5-test/index.html", AUTH="Basic amJvbGxlbjpqYm9sbGVu", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_1(self, report):
         """TODO: Yet to implement!"""
-        assert False, "Yet to implement!"
+        assert False, "Assertions not added yet!"
 
 
     @HTTPTester.request("get-root.http", PATH="/a5-test/")

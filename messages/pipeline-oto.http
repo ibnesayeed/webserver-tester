@@ -1,0 +1,14 @@
+OPTIONS http://<HOSTPORT><PATH1> HTTP/1.1
+Host: <HOST>:<PORT>
+User-Agent: <USERAGENT>
+<PIPELINE>
+TRACE <PATH2> HTTP/1.1
+Host: <HOST>:<PORT>
+<PIPELINE>
+OPTIONS http://<HOSTPORT><PATH3> HTTP/1.1
+Host: <HOST>:<PORT>
+User-Agent: <USERAGENT>
+Referer: http://<HOSTPORT><REFERER>
+Authorization: <AUTH>
+Connection: close
+
