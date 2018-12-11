@@ -58,8 +58,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("pipeline-ggg.http", PATH1="/a5-test/status.cgi", PATH2="/a5-test/ls.cgi", PATH3="/a5-test/location.cgi")
-    def test_2(self, report):
-        """TODO: Yet to implement!"""
+    def test_multiple_cgi_scripts(self, report):
+        """Test whether CGI scripts are executed and resulted in custom status, directory listing, and redirection"""
         self.check_status_is(report, 678)
         self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
         pld, rest = self.slice_payload(report["res"]["payload"], report)
