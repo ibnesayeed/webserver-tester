@@ -210,7 +210,6 @@ class CS531A5(HTTPTester):
     def test_delete_verify(self, report):
         """Test whether a DELETE request removes a resource and returns 404 on a subsequent GET"""
         self.check_status_is(report, 200)
-        self.check_etag_valid(report)
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
         try:
@@ -252,8 +251,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
-    def test_12(self, report):
-        """TODO: Yet to implement!"""
+    def test_auth_get_delete(self, report):
+        """Test whether a file that was PUT in an earlier test is auth protected, returns 200 OK on GET, and can be deleted successfully"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         authstr = report["res"]["headers"].get("www-authenticate", "")
@@ -266,7 +265,26 @@ class CS531A5(HTTPTester):
             report[k] = report2[k]
         if report["errors"]:
             return
-        assert False, "Assertions not added yet!"
+        self.check_status_is(report, 200)
+        self.check_etag_valid(report)
+        self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "65")
+        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!!!")
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_header_contains(report, "Authentication-Info", digval["rspauth4"])
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar", USERAGENT="CS 531-F18 A5 automated Checker")
