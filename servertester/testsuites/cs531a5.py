@@ -231,9 +231,24 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("pipeline-auth-pg.http", PATH1="/a5-test/limited2/test.txt", PATH2="/a5-test/limited3/foobar.txt", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic alsdkfjlasjd", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_11(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_pipeline_auth_put_get(self, report):
+        """Test whether pipelined PUT and GET requests are auth protected (Note: some request headers maight be separated by LF instead of CRLF)"""
+        self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 401)
+            self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
