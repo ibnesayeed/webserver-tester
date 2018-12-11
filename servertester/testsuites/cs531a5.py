@@ -31,8 +31,6 @@ class CS531A5(HTTPTester):
     def test_protected_options_trace_full_method_support(self, report):
         """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
         self.check_status_is(report, 401)
-        self.check_mime_is(report, "text/html")
-        self.check_header_is(report, "Transfer-Encoding", "chunked")
         pld, rest = self.slice_payload(report["res"]["payload"])
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
         try:
@@ -42,7 +40,6 @@ class CS531A5(HTTPTester):
             self.check_status_is(report, 200)
             self.check_mime_is(report, "message/http")
             self.check_payload_contains(report, "TRACE /a5-test/env.cgi?var1=foo&var2=bar HTTP/1.1")
-            self.check_header_is(report, "Transfer-Encoding", "chunked")
             pld, rest = self.slice_payload(report["res"]["payload"])
             orig_hdr += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
             report["notes"].append("Parsing third response")
