@@ -353,6 +353,11 @@ class HTTPTester():
         report["notes"].append(f"Payload begins with `{value}`")
 
 
+    def check_payload_doesnt_begin(self, report, value):
+        assert not report["res"]["payload"].startswith(value.encode()), f"Payload should not begin with `{value}`"
+        report["notes"].append(f"Payload does not begin with `{value}`")
+
+
     def check_payload_ends(self, report, value):
         assert report["res"]["payload"].endswith(value.encode()), f"Payload should end with `{value}`"
         report["notes"].append(f"Payload ends with `{value}`")
