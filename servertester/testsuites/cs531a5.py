@@ -171,8 +171,8 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
-    def test_9(self, report):
-        """TODO: Yet to implement!"""
+    def test_auth_created_files(self, report):
+        """Test whether files created using PUT in earlier tests are auth protected properly"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         authstr = report["res"]["headers"].get("www-authenticate", "")
@@ -185,7 +185,25 @@ class CS531A5(HTTPTester):
             report[k] = report2[k]
         if report["errors"]:
             return
-        assert False, "Assertions not added yet!"
+        self.check_status_is(report, 200)
+        self.check_etag_valid(report)
+        self.check_mime_is(report, "text/plain")
+        self.check_header_is(report, "Content-Length", "63")
+        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!")
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 401)
+            self.check_header_begins(report, "WWW-Authenticate", "Digest")
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("pipeline-auth-dg.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
