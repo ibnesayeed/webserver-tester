@@ -31,6 +31,7 @@ class CS531A5(HTTPTester):
     def test_protected_options_trace_full_method_support(self, report):
         """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
         self.check_status_is(report, 401)
+        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
         try:
