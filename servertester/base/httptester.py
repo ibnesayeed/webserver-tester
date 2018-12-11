@@ -139,8 +139,11 @@ class HTTPTester():
             return msg, b"", b""
 
 
-    # TODO: Improve the chunk processing logic
-    def slice_chunked_payload(self, msg):
+    def slice_payload(self, msg, report):
+        clen = report["res"]["headers"].get("content-length")
+        if clen:
+            return msg[:int(clen)], msg[int(clen):]
+        # TODO: Improve the chunk processing logic
         m = re.search(b"(^|\r?\n)0\r?\n\r?\n", msg)
         if m:
             return msg[:m.start()] + msg[slice(*m.span())], msg[m.end():]
