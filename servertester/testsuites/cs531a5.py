@@ -60,7 +60,33 @@ class CS531A5(HTTPTester):
     @HTTPTester.request("pipeline-ggg.http", PATH1="/a5-test/status.cgi", PATH2="/a5-test/ls.cgi", PATH3="/a5-test/location.cgi")
     def test_2(self, report):
         """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+        self.check_status_is(report, 678)
+        self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "text/plain")
+            self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
+            self.check_payload_contains(report, "drwxr-xr-x", "limited4/foo", "WeMustProtectThisHouse!")
+            pld, rest = self.slice_payload(report["res"]["payload"], report)
+            orig_hdr += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+            report["notes"].append("Parsing third response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.check_status_is(report, 302)
+            self.check_header_is(report, "Location", "http://www.cs.odu.edu/~mln/")
+            self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
+            self.check_connection_closed(report)
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("pipeline-gg.http", PATH1="/a5-test/limited4/foo/barbar.txt", PATH2="/a5-test/500.cgi")
