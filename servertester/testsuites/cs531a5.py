@@ -28,9 +28,35 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("pipeline-oto.http", PATH1="/a5-test/limited3/protected", PATH2="/a5-test/env.cgi?var1=foo&var2=bar", PATH3="/a5-test/limited3/env.cgi", REFERER="/a5-test/index.html", AUTH="Basic amJvbGxlbjpqYm9sbGVu", USERAGENT="CS 531-F18 A5 automated Checker")
-    def test_1(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_protected_options_trace_full_method_support(self, report):
+        """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
+        self.check_status_is(report, 401)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
+        pld, rest = self.slice_chunked_payload(report["res"]["payload"])
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_mime_is(report, "message/http")
+            self.check_payload_contains(report, "TRACE /a5-test/env.cgi?var1=foo&var2=bar HTTP/1.1")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
+            pld, rest = self.slice_chunked_payload(report["res"]["payload"])
+            orig_hdr += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+            report["notes"].append("Parsing third response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.check_status_is(report, 200)
+            self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "POST", "PUT", "DELETE")
+            self.check_connection_closed(report)
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("pipeline-ggg.http", PATH1="/a5-test/status.cgi", PATH2="/a5-test/ls.cgi", PATH3="/a5-test/location.cgi")
