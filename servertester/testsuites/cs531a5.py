@@ -90,9 +90,25 @@ class CS531A5(HTTPTester):
 
 
     @HTTPTester.request("pipeline-gg.http", PATH1="/a5-test/limited4/foo/barbar.txt", PATH2="/a5-test/500.cgi")
-    def test_3(self, report):
-        """TODO: Yet to implement!"""
-        assert False, "Assertions not added yet!"
+    def test_cgi_auth_internal_error(self, report):
+        """Test whether CGI scripts are protected and return 500 Internal Server Error based on the file name"""
+        self.check_status_is(report, 401)
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        try:
+            report["notes"].append("Parsing second response")
+            self.parse_response(rest, report)
+            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.check_status_is(report, 500)
+            self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
+            self.check_payload_doesnt_contain(report, "drwxr-xr-x")
+            orig_hdr += report["res"]["raw_headers"]
+        except AssertionError:
+            orig_hdr += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = orig_hdr
+            raise
+        report["res"]["raw_headers"] = orig_hdr
 
 
     @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a5-test/env.cgi", USERAGENT="CS 531-F18 A5 automated Checker")
