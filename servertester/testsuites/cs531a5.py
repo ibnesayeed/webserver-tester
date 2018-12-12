@@ -32,6 +32,8 @@ class CS531A5(HTTPTester):
         """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
         self.check_status_is(report, 401)
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
         try:
@@ -70,6 +72,7 @@ class CS531A5(HTTPTester):
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/plain")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_payload_contains(report, "drwxr-xr-x", "limited4/foo", "WeMustProtectThisHouse!")
             pld, rest = self.slice_payload(report["res"]["payload"], report)
@@ -78,6 +81,8 @@ class CS531A5(HTTPTester):
             self.parse_response(rest, report)
             assert not report["errors"], "Third response should be a valid HTTP Message"
             self.check_status_is(report, 302)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_is(report, "Location", "http://www.cs.odu.edu/~mln/")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_connection_closed(report)
@@ -93,6 +98,8 @@ class CS531A5(HTTPTester):
     def test_cgi_auth_internal_error(self, report):
         """Test whether CGI scripts are protected and return 500 Internal Server Error on malformed output"""
         self.check_status_is(report, 401)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
@@ -101,6 +108,8 @@ class CS531A5(HTTPTester):
             self.parse_response(rest, report)
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 500)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_payload_doesnt_contain(report, "drwxr-xr-x")
             orig_hdr += report["res"]["raw_headers"]
@@ -197,6 +206,8 @@ class CS531A5(HTTPTester):
             self.parse_response(rest, report)
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 401)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_begins(report, "WWW-Authenticate", "Digest")
             orig_hdr += report["res"]["raw_headers"]
         except AssertionError:
@@ -233,6 +244,8 @@ class CS531A5(HTTPTester):
     def test_pipeline_auth_put_get(self, report):
         """Test whether pipelined PUT and GET requests are auth protected (Note: some request headers maight be separated by LF instead of CRLF)"""
         self.check_status_is(report, 401)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
@@ -241,6 +254,8 @@ class CS531A5(HTTPTester):
             self.parse_response(rest, report)
             assert not report["errors"], "Second response should be a valid HTTP Message"
             self.check_status_is(report, 401)
+            self.check_mime_is(report, "text/html")
+            self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
             orig_hdr += report["res"]["raw_headers"]
         except AssertionError:
@@ -292,6 +307,7 @@ class CS531A5(HTTPTester):
         """Test whether CGI script can see and report environment variables like QUERY_STRING and HTTP_USER_AGENT"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_contains(report, "QUERY_STRING = var1=foo&var2=bar", "HTTP_USER_AGENT = CS 531-F18 A5 automated Checker")
 
 
@@ -299,6 +315,8 @@ class CS531A5(HTTPTester):
     def test_cgi_protected_auth_basic(self, report):
         """Test whether CGI script is protected with HTTP Basic auth"""
         self.check_status_is(report, 401)
+        self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
@@ -307,6 +325,7 @@ class CS531A5(HTTPTester):
         """Test whether CGI script reads and echoes back URL-encoded POST data"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "var1=foo&var2=bar")
 
 
@@ -315,4 +334,5 @@ class CS531A5(HTTPTester):
         """Test whether CGI script reads and echoes back multipart POST data"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "var1=foo&var2=bar", "userinput", "test 1 2 3")
