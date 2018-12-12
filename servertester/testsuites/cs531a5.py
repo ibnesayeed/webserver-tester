@@ -91,7 +91,7 @@ class CS531A5(HTTPTester):
 
     @HTTPTester.request("pipeline-gg.http", PATH1="/a5-test/limited4/foo/barbar.txt", PATH2="/a5-test/500.cgi")
     def test_cgi_auth_internal_error(self, report):
-        """Test whether CGI scripts are protected and return 500 Internal Server Error based on the file name"""
+        """Test whether CGI scripts are protected and return 500 Internal Server Error on malformed output"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
         pld, rest = self.slice_payload(report["res"]["payload"], report)
