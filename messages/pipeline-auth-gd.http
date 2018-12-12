@@ -1,0 +1,9 @@
+GET http://<HOSTPORT><PATH> HTTP/1.1
+Authorization: Digest username="<USER>", realm="<REALM>", uri="http://<HOSTPORT><PATH>", qop=auth, nonce="<NONCE>", nc=<NC1>, cnonce="<CNONCE>", response="<RESPONSE1>"
+Host: <HOST>:<PORT>
+<PIPELINE>
+DELETE http://<HOSTPORT><PATH> HTTP/1.1
+Authorization: Digest username="<USER>", realm="<REALM>", uri="http://<HOSTPORT><PATH>", qop=auth, nonce="<NONCE>", nc=<NC2>, cnonce="<CNONCE>", response="<RESPONSE2>"
+Host: <HOST>:<PORT>
+Connection: close
+

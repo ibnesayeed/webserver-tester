@@ -25,7 +25,7 @@ Alternatively, build a Docker image from the source to ensure all the dependenci
 
 ```
 $ docker image build -t webserver-tester .
-$ docker container run --rm -it webserver-tester ./tester.py -h
+$ docker container run --rm -it webserver-tester ./main.py -h
 ```
 
 Be aware that the `localhost` inside of the container refers to the container itself and not the host machine, so use a host that is reachable from inside of the container.
@@ -108,6 +108,8 @@ $ curl -i http://cs531.cs.odu.edu/tests/<host>:<port>
 ```
 
 ## Contribute
+
+**TODO: Update the contribution guide based on the new changes in the structure of the code.**
 
 To add more test cases, first create an issue describing the test scenario. To avoid duplicate efforts, claim the ticket if you want to work on it. Fork the repository and submit a PR when done.
 

@@ -1,0 +1,11 @@
+DELETE <PATH> HTTP/1.1
+User-Agent: <USERAGENT>
+Authorization: <AUTH>
+Host: <HOST>:<PORT>
+<PIPELINE>
+GET <PATH> HTTP/1.1
+User-Agent: <USERAGENT>
+Authorization: <AUTH>
+Host: <HOST>:<PORT>
+Connection: close
+

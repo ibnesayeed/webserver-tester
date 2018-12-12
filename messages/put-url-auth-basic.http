@@ -1,0 +1,13 @@
+PUT http://<HOSTPORT><PATH> HTTP/1.1
+Host: <HOST>:<PORT>
+User-Agent: <USERAGENT>
+Authorization: <AUTH>
+Connection: close
+Content-Type: text/plain
+Content-Length: 63
+
+here comes a PUT method
+
+in text/plain format
+
+hooray for PUT!

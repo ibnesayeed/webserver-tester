@@ -139,6 +139,18 @@ class HTTPTester():
             return msg, b"", b""
 
 
+    def slice_payload(self, msg, report):
+        clen = report["res"]["headers"].get("content-length")
+        if clen:
+            return msg[:int(clen)], msg[int(clen):]
+        # TODO: Improve the chunk processing logic
+        m = re.search(b"(^|\r?\n)0\r?\n\r?\n", msg)
+        if m:
+            return msg[:m.start()] + msg[slice(*m.span())], msg[m.end():]
+        else:
+            return b"", msg
+
+
     def parse_response(self, msg, report):
         if not msg.strip():
             report["errors"].append("Empty response")
@@ -247,11 +259,20 @@ class HTTPTester():
         report["notes"].append(f"`{header}` header has value `{value}`")
 
 
-    def check_header_contains(self, report, header, value):
+    def check_header_contains(self, report, header, *values):
         self.check_header_present(report, header)
         val = report["res"]["headers"].get(header.lower(), "")
-        assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
-        report["notes"].append(f"`{header}` header contains `{value}`")
+        for value in values:
+            assert value in val, f"`{header}` header should contain `{value}`, returned `{val}`"
+            report["notes"].append(f"`{header}` header contains `{value}`")
+
+
+    def check_header_doesnt_contain(self, report, header, *values):
+        self.check_header_present(report, header)
+        val = report["res"]["headers"].get(header.lower(), "")
+        for value in values:
+            assert value not in val, f"`{header}` header should not contain `{value}`, returned `{val}`"
+            report["notes"].append(f"`{header}` header does not contain `{value}`")
 
 
     def check_header_begins(self, report, header, value):
@@ -315,14 +336,26 @@ class HTTPTester():
         report["notes"].append(f"Payload is exactly `{value}`")
 
 
-    def check_payload_contains(self, report, value):
-        assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
-        report["notes"].append(f"Payload contains `{value}`")
+    def check_payload_contains(self, report, *values):
+        for value in values:
+            assert value.encode() in report["res"]["payload"], f"Payload should contain `{value}`"
+            report["notes"].append(f"Payload contains `{value}`")
+
+
+    def check_payload_doesnt_contain(self, report, *values):
+        for value in values:
+            assert value.encode() not in report["res"]["payload"], f"Payload should not contain `{value}`"
+            report["notes"].append(f"Payload does not contain `{value}`")
 
 
     def check_payload_begins(self, report, value):
         assert report["res"]["payload"].startswith(value.encode()), f"Payload should begin with `{value}`"
         report["notes"].append(f"Payload begins with `{value}`")
+
+
+    def check_payload_doesnt_begin(self, report, value):
+        assert not report["res"]["payload"].startswith(value.encode()), f"Payload should not begin with `{value}`"
+        report["notes"].append(f"Payload does not begin with `{value}`")
 
 
     def check_payload_ends(self, report, value):

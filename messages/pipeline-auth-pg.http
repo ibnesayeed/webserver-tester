@@ -1,0 +1,18 @@
+PUT <PATH1> HTTP/1.1
+User-Agent: <USERAGENT>
+Authorization: <AUTH1>
+Host: <HOST>:<PORT>
+Content-Type: text/plain
+Content-Length: 63
+
+here comes a PUT method
+
+in text/plain format
+
+hooray for PUT!
+GET <PATH2> HTTP/1.1
+User-Agent: <USERAGENT>
+Authorization: <AUTH2>
+Host: <HOST>:<PORT>
+Connection: close
+
