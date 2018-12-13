@@ -45,6 +45,26 @@ class HTTPTester():
         for (fname, func) in sorted(tfuncs, key=lambda x: x[1].__orig_lineno__):
             self.testcases[fname] = func
 
+
+    def req_obj(self):
+        return {
+            "raw": ""
+        }
+
+
+    def res_obj(self):
+        return {
+            "raw_headers": "",
+            "http_version": "",
+            "status_code": 0,
+            "status_text": "",
+            "headers": {},
+            "payload": b"",
+            "payload_size": 0,
+            "connection": "closed"
+        }
+
+
     def connect_sock(self):
         self.sock = socket.socket()
         self.sock.settimeout(self.CONNECTION_TIMEOUT)
@@ -59,19 +79,8 @@ class HTTPTester():
 
     def netcat(self, msg_file, keep_alive=False, **kwargs):
         report = {
-            "req": {
-                "raw": ""
-            },
-            "res": {
-                "raw_headers": "",
-                "http_version": "",
-                "status_code": 0,
-                "status_text": "",
-                "headers": {},
-                "payload": b"",
-                "payload_size": 0,
-                "connection": "closed"
-            },
+            "req": self.req_obj(),
+            "res": self.res_obj(),
             "errors": [],
             "notes": [],
         }
@@ -153,6 +162,7 @@ class HTTPTester():
 
     def parse_response(self, msg, report):
         if not msg.strip():
+            report["res"] = self.res_obj()
             report["errors"].append("Empty response")
             return
         hdrs, sep, pld = self.split_http_message(msg)
