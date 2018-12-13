@@ -237,7 +237,7 @@ class CS531A5(HTTPTester):
         self.check_status_is(report, 401)
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
-        self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
+        self.check_header_begins(report, "WWW-Authenticate", "Digest")
         pld, rest = self.slice_payload(report["res"]["payload"], report)
         orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
         try:
