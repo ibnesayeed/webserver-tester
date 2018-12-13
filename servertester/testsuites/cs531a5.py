@@ -161,23 +161,13 @@ class CS531A5(HTTPTester):
         if report["errors"]:
             return
         self.check_status_is(report, 201)
-        self.check_etag_valid(report)
         self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
-        self.check_mime_is(report, "text/plain")
-        self.check_header_is(report, "Content-Length", "65")
-        self.check_payload_size(report, 65)
-        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!!!")
 
 
     @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_put_success_auth_basic(self, report):
         """Test whether PUT method creates a new resource with the request payload after successful Basic auth"""
         self.check_status_is(report, 201)
-        self.check_etag_valid(report)
-        self.check_mime_is(report, "text/plain")
-        self.check_header_is(report, "Content-Length", "63")
-        self.check_payload_size(report, 63)
-        self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!")
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
