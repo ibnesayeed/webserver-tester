@@ -133,7 +133,7 @@ class CS531A5(HTTPTester):
     def test_delete_not_allowed(self, report):
         """Test whether Allow header is present with appropriate values other than DELETE in the 405 Not Allowed response"""
         self.check_status_is(report, 405)
-        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "POST")
+        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE")
         self.check_header_doesnt_contain(report, "Allow", "DELETE")
 
 
@@ -141,7 +141,7 @@ class CS531A5(HTTPTester):
     def test_put_not_allowed(self, report):
         """Test whether Allow header is present with appropriate values other than PUT in the 405 Not Allowed response"""
         self.check_status_is(report, 405)
-        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "DELETE", "POST")
+        self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "DELETE")
         self.check_header_doesnt_contain(report, "Allow", "PUT")
 
 
