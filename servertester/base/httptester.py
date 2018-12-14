@@ -1,4 +1,5 @@
 import os
+import io
 import re
 import inspect
 import collections
@@ -149,15 +150,40 @@ class HTTPTester():
 
 
     def slice_payload(self, msg, report):
-        clen = report["res"]["headers"].get("content-length")
-        if clen:
-            return msg[:int(clen)], msg[int(clen):]
-        # TODO: Improve the chunk processing logic
-        m = re.search(b"(^|\r?\n)0\r?\n\r?\n", msg)
-        if m:
-            return msg[:m.start()] + msg[slice(*m.span())], msg[m.end():]
+        marker = 0
+        dechunked = b""
+        cl = report["res"]["headers"].get("content-length")
+        if cl:
+            try:
+                marker = int(cl)
+            except Exception as e:
+                report["errors"].append(f"`Content-Length: {cl}` is not a valid number")
+        elif report["res"]["headers"].get("transfer-encoding", "").endswith("chunked"):
+            try:
+                for chunk, marker in self.read_chunk(msg):
+                    dechunked += chunk
+            except Exception as e:
+                report["errors"].append(str(e))
+                marker = 0
         else:
-            return b"", msg
+            report["errors"].append("Neither `Content-Length` nor `Transfer-Encoding: chunked` header is provided to frame the payload")
+        return msg[:marker], msg[marker:]
+
+
+    def read_chunk(self, msg):
+        s = io.BytesIO(msg)
+        for chdesc in s:
+            try:
+                chsize = int(chdesc.split(b";")[0].strip(), 16)
+            except Exception as e:
+                cd = chdesc.decode().strip("\r\n")
+                raise ValueError(f'Chunk descriptor `{cd}` must begin with a Hexadecimal number')
+            ch = s.read(chsize)
+            if s.readline() != b"\r\n":
+                raise ValueError("Chunk is not terminated with a `CRLF`")
+            if chsize == 0:
+                return ch, s.tell()
+            yield ch, s.tell()
 
 
     def parse_response(self, msg, report):
