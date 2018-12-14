@@ -27,6 +27,15 @@ class CS531A5(HTTPTester):
         return {"cnonce": cnonce, "nc1": ncount1, "nc2": ncount2, "resp1": response1, "resp2": response2, "resp2g": response2_get, "resp3g": response3_get, "resp4d": response4_delete, "rspauth2": rspauth2, "rspauth3": rspauth3, "rspauth4": rspauth4}
 
 
+    def process_next_response(self, report, postion="Next"):
+        pld, rest = self.slice_payload(report["res"]["payload"], report)
+        report["orig_hdr"] += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        assert not report["errors"], "Failed to extract payload"
+        report["notes"].append(f"Parsing {postion.lower()} response")
+        self.parse_response(rest, report)
+        assert not report["errors"], f"{postion} response should be a valid HTTP Message"
+
+
     @HTTPTester.request("pipeline-oto.http", PATH1="/a5-test/limited3/protected", PATH2="/a5-test/env.cgi?var1=foo&var2=bar", PATH3="/a5-test/limited3/env.cgi", REFERER="/a5-test/index.html", AUTH="Basic amJvbGxlbjpqYm9sbGVu", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_protected_options_trace_full_method_support(self, report):
         """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
@@ -34,29 +43,22 @@ class CS531A5(HTTPTester):
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 200)
             self.check_mime_is(report, "message/http")
             self.check_payload_contains(report, "TRACE /a5-test/env.cgi?var1=foo&var2=bar HTTP/1.1")
-            pld, rest = self.slice_payload(report["res"]["payload"], report)
-            orig_hdr += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
-            report["notes"].append("Parsing third response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.process_next_response(report, "Third")
             self.check_status_is(report, 200)
             self.check_header_contains(report, "Allow", "GET", "HEAD", "OPTIONS", "TRACE", "POST", "PUT", "DELETE")
             self.check_connection_closed(report)
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("pipeline-ggg.http", PATH1="/a5-test/status.cgi", PATH2="/a5-test/ls.cgi", PATH3="/a5-test/location.cgi")
@@ -64,35 +66,28 @@ class CS531A5(HTTPTester):
         """Test whether CGI scripts are executed and resulted in custom status, directory listing, and redirection"""
         self.check_status_is(report, 678)
         self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 200)
             self.check_mime_is(report, "text/plain")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_absent(report, "ETag")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_payload_contains(report, "drwxr-xr-x", "limited4/foo", "WeMustProtectThisHouse!")
-            pld, rest = self.slice_payload(report["res"]["payload"], report)
-            orig_hdr += report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
-            report["notes"].append("Parsing third response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Third response should be a valid HTTP Message"
+            self.process_next_response(report, "Third")
             self.check_status_is(report, 302)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_is(report, "Location", "http://www.cs.odu.edu/~mln/")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_connection_closed(report)
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("pipeline-gg.http", PATH1="/a5-test/limited4/foo/barbar.txt", PATH2="/a5-test/500.cgi")
@@ -102,23 +97,20 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 500)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_payload_doesnt_begin(report, "#!/usr/bin/perl")
             self.check_payload_doesnt_contain(report, "drwxr-xr-x")
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a5-test/env.cgi", USERAGENT="CS 531-F18 A5 automated Checker")
@@ -190,45 +182,39 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Length", "63")
         self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 401)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_begins(report, "WWW-Authenticate", "Digest")
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("pipeline-auth-dg.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
     def test_delete_verify(self, report):
         """Test whether a DELETE request removes a resource and returns 404 on a subsequent GET"""
         self.check_status_is(report, 200)
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 404)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_payload_not_empty(report)
             self.check_payload_doesnt_contain(report, "here comes a PUT method")
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("pipeline-auth-pg.http", PATH1="/a5-test/limited2/test.txt", PATH2="/a5-test/limited3/foobar.txt", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic alsdkfjlasjd", USERAGENT="CS 531-F18 A5 automated Checker")
@@ -238,22 +224,19 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 401)
             self.check_mime_is(report, "text/html")
             self.check_header_is(report, "Transfer-Encoding", "chunked")
             self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("get-url.http", PATH="/a5-test/limited4/foo/barbar.txt")
@@ -277,20 +260,17 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/plain")
         self.check_header_is(report, "Content-Length", "65")
         self.check_payload_contains(report, "here comes a PUT method", "hooray for PUT!!!")
-        pld, rest = self.slice_payload(report["res"]["payload"], report)
-        orig_hdr = report["res"]["raw_headers"] + "\r\n\r\n" + pld.decode()
+        report["orig_hdr"] = ""
         try:
-            report["notes"].append("Parsing second response")
-            self.parse_response(rest, report)
-            assert not report["errors"], "Second response should be a valid HTTP Message"
+            self.process_next_response(report, "Second")
             self.check_status_is(report, 200)
             self.check_header_contains(report, "Authentication-Info", digval["rspauth4"])
-            orig_hdr += report["res"]["raw_headers"]
+            report["orig_hdr"] += report["res"]["raw_headers"]
         except AssertionError:
-            orig_hdr += report["res"]["raw_headers"]
-            report["res"]["raw_headers"] = orig_hdr
+            report["orig_hdr"] += report["res"]["raw_headers"]
+            report["res"]["raw_headers"] = report["orig_hdr"]
             raise
-        report["res"]["raw_headers"] = orig_hdr
+        report["res"]["raw_headers"] = report["orig_hdr"]
 
 
     @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar", USERAGENT="CS 531-F18 A5 automated Checker")
