@@ -176,7 +176,8 @@ class HTTPTester():
             try:
                 chsize = int(chdesc.split(b";")[0].strip(), 16)
             except Exception as e:
-                raise ValueError(f'Chunk descriptor `{chdesc.strip("\r\n")}` must begin with a Hexadecimal number')
+                cd = chdesc.decode().replace("\r", "CR").replace("\n", "LF")
+                raise ValueError(f'Chunk descriptor `{cd}` must begin with a Hexadecimal number and end with a `CRLF`')
             ch = s.read(chsize)
             if s.readline() != b"\r\n":
                 raise ValueError("Chunk is not terminated with a `CRLF`")
