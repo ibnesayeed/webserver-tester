@@ -163,7 +163,7 @@ class HTTPTester():
                 for chunk, marker in self.read_chunk(msg):
                     dechunked += chunk
             except Exception as e:
-                report["errors"].append(e)
+                report["errors"].append(str(e))
                 marker = 0
         else:
             report["errors"].append("Neither `Content-Length` nor `Transfer-Encoding: chunked` header is provided to frame the payload")
