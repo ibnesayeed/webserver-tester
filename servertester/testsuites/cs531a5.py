@@ -15,7 +15,7 @@ class CS531A5(HTTPTester):
         a2 = hashlib.md5(f"PUT:http://{self.hostport}/a5-test/limited4/foo/barbar.txt".encode()).hexdigest()
         a2_get = hashlib.md5(f"GET:http://{self.hostport}/a5-test/limited4/foo/barbar.txt".encode()).hexdigest()
         a2_delete = hashlib.md5(f"DELETE:http://{self.hostport}/a5-test/limited4/foo/barbar.txt".encode()).hexdigest()
-        a2_rspauth = hashlib.md5(f":http://{self.hostport}/a5-test/limited2/foo/bar.txt".encode()).hexdigest()
+        a2_rspauth = hashlib.md5(f":http://{self.hostport}/a5-test/limited4/foo/barbar.txt".encode()).hexdigest()
         response1 = hashlib.md5(f"{a1}:{nonce}:{ncount1}:{cnonce}:auth:{a2}".encode()).hexdigest()
         response2 = hashlib.md5(f"{a1}:{nonce}:{ncount2}:{cnonce}:auth:{a2}".encode()).hexdigest()
         response2_get = hashlib.md5(f"{a1}:{nonce}:{ncount2}:{cnonce}:auth:{a2_get}".encode()).hexdigest()
