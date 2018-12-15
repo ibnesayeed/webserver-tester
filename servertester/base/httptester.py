@@ -181,9 +181,9 @@ class HTTPTester():
             ch = s.read(chsize)
             if s.readline() != b"\r\n":
                 raise ValueError("Chunk is not terminated with a `CRLF`")
-            if chsize == 0:
-                return ch, s.tell()
             yield ch, s.tell()
+            if chsize == 0:
+                return
 
 
     def parse_response(self, msg, report):
