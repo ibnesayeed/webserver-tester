@@ -9,17 +9,18 @@ import requests
 import docker
 import json
 import base64
+import csv
 
 from servertester.base.httptester import HTTPTester
 from servertester.testsuites import *
 
 # This should be changed inline or supplied via the environment variable each semester the course is offered
-COURSEREPO = os.getenv("COURSEREPO", "phonedude/cs531-f18")
+MEMBERSFILE = os.getenv("MEMBERSFILE", "https://cs531-f19.github.io/discussions/members.csv")
 COURCEID = os.getenv("COURCEID", "cs531")
 # This is needed if student repos are kept private (ideally, supply it via the environment variable)
 CREDENTIALS = os.getenv("GITHUBKEY", "")
 
-student_repos = {}
+allowed_members = {}
 
 
 app = Flask(__name__)
@@ -44,28 +45,27 @@ def generate_test_cases_json():
 test_cases = generate_test_cases_json()
 
 
-def extract_repo_from_url(github_url):
-    repo = re.sub("\.git$", "", github_url)
-    match = re.search("github.com[:/]([^/]+)/([^/]+)", repo)
-    if match is not None:
-        return f"{match[1]}/{match[2]}"
-    return None
-
-
-def fetch_student_repo(csid):
-    url = f"https://raw.githubusercontent.com/{COURSEREPO}/master/users/{csid}"
+def load_members():
     try:
-        req = requests.get(url)
-        if req.status_code == 200:
-            student_repos[csid] = extract_repo_from_url(req.text.strip())
-            return student_repos[csid]
+        res = requests.get(MEMBERSFILE)
+        if res.status_code == 200:
+            for member in csv.DictReader(res.content.decode().splitlines()):
+                allowed_members[member["csid"]] = {"name": member["name"], "ghid": member["ghid"], "repo": member["repo"]}
     except Exception as e:
         pass
-    return None
+
+if DEPLOYER:
+    load_members()
+    if not allowed_members:
+        DEPLOYER = False
+        print("No allowed members, disabling deployment")
 
 
-def get_student_repo(csid):
-    return student_repos.get(csid, fetch_student_repo(csid))
+def get_member_repo(csid):
+    member = allowed_members.get(csid)
+    if member is None:
+        return None
+    return f"{member['ghid']}/{member['repo']}"
 
 
 def get_authorized_repo_url(repo):
@@ -82,16 +82,16 @@ def jsonify_result(result):
 
 @app.route("/")
 def home():
-    return render_template("index.html", test_batches=testsuites.keys(), student_ids=student_repos.keys(), show_deployer=DEPLOYER, courseid=COURCEID)
+    return render_template("index.html", test_batches=testsuites.keys(), allowed_members=allowed_members, show_deployer=DEPLOYER, courseid=COURCEID)
 
 
 @app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
 @app.route("/servers/deploy/<csid>/<gitref>")
 def deploy_server(csid, gitref):
     csid = csid.strip()
-    repo = get_student_repo(csid)
+    repo = get_member_repo(csid)
     if repo is None:
-        return Response(f"User record `{csid}` not present in `https://github.com/{COURSEREPO}/tree/master/users`.", mimetype="text/plain", status=404)
+        return Response(f"User record `{csid}` not present in `{MEMBERSFILE}`.", mimetype="text/plain", status=404)
 
     msgs = []
     contname = f"{COURCEID}-{csid}"
@@ -142,7 +142,7 @@ def deploy_server(csid, gitref):
 @app.route("/servers/destroy/<csid>", strict_slashes=False)
 def server_destroy(csid):
     csid = csid.strip()
-    repo = get_student_repo(csid)
+    repo = get_member_repo(csid)
     if repo is None:
         return Response(f"Unrecognized student `{csid}`.", mimetype="text/plain", status=404)
 
@@ -157,7 +157,7 @@ def server_destroy(csid):
 @app.route("/servers/logs/<csid>", strict_slashes=False)
 def server_logs(csid):
     csid = csid.strip()
-    repo = get_student_repo(csid)
+    repo = get_member_repo(csid)
     if repo is None:
         return Response(f"Unrecognized student `{csid}`.", mimetype="text/plain", status=404)
 
