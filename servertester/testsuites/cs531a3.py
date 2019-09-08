@@ -97,7 +97,7 @@ class CS531A3(HTTPTester):
 
     @HTTPTester.request("head-path-accept-attr.http", PATH="/a3-test/vt-uva.html.Z", ACCEPTATTR="Encoding", ACCEPTVAL="compress; q=0.0, gzip; q=0.5")
     def test_explicit_extention_ignore_content_negotiation(self, report):
-        """Test whether an explicit existing file extension ignores contnet negotiation"""
+        """Test whether an explicit existing file extension ignores content negotiation"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Content-Encoding", "compress")
