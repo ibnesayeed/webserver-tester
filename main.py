@@ -16,7 +16,7 @@ if __name__ == "__main__":
         print("")
         print("<host>      Hostname or IP address of the server to be tested (default: 'localhost')")
         print("<port>      Port number of the server to be tested (default: '80')")
-        print("<suite-id>  ID of a test suite (e.g., 'example', default: all test suits)")
+        print("<suite-id>  ID of a test suite (e.g., 'example', default: all test suites)")
         print("<test-id>   ID of an individual test function (e.g., 'test_healthy_server')")
         print("")
 

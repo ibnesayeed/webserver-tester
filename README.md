@@ -21,7 +21,7 @@ Usage:
 
 <host>      Hostname or IP address of the server to be tested (default: 'localhost')
 <port>      Port number of the server to be tested (default: '80')
-<suite-id>  ID of a test suite (e.g., 'example', default: all test suits)
+<suite-id>  ID of a test suite (e.g., 'example', default: all test suites)
 <test-id>   ID of an individual test function (e.g., 'test_healthy_server')
 ```
 
