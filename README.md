@@ -2,6 +2,10 @@
 
 An HTTP testing and deployment system for CS 531 (Web Server Design) course projects.
 
+## Sample Data
+
+While this is a generic HTTP tester, it comes with some example test cases and CS 531 course specific test suites. In order to test CS 531 test suites you need to extract `sample/cs531-test-files.tar.gz` file in your server's document root. This will place folders for each assignment (whih correspond to their test suites).
+
 ## Test Locally
 
 To test your server, run your server first, note down the host and port of the server (which can be on the local machine or on a remote machine), then execute the tester script against that `<host>` and `<port>`.
