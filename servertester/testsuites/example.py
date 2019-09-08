@@ -23,6 +23,6 @@ class Example(HTTPTester):
 
 
     @HTTPTester.request("get-root.http")
-    def test_the_untimate_question(self, report):
+    def test_the_ultimate_question(self, report):
         """Answer to the Ultimate Question of Life, the Universe, and Everything"""
         assert False, "A placeholder test, meant to always fail!"
