@@ -148,3 +148,152 @@ drwxr-xr-x root/root         0 2018-12-04 22:33 a5-test/limited3/1/
 -rw-r--r-- root/root     11348 2018-12-04 22:33 a5-test/vt-uva.html.gz
 -rw-r--r-- root/root     23563 2018-12-04 22:33 a5-test/vt-uva.html.Z
 ```
+
+```
+$ tree
+.
+├── a1-test
+│   ├── 1
+│   │   ├── 1.1
+│   │   │   └── go hokies!.html
+│   │   ├── 1.2
+│   │   │   └── arXiv.org.Idenitfy.repsonse.xml
+│   │   ├── 1.3
+│   │   │   └── assignment1.ppt
+│   │   └── 1.4
+│   │       ├── escape%this.html
+│   │       ├── test:.HTM
+│   │       └── test:.html
+│   ├── 2
+│   │   ├── 0.jpeg
+│   │   ├── 6.gif
+│   │   └── index.html
+│   ├── 3
+│   └── 4
+│       ├── directory3isempty
+│       └── thisfileisempty.txt
+├── a2-test
+│   ├── 1
+│   │   ├── 1.1
+│   │   │   └── go hokies!.html
+│   │   ├── 1.2
+│   │   │   └── arXiv.org.Idenitfy.repsonse.xml
+│   │   ├── 1.3
+│   │   │   └── assignment1.ppt
+│   │   └── 1.4
+│   │       ├── escape%this.html
+│   │       ├── test:.HTM
+│   │       └── test:.html
+│   ├── 2
+│   │   ├── 0.jpeg
+│   │   ├── 6.gif
+│   │   ├── fairlane.html
+│   │   └── index.html
+│   ├── 3
+│   ├── 4
+│   │   ├── directory3isempty
+│   │   └── thisfileisempty.txt
+│   ├── coolcar.html
+│   ├── ford
+│   │   ├── 1.html
+│   │   ├── 2.html
+│   │   ├── convertible.html
+│   │   └── montego.html
+│   ├── galaxie.html
+│   └── mercury
+│       ├── 1.html
+│       ├── 2.html
+│       └── montego.html
+├── a3-test
+│   ├── fairlane.gif
+│   ├── fairlane.jpeg
+│   ├── fairlane.png
+│   ├── fairlane.txt
+│   ├── index.html.de
+│   ├── index.html.en
+│   ├── index.html.es
+│   ├── index.html.ja.jis
+│   ├── index.html.ko.euc-kr
+│   ├── index.html.ru.koi8-r
+│   ├── type-map.example
+│   ├── vt-uva.html.Z
+│   └── vt-uva.html.gz
+├── a4-test
+│   ├── fairlane.gif
+│   ├── fairlane.jpeg
+│   ├── fairlane.png
+│   ├── fairlane.txt
+│   ├── index.html.de
+│   ├── index.html.en
+│   ├── index.html.es
+│   ├── index.html.ja.jis
+│   ├── index.html.ko.euc-kr
+│   ├── index.html.ru.koi8-r
+│   ├── limited1
+│   │   ├── 1
+│   │   │   └── protected2
+│   │   ├── WeMustProtectThisHouse!
+│   │   └── protected
+│   ├── limited2
+│   │   ├── WeMustProtectThisHouse!
+│   │   └── foo
+│   │       └── bar.txt
+│   ├── type-map.example
+│   ├── vt-uva.html.Z
+│   └── vt-uva.html.gz
+└── a5-test
+    ├── 500.cgi
+    ├── env.cgi
+    ├── fairlane.gif
+    ├── fairlane.jpeg
+    ├── fairlane.png
+    ├── fairlane.txt
+    ├── index.html.de
+    ├── index.html.en
+    ├── index.html.es
+    ├── index.html.ja.jis
+    ├── index.html.ko.euc-kr
+    ├── index.html.ru.koi8-r
+    ├── limited1
+    │   ├── 1
+    │   │   └── protected2
+    │   ├── WeMustProtectThisHouse!
+    │   ├── protected
+    │   └── temp
+    ├── limited2
+    │   ├── WeMustProtectThisHouse!
+    │   └── foo
+    │       └── bar.txt
+    ├── limited3
+    │   ├── 1
+    │   │   └── protected2
+    │   ├── WeMustProtectThisHouse!
+    │   ├── env.cgi
+    │   └── protected
+    ├── limited4
+    │   ├── WeMustProtectThisHouse!
+    │   └── foo
+    │       └── bar.txt
+    ├── limited5
+    │   ├── 1
+    │   │   └── protected2
+    │   ├── WeMustProtectThisHouse!
+    │   ├── env.cgi
+    │   ├── foo1.txt
+    │   ├── foo2.txt
+    │   └── protected
+    ├── limited6
+    │   ├── 1
+    │   │   └── protected2
+    │   ├── WeMustProtectThisHouse!
+    │   ├── env.cgi
+    │   └── protected
+    ├── location.cgi
+    ├── ls.cgi
+    ├── status.cgi
+    ├── type-map.example
+    ├── vt-uva.html.Z
+    └── vt-uva.html.gz
+
+39 directories, 103 files
+```
