@@ -167,7 +167,7 @@
         <input type="search" id="csid" class="text-input" value="" list="studentids" placeholder="Enter CS-ID">
         <datalist id="studentids">
           {%- for k, v in allowed_members.items() %}
-          <option value="{{ k }}">{{ v["name"] }}</option>
+          <option value="{{ k }}">{{ v["name"] }} @{{ v["ghid"] }}</option>
           {%- endfor %}
         </datalist>
         <input type="search" id="gitref" class="text-input" value="" list="gitrefs" placeholder="Version">
