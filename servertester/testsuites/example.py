@@ -10,8 +10,9 @@ class Example(HTTPTester):
     @HTTPTester.request("get-root.http", skip_parsing=True)
     def test_echo_back(self, report):
         """Teast echo back server"""
-        for line in report["req"]["raw"].splitlines():
-            assert line in report["res"]["raw_headers"], f"`{line}` absent from the response"
+        for line in report["req"]["raw"].strip().splitlines():
+            assert line in report["res"]["raw_headers"], f"`{line}` is absent from the response"
+            report["notes"].append(f"`{line}` is present in the response")
 
 
     @HTTPTester.request("get-root.http")
