@@ -78,7 +78,7 @@ class HTTPTester():
             self.sock = None
 
 
-    def netcat(self, msg_file, keep_alive=False, **kwargs):
+    def netcat(self, msg_file, keep_alive=False, skip_parsing=False, **kwargs):
         report = {
             "req": self.req_obj(),
             "res": self.res_obj(),
@@ -123,7 +123,10 @@ class HTTPTester():
             keep_alive or self.reset_sock()
             if not report["errors"]:
                 report["notes"].append("Response data read")
-                self.parse_response(b"".join(data), report)
+                if skip_parsing:
+                    report["res"]["raw_headers"] = b"".join(data).decode()
+                else:
+                    self.parse_response(b"".join(data), report)
         return report
 
 

@@ -7,6 +7,13 @@ class Example(HTTPTester):
     """Example HTTPTester contains some sample test cases"""
 
 
+    @HTTPTester.request("get-root.http", skip_parsing=True)
+    def test_echo_back(self, report):
+        """Teast echo back server"""
+        for line in report["req"]["raw"].splitlines():
+            assert line in report["res"]["raw_headers"], f"`{line}` absent from the response"
+
+
     @HTTPTester.request("get-root.http")
     def test_healthy_server(self, report):
         """Test healthy server root"""
