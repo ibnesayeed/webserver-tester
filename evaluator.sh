@@ -6,7 +6,7 @@ dt=`date +"%Y%m%d%H%M%S%Z"`
 
 suite=${1:-example}
 tag=$suite
-if [[ "$suite" == "echo" ]]
+if [[ "$suite" == "echo" ]] || [[ "$suite" == "example" ]]
 then
     tag="master"
 fi
