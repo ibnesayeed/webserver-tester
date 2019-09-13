@@ -2,7 +2,6 @@
 
 # export TZ="America/New_York"
 export TZ="UTC"
-dt=`date +"%Y%m%d%H%M%S%Z"`
 
 suite=${1:-example}
 tag=$suite
@@ -19,6 +18,7 @@ do
     then
         continue
     fi
+    dt=`date +"%Y%m%d%H%M%S%Z"`
     suitedir="$outdir/$csid/$suite"
     mkdir -p $suitedir
     reort="$suitedir/$csid-$suite-$dt.txt"
