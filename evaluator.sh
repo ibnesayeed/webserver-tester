@@ -33,13 +33,13 @@ do
     echo "================================================================================" >> $reort
 
     echo "Deploying server: cs531-$csid"
-    curl -i "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
+    curl -is "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
 
     echo "Testing server: cs531-$csid against $suite test suite"
     ./main.py "cs531-$csid" $suite >> $reort
 
     echo "Destroying server: cs531-$csid"
-    curl -i "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
+    curl -is "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
 done
 
 echo "All done!"
