@@ -32,14 +32,20 @@ do
     echo "Server: cs531-$csid" >> $reort
     echo "================================================================================" >> $reort
 
-    echo "Deploying server: cs531-$csid"
+    echo ""
+    echo "Deploying server: cs531-$csid" | tee -a $reort
+    echo ""
     curl -is "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
 
-    echo "Testing server: cs531-$csid against $suite test suite"
+    echo ""
+    echo "Testing server: cs531-$csid against $suite test suite" | tee -a $reort
+    echo ""
     ./main.py "cs531-$csid" $suite >> $reort
 
-    echo "Destroying server: cs531-$csid"
+    echo ""
+    echo "Destroying server: cs531-$csid" | tee -a $reort
     curl -is "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
+    echo ""
 done
 
 echo "All done!"
