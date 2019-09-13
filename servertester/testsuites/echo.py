@@ -26,6 +26,6 @@ class Echo(HTTPTester):
     @HTTPTester.request("sparse-line.txt", skip_parsing=True)
     def test_echo_back_sparse_line(self, report):
         """Test echo back server with a message containing some empty lines"""
-        for line in filter(lambda l: not l.strip(), [l.strip() for l in report["req"]["raw"].strip().splitlines()]):
+        for line in filter(None, [l.strip() for l in report["req"]["raw"].strip().splitlines()]):
             assert line in report["res"]["raw_headers"], f"`{line}` is absent from the response"
             report["notes"].append(f"`{line}` is present in the response")
