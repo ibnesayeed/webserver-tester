@@ -11,7 +11,7 @@ then
     tag="master"
 fi
 
-outdir=${2:-evaluations}
+outdir=${2:-reports}
 
 while IFS=, read -r csid name ghid repo
 do
@@ -32,20 +32,20 @@ do
     echo "Server: cs531-$csid" >> $reort
     echo "================================================================================" >> $reort
 
-    echo ""
+    echo "" >> $reort
     echo "Deploying server: cs531-$csid" | tee -a $reort
-    echo ""
+    echo "" >> $reort
     curl -is "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
 
-    echo ""
+    echo "" >> $reort
     echo "Testing server: cs531-$csid against $suite test suite" | tee -a $reort
-    echo ""
+    echo "" >> $reort
     ./main.py "cs531-$csid" $suite >> $reort
 
-    echo ""
+    echo "" >> $reort
     echo "Destroying server: cs531-$csid" | tee -a $reort
     curl -is "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
-    echo ""
+    echo "" >> $reort
 done
 
 echo "All done!"
