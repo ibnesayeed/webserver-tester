@@ -37,6 +37,8 @@ do
     echo "" >> $reort
     curl -is "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
 
+    sleep 5
+
     echo "" >> $reort
     echo "Testing server: cs531-$csid against $suite test suite" | tee -a $reort
     echo "" >> $reort
