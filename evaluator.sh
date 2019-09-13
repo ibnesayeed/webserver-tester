@@ -18,7 +18,7 @@ do
     then
         continue
     fi
-    dt=`date +"%Y%m%d%H%M%S%Z"`
+    dt=`date +"%Y%m%d-%H%M%S-%Z"`
     suitedir="$outdir/$csid/$suite"
     mkdir -p $suitedir
     reort="$suitedir/$csid-$suite-$dt.txt"
@@ -35,18 +35,22 @@ do
     echo "" >> $reort
     echo "Deploying server: cs531-$csid" | tee -a $reort
     echo "" >> $reort
-    curl -is "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
+    curl -isf "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $reort
 
-    sleep 5
+    if [[ 0 -eq $? ]]
+    then
+        sleep 5
 
-    echo "" >> $reort
-    echo "Testing server: cs531-$csid against $suite test suite" | tee -a $reort
-    echo "" >> $reort
-    ./main.py "cs531-$csid" $suite >> $reort
+        echo "" >> $reort
+        echo "Testing server: cs531-$csid against $suite test suite" | tee -a $reort
+        echo "" >> $reort
+        ./main.py "cs531-$csid" $suite >> $reort
 
-    echo "" >> $reort
-    echo "Destroying server: cs531-$csid" | tee -a $reort
-    curl -is "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
+        echo "" >> $reort
+        echo "Destroying server: cs531-$csid" | tee -a $reort
+        curl -is "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $reort
+    fi
+
     echo "" >> $reort
 done
 
