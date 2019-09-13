@@ -112,7 +112,7 @@ def deploy_server(csid, gitref):
     if buildimg:
         try:
             msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref if gitref else 'master'}` branch/tag out")
-            img, logs = client.images.build(path=repo_url, tag=imgname)
+            img, logs = client.images.build(path=repo_url, tag=imgname, forcerm=True)
             msgs.append("".join([l.get("stream", "") for l in logs]))
         except Exception as e:
             msgs.append(str(e).replace(CREDENTIALS + '@', ''))
