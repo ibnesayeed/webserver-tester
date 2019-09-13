@@ -1,6 +1,8 @@
 import os
 import io
 import re
+import time
+import random
 import inspect
 import collections
 import functools
@@ -134,7 +136,9 @@ class HTTPTester():
         replacements = {
             "<HOST>": self.host,
             "<PORT>": str(self.port),
-            "<HOSTPORT>": self.hostport
+            "<HOSTPORT>": self.hostport,
+            "<EPOCH>": str(int(time.time())),
+            "<RANDOMINT>": str(random.randint(100, 10000))
         }
         for k, v in kwargs.items():
             replacements[f"<{k}>"] = v
