@@ -39,7 +39,7 @@ do
 
     sleep 5
 
-    curl -Isf "http://cs531.cs.odu.edu/servers/logs/$csid"
+    curl -Isf "http://cs531.cs.odu.edu/servers/logs/$csid" > /dev/null
 
     if [[ 0 -eq $? ]]
     then
