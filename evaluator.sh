@@ -4,7 +4,7 @@
 export TZ="UTC"
 dt=`date +"%Y%m%d%H%M%S%Z"`
 
-suite=${1:-master}
+suite=${1:-example}
 tag=$suite
 if [[ "$suite" == "echo" ]]
 then
@@ -15,7 +15,7 @@ outdir=${2:-evaluations}
 
 while IFS=, read -r csid name ghid repo
 do
-    if [[ "$csid" != "csid" ]]
+    if [[ "$csid" == "csid" ]]
     then
         continue
     fi
