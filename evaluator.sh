@@ -42,6 +42,7 @@ do
     echo "Deploying server: cs531-$csid" | tee -a $report
     echo "" >> $report
     curl -s "http://cs531.cs.odu.edu/servers/deploy/$csid/$tag" >> $report
+    echo "" >> $report
 
     sleep 5
 
@@ -57,9 +58,8 @@ do
         echo "" >> $report
         echo "Destroying server: cs531-$csid" | tee -a $report
         curl -s "http://cs531.cs.odu.edu/servers/destroy/$csid" >> $report
+        echo "" >> $report
     fi
-
-    echo "" >> $report
 done
 
 echo "All done!"
