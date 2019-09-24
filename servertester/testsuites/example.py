@@ -1,3 +1,5 @@
+import os
+
 from ..base.httptester import HTTPTester
 
 

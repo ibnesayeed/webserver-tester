@@ -1,3 +1,4 @@
+import os
 import hashlib
 
 from ..base.httptester import HTTPTester

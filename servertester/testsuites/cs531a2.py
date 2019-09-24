@@ -1,3 +1,4 @@
+import os
 import time
 
 from ..base.httptester import HTTPTester
