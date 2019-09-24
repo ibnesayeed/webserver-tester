@@ -116,17 +116,17 @@ def deploy_server(csid, gitref):
             gitref = gitref or "master"
             msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref}` branch/tag out")
             api_url = get_authorized_repo_url(repo, api=True)
-            res = requests.get("{api_url}/branches/{gitref}")
+            res = requests.get(f"{api_url}/branches/{gitref}")
             if res.status_code == 200:
                 commit_time = res.json()["commit"]["commit"]["author"]["date"]
                 msgs.append(f"Last commit at: {commit_time}")
             else:
-                res = requests.get("{api_url}/releases/tags/{gitref}")
+                res = requests.get(f"{api_url}/releases/tags/{gitref}")
                 if res.status_code == 200:
                     release_time = res.json()["published_at"]
                     msgs.append(f"Released at: {release_time}")
         except Exception as e:
-            msgs.append(f"Failed to fetch last commit/release time")
+            msgs.append(f"Failed to fetch last commit/release time of `{gitref}` branch/tag")
         try:
             img, logs = client.images.build(path=repo_url, tag=imgname, forcerm=True)
             msgs.append("".join([l.get("stream", "") for l in logs]))
