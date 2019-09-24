@@ -151,6 +151,33 @@ class CS531A2(HTTPTester):
             raise
 
 
+    @HTTPTester.request("head-keep-alive-explicit.http", keep_alive=True, PATH="/a2-test/2/index.html")
+    def test_explicit_keep_alive_until_timeout(self, report):
+        """Test whether the socket connection is kept alive when explicitly requested and closed after the set timeout"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/html")
+        self.check_payload_empty(report)
+        self.check_connection_alive(report)
+        time.sleep(self.LIFETIME_TIMEOUT + 1)
+        report["notes"].append(f"Making a subsequent request after `{self.LIFETIME_TIMEOUT}` seconds")
+        report2 = self.netcat("head-keep-alive-explicit.http", PATH="/a2-test/2/index.html")
+        report["req"]["raw"] += report2["req"]["raw"]
+        report["res"]["raw_headers"] += "\r\n\r\n" + report2["res"]["raw_headers"]
+        report["res"]["payload"] = report2["res"]["payload"]
+        report["res"]["payload_size"] = len(report2["res"]["payload"])
+        report["res"]["connection"] = report2["res"]["connection"]
+        try:
+            assert not report2["errors"], "Second response should be a valid `408 Request Timeout`"
+            self.check_status_is(report2, 408)
+            self.check_header_is(report2, "Connection", "close")
+            self.check_connection_closed(report2)
+            report["notes"] += report2["notes"]
+        except AssertionError:
+            report["errors"] = report2["errors"]
+            report["notes"] += report2["notes"]
+            raise
+
+
     @HTTPTester.request("trace-many-conditionals.http", PATH="/a2-test/2/index.html")
     def test_trace_unnecessary_conditionals(self, report):
         """Test whether many unnecessary conditionals are not processed"""
@@ -230,10 +257,3 @@ class CS531A2(HTTPTester):
             report["errors"] = report3["errors"]
             report["notes"] += report3["notes"]
             raise
-
-
-    @HTTPTester.request("get-path.http", PATH="/.well-known/access.log")
-    def test_access_log_as_virtual_uri(self, report):
-        """Test whether the access log is available as a Virtual URI in the Common Log Format"""
-        self.check_status_is(report, 200)
-        self.check_mime_is(report, "text/plain")

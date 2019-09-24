@@ -23,7 +23,7 @@ class HTTPTester():
         self.SEND_DATA_TIMEOUT = 3.0
         self.RECV_FIRST_BYTE_TIMEOUT = 1.0
         self.RECV_END_TIMEOUT = 0.5
-        self.LIFETIME_TIMEOUT = 15
+        self.LIFETIME_TIMEOUT = 5
 
         # Identify host and port of the server to be tested
         self.host = "localhost"

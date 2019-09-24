@@ -48,15 +48,9 @@ class CS531A1(HTTPTester):
         self.check_status_is(report, 404)
 
 
-    @HTTPTester.request("unsupported-version.http", VERSION="HTTP/2.3")
+    @HTTPTester.request("unsupported-version.http", VERSION="HTTP/1.11")
     def test_unsupported_version(self, report):
         """Test whether a request with unsupported version returns 505"""
-        self.check_status_is(report, 505)
-
-
-    @HTTPTester.request("unsupported-version.http", VERSION="HTTP/1.11")
-    def test_tight_unsupported_version_check(self, report):
-        """Test tight HTTP version checking to not match HTTP/1.11"""
         self.check_status_is(report, 505)
 
 
@@ -145,3 +139,10 @@ class CS531A1(HTTPTester):
         """Test whether a GIF file contains identifying magic cookie"""
         self.check_status_is(report, 200)
         self.check_payload_begins(report, "GIF89a")
+
+
+    @HTTPTester.request("get-path.http", PATH="/.well-known/access.log")
+    def test_access_log_as_virtual_uri(self, report):
+        """Test whether the access log is available as a Virtual URI in the Common Log Format"""
+        self.check_status_is(report, 200)
+        self.check_mime_is(report, "text/plain")
