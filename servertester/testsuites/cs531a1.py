@@ -119,8 +119,8 @@ class CS531A1(HTTPTester):
 
 
     @HTTPTester.request("get-url.http", PATH="/a1-test/4/directory3isempty")
-    def test_get_empty_directory(self, report):
-        """Test whether an empty directory returns zero bytes and a valid Content-Type with 200 on GET"""
+    def test_get_empty_unknown_file_directory(self, report):
+        """Test whether an unknown empty file or directory returns zero bytes and a valid Content-Type with 200 on GET"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "application/octet-stream")
         self.check_header_is(report, "Content-Length", "0")
