@@ -27,7 +27,7 @@ do
     code="$outfile-code.tar.gz"
 
     echo "Downloading code: $code"
-    curl -sL -o $code "https://$GITHUBKEY@github.com/$ghid/$repo/archive/$tag.tar.gz"
+    curl -sLf -o $code "https://$GITHUBKEY@github.com/$ghid/$repo/archive/$tag.tar.gz"
 
     echo "Creating report: $report"
     echo "================================================================================" > $report
