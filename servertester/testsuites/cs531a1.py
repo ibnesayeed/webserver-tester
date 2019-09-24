@@ -17,6 +17,7 @@ class CS531A1(HTTPTester):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""
         self.check_version_is(report, "HTTP/1.1")
         self.check_status_is(report, 200)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("method-url.http", METHOD="HEAD", PATH="/a1-test/2/index.html")
@@ -24,6 +25,7 @@ class CS531A1(HTTPTester):
         """Test whether the URL of the assignment 1 directory returns 200 on HEAD"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_date_valid(report)
         self.check_payload_empty(report)
 
 
@@ -32,6 +34,7 @@ class CS531A1(HTTPTester):
         """Test whether the relative path of the assignment 1 directory returns 200 on HEAD"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/html")
+        self.check_date_valid(report)
         self.check_payload_empty(report)
 
 
@@ -40,6 +43,7 @@ class CS531A1(HTTPTester):
         """Test whether the relative path of the assignment 1 directory returns 200 on OPTIONS"""
         self.check_status_is(report, 200)
         self.check_header_contains(report, "Allow", "GET")
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("get-path.http", PATH="/1/1.1/go%20hokies.html")
@@ -47,6 +51,7 @@ class CS531A1(HTTPTester):
         """Test whether a non-existing path returns 404 on GET"""
         self.check_version_is(report, "HTTP/1.1")
         self.check_status_is(report, 404)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("get-path.http", PATH="/a1-test/a1-test/")
@@ -54,30 +59,35 @@ class CS531A1(HTTPTester):
         """Test tight path prefix checking"""
         self.check_version_is(report, "HTTP/1.1")
         self.check_status_is(report, 404)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("unsupported-version.http", VERSION="HTTP/1.11")
     def test_unsupported_version(self, report):
         """Test whether a request with unsupported version returns 505"""
         self.check_status_is(report, 505)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("invalid-request.http")
     def test_invalid_request(self, report):
         """Test whether an invalid request returns 400"""
         self.check_status_is(report, 400)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("missing-host.http")
     def test_missing_host_header(self, report):
         """Test whether missing Host header in a request returns 400"""
         self.check_status_is(report, 400)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("method-path.http", METHOD="POST", PATH="/a1-test/")
     def test_post_not_implemented(self, report):
         """Test whether the assignment 1 returns 501 on POST"""
         self.check_status_is(report, 501)
+        self.check_date_valid(report)
 
 
     @HTTPTester.request("method-path-ua.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
@@ -85,6 +95,7 @@ class CS531A1(HTTPTester):
         """Test whether the server echoes back the request on TRACE"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "message/http")
+        self.check_date_valid(report)
         self.check_payload_begins(report, "TRACE /a1-test/1/1.4/ HTTP/1.1")
         self.check_payload_contains(report, f"User-Agent: {self.USERAGENT}", "Connection: close")
 
