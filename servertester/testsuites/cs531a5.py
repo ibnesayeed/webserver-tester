@@ -43,7 +43,7 @@ class CS531A5(HTTPTester):
         assert not report["errors"], f"{postion} response should be a valid HTTP Message"
 
 
-    @HTTPTester.request("pipeline-oto.http", PATH1="/a5-test/limited3/protected", PATH2="/a5-test/env.cgi?var1=foo&var2=bar", PATH3="/a5-test/limited3/env.cgi", REFERER="/a5-test/index.html", AUTH="Basic amJvbGxlbjpqYm9sbGVu", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("pipeline-oto.http", PATH1="/a5-test/limited3/protected", PATH2="/a5-test/env.cgi?var1=foo&var2=bar", PATH3="/a5-test/limited3/env.cgi", REFERER="/a5-test/index.html", AUTH="Basic amJvbGxlbjpqYm9sbGVu")
     def test_protected_options_trace_full_method_support(self, report):
         """Test whether OPTIONS and TRACE methods are auth protected and return full HTTP method support"""
         self.check_status_is(report, 401)
@@ -120,7 +120,7 @@ class CS531A5(HTTPTester):
         report["res"]["raw_headers"] = report["orig_hdr"]
 
 
-    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a5-test/env.cgi", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a5-test/env.cgi")
     def test_allow_no_put_delete(self, report):
         """Test whether Allow header is present with values other than PUT and DELETE"""
         self.check_status_is(report, 200)
@@ -136,7 +136,7 @@ class CS531A5(HTTPTester):
         self.check_header_doesnt_contain(report, "Allow", "DELETE")
 
 
-    @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited1/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited1/foobar.txt", AUTH="Basic YmRhOmJkYQ==")
     def test_put_not_allowed(self, report):
         """Test whether Allow header is present with appropriate values other than PUT in the 405 Not Allowed response"""
         self.check_status_is(report, 405)
@@ -163,7 +163,7 @@ class CS531A5(HTTPTester):
         self.check_header_contains(report, "Authentication-Info", digval["rspauth3"])
 
 
-    @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("put-url-auth-basic.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==")
     def test_put_success_auth_basic(self, report):
         """Test whether PUT method creates a new resource with the request payload after successful Basic auth"""
         self.check_status_is(report, 201)
@@ -179,7 +179,7 @@ class CS531A5(HTTPTester):
         report["notes"].append(f'`WWW-Authenticate` parsed for reuse in the `Authorization` header in the subsequent request')
         nonce = authobj.get("nonce", "")
         digval = self.generate_digest_values(nonce)
-        report2 = self.netcat("pipeline-auth-bd.http", PATH1="/a5-test/limited3/foobar.txt", PATH2="/a5-test/limited4/foo/barbar.txt", AUTH="Basic YmRhOmJkYQ==", USER="bda", REALM="Colonial Place", NONCE=nonce, NC=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE=digval["resp2g"], USERAGENT="CS 531-F18 A5 automated Checker")
+        report2 = self.netcat("pipeline-auth-bd.http", PATH1="/a5-test/limited3/foobar.txt", PATH2="/a5-test/limited4/foo/barbar.txt", AUTH="Basic YmRhOmJkYQ==", USER="bda", REALM="Colonial Place", NONCE=nonce, NC=digval["nc2"], CNONCE=digval["cnonce"], RESPONSE=digval["resp2g"])
         for k in report2:
             report[k] = report2[k]
         if report["errors"]:
@@ -204,7 +204,7 @@ class CS531A5(HTTPTester):
         report["res"]["raw_headers"] = report["orig_hdr"]
 
 
-    @HTTPTester.request("pipeline-auth-dg.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("pipeline-auth-dg.http", PATH="/a5-test/limited3/foobar.txt", AUTH="Basic YmRhOmJkYQ==")
     def test_delete_verify(self, report):
         """Test whether a DELETE request removes a resource and returns 404 on a subsequent GET"""
         self.check_status_is(report, 200)
@@ -224,7 +224,7 @@ class CS531A5(HTTPTester):
         report["res"]["raw_headers"] = report["orig_hdr"]
 
 
-    @HTTPTester.request("pipeline-auth-pg.http", PATH1="/a5-test/limited2/test.txt", PATH2="/a5-test/limited3/foobar.txt", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic alsdkfjlasjd", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("pipeline-auth-pg.http", PATH1="/a5-test/limited2/test.txt", PATH2="/a5-test/limited3/foobar.txt", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic alsdkfjlasjd")
     def test_pipeline_auth_put_get(self, report):
         """Test whether pipelined PUT and GET requests are auth protected (Note: some request headers maight be separated by LF instead of CRLF)"""
         self.check_status_is(report, 401)
@@ -280,7 +280,7 @@ class CS531A5(HTTPTester):
         report["res"]["raw_headers"] = report["orig_hdr"]
 
 
-    @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar", USERAGENT="CS 531-F18 A5 automated Checker")
+    @HTTPTester.request("get-path-ua.http", PATH="/a5-test/env.cgi?var1=foo&var2=bar")
     def test_cgi_env_query_str(self, report):
         """Test whether CGI script can see and report environment variables like QUERY_STRING and HTTP_USER_AGENT"""
         self.check_status_is(report, 200)

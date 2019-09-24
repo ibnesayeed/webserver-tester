@@ -12,7 +12,7 @@ class CS531A3(HTTPTester):
         self.USERAGENT = f"CS531 Assignment 3 Tester/{self.EPOCH}"
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a3-test/fairlane.txt", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a3-test/fairlane.txt")
     def test_useragent_get_text_ok(self, report):
         """Test whether a request with a custom user-agent returns OK with corresponding text response"""
         self.check_status_is(report, 200)
@@ -21,7 +21,7 @@ class CS531A3(HTTPTester):
         self.check_payload_contains(report, "______________")
 
 
-    @HTTPTester.request("get-url-range-referer.http", PATH="/a3-test/index.html", SUFFIX=".es", RANGE="bytes=0-99", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("get-url-range-referer.http", PATH="/a3-test/index.html", SUFFIX=".es", RANGE="bytes=0-99")
     def test_partial_content_range_language(self, report):
         """Test whether a valid range request header returns partial content in a specific langaue"""
         self.check_status_is(report, 206)
@@ -32,7 +32,7 @@ class CS531A3(HTTPTester):
         self.check_payload_size(report, 100)
 
 
-    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.htmll", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.htmll")
     def test_chunked_404(self, report):
         """Test whether a 404 Not Found page returns chunked encoded HTML"""
         self.check_status_is(report, 404)
@@ -76,7 +76,7 @@ class CS531A3(HTTPTester):
         self.check_payload_not_empty(report)
 
 
-    @HTTPTester.request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/jpeg; q=0.9, image/png; q=0.91, image/tiff; q=0.95", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="image/jpeg; q=0.9, image/png; q=0.91, image/tiff; q=0.95")
     def test_accept_header_png_ok(self, report):
         """Test whether an Accept header with unique qvalue returns a PNG"""
         self.check_status_is(report, 200)
@@ -85,7 +85,7 @@ class CS531A3(HTTPTester):
         self.check_payload_empty(report)
 
 
-    @HTTPTester.request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("head-path-accept.http", PATH="/a3-test/fairlane", ACCEPT="text/*; q=1.0, image/*; q=0.99")
     def test_accept_header_text_ok(self, report):
         """Test whether an Accept header with high qvalue returns plain text"""
         self.check_status_is(report, 200)
@@ -151,7 +151,7 @@ class CS531A3(HTTPTester):
         self.check_payload_not_empty(report)
 
 
-    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r")
     def test_explicit_language_charset_etag(self, report):
         """Test whether explicit language and charset as extensions returns ETag and Content-Type with charset"""
         self.check_status_is(report, 200)
@@ -161,7 +161,7 @@ class CS531A3(HTTPTester):
         self.check_payload_size(report, 7277)
 
 
-    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r", USERAGENT="CS 431/531 A3 Automated Checker")
+    @HTTPTester.request("get-path-ua.http", PATH="/a3-test/index.html.ru.koi8-r")
     def test_valid_etag_conditional_get(self, report):
         """Test whether conditional GET with a valid ETag returns 200 OK"""
         self.check_status_is(report, 200)

@@ -27,28 +27,28 @@ class CS531A4(HTTPTester):
         return {"cnonce": cnonce, "nc1": ncount1, "nc2": ncount2, "resp1": response1, "resp2": response2, "rspauth": rspauth}
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/protected", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/protected")
     def test_basic_auth_realm(self, report):
         """Test whether files are protected with HTTP Basic auth and return configured realm"""
         self.check_status_is(report, 401)
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
-    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/protected", AUTH="Basic YmRhOm1sbg==")
     def test_basic_wrong_auth_unauthorized(self, report):
         """Test whether access is unauthorized with wrong Authorization header"""
         self.check_status_is(report, 401)
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited1/1/protected2")
     def test_nested_basic_auth(self, report):
         """Test whether files in nested directories are protected with HTTP Basic auth"""
         self.check_status_is(report, 401)
         self.check_header_is(report, "WWW-Authenticate", 'Basic realm="Fried Twice"')
 
 
-    @HTTPTester.request("get-url-ref-auth.http", PATH="/a4-test/limited1/protected", REFERER="/a4-test/index.html", AUTH="Basic bWxuOm1sbg==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ref-auth.http", PATH="/a4-test/limited1/protected", REFERER="/a4-test/index.html", AUTH="Basic bWxuOm1sbg==")
     def test_basic_auth_ok(self, report):
         """Test whether access is granted with valid Authorization header"""
         self.check_status_is(report, 200)
@@ -57,7 +57,7 @@ class CS531A4(HTTPTester):
         self.check_payload_contains(report, "this file is protected")
 
 
-    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-auth-ua.http", PATH="/a4-test/limited1/1/protected2", AUTH="Basic YmRhOmJkYQ==")
     def test_nested_basic_auth_ok(self, report):
         """Test whether access is granted with valid Authorization header in nested directories"""
         self.check_status_is(report, 200)
@@ -66,7 +66,7 @@ class CS531A4(HTTPTester):
         self.check_payload_contains(report, "this file is protected too!")
 
 
-    @HTTPTester.request("get-url-bad-auth.http", PATH="/a4-test/limited1/protected", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic ZZRhOmJkYQ==", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-bad-auth.http", PATH="/a4-test/limited1/protected", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic ZZRhOmJkYQ==")
     def test_double_auth_bad(self, report):
         """Test whether two Authorization headers report a bad request"""
         self.check_status_is(report, 400)
@@ -75,28 +75,28 @@ class CS531A4(HTTPTester):
         self.check_payload_not_empty(report)
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_nested_digest_auth(self, report):
         """Test whether files in nested directories are protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("method-url-ua.http", METHOD="HEAD", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("method-url-ua.http", METHOD="HEAD", PATH="/a4-test/limited2/foo/bar.txt")
     def test_head_nested_digest_auth(self, report):
         """Test whether HEAD method in nested directories is protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("method-url-ua.http", METHOD="OPTIONS", PATH="/a4-test/limited2/foo/bar.txt")
     def test_options_nested_digest_auth(self, report):
         """Test whether OPTIONS method in nested directories is protected with HTTP Digest auth"""
         self.check_status_is(report, 401)
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_wrong_realm_unauthorized(self, report):
         """Test whether an incorrect realm prevents authorization"""
         self.check_status_is(report, 401)
@@ -115,7 +115,7 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_wrong_ncount_unauthorized(self, report):
         """Test whether an incorrect nonce count prevents authorization"""
         self.check_status_is(report, 401)
@@ -134,7 +134,7 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_wrong_digest_response_unauthorized(self, report):
         """Test whether an incorrect digest response prevents authorization"""
         self.check_status_is(report, 401)
@@ -153,7 +153,7 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_wrong_digest_user_unauthorized(self, report):
         """Test whether an incorrect digest user prevents authorization"""
         self.check_status_is(report, 401)
@@ -172,7 +172,7 @@ class CS531A4(HTTPTester):
         self.check_header_begins(report, "WWW-Authenticate", "Digest")
 
 
-    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("get-url-ua.http", PATH="/a4-test/limited2/foo/bar.txt")
     def test_correct_realm_authorized(self, report):
         """Test whether a correct realm with other values grants authorization"""
         self.check_status_is(report, 401)
@@ -205,7 +205,7 @@ class CS531A4(HTTPTester):
         self.check_payload_empty(report)
 
 
-    @HTTPTester.request("pipeline-auth.http", PATH1="/a4-test/limited1/protected", PATH2="/a4-test/index.html.de", PATH3="/a4-test/index.html.en", PATH4="/a4-test/index.html.ja.jis", RANGE="bytes=20000-29999", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic YmRhOmJkYQxx", USERAGENT="CS 531-f18 A4 automated Checker")
+    @HTTPTester.request("pipeline-auth.http", PATH1="/a4-test/limited1/protected", PATH2="/a4-test/index.html.de", PATH3="/a4-test/index.html.en", PATH4="/a4-test/index.html.ja.jis", RANGE="bytes=20000-29999", AUTH1="Basic YmRhOmJkYQ==", AUTH2="Basic YmRhOmJkYQxx")
     def test_pipeline_auth(self, report):
         """Test whether authorization is respected in pipeline requests"""
         self.check_status_is(report, 416)
