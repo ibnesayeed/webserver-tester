@@ -80,12 +80,13 @@ class CS531A1(HTTPTester):
         self.check_status_is(report, 501)
 
 
-    @HTTPTester.request("method-path.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
+    @HTTPTester.request("method-path-ua.http", METHOD="TRACE", PATH="/a1-test/1/1.4/")
     def test_trace_echoback(self, report):
         """Test whether the server echoes back the request on TRACE"""
         self.check_status_is(report, 200)
         self.check_mime_is(report, "message/http")
         self.check_payload_begins(report, "TRACE /a1-test/1/1.4/ HTTP/1.1")
+        self.check_payload_contains(report, f"User-Agent: {self.USERAGENT}", "Connection: close")
 
 
     @HTTPTester.request("get-url.http", PATH="/a1-test/1/1.4/test%3A.html")
