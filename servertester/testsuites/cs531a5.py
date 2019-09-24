@@ -6,6 +6,12 @@ from ..base.httptester import HTTPTester
 class CS531A5(HTTPTester):
     """CS531A5 is a special purpose HTTPTester with test cases for Assignment 5 of the CS531 (Web Server Design) course"""
 
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "cs531")
+        self.USERAGENT = f"CS531 Assignment 5 Tester/{self.EPOCH}"
+
+
     # A helper method to be used in testing Digest authentication
     def generate_digest_values(self, nonce):
         cnonce = hashlib.md5(b"go hokies").hexdigest()

@@ -1,10 +1,14 @@
-import time
-
 from ..base.httptester import HTTPTester
 
 
 class Echo(HTTPTester):
     """Echo HTTPTester contains various test cases to evaluate an echo server"""
+
+
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "echo")
+        self.USERAGENT = f"Echo Back Tester/{self.EPOCH}"
 
 
     @HTTPTester.request("single-line.txt", skip_parsing=True)

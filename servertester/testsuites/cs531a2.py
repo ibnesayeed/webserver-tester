@@ -6,6 +6,12 @@ from ..base.httptester import HTTPTester
 class CS531A2(HTTPTester):
     """CS531A2 is a special purpose HTTPTester with test cases for Assignment 2 of the CS531 (Web Server Design) course"""
 
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "cs531")
+        self.USERAGENT = f"CS531 Assignment 2 Tester/{self.EPOCH}"
+
+
     @HTTPTester.request("get-url.http", PATH="/a2-test/")
     def test_get_directory_listing(self, report):
         """Test whether a2-test directory root returns directory listing"""

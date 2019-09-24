@@ -4,6 +4,12 @@ from ..base.httptester import HTTPTester
 class CS531A3(HTTPTester):
     """CS531A3 is a special purpose HTTPTester with test cases for Assignment 3 of the CS531 (Web Server Design) course"""
 
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "cs531")
+        self.USERAGENT = f"CS531 Assignment 3 Tester/{self.EPOCH}"
+
+
     @HTTPTester.request("get-url-ua.http", PATH="/a3-test/fairlane.txt", USERAGENT="CS 431/531 A3 Automated Checker")
     def test_useragent_get_text_ok(self, report):
         """Test whether a request with a custom user-agent returns OK with corresponding text response"""

@@ -4,6 +4,12 @@ from ..base.httptester import HTTPTester
 class CS531A1(HTTPTester):
     """CS531A1 is a special purpose HTTPTester with test cases for Assignment 1 of the CS531 (Web Server Design) course"""
 
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "cs531")
+        self.USERAGENT = f"CS531 Assignment 1 Tester/{self.EPOCH}"
+
+
     @HTTPTester.request("get-url.http", PATH="/a1-test/2/index.html")
     def test_url_get_ok(self, report):
         """Test whether the URL of the assignment 1 directory returns HTTP/1.1 200 OK on GET"""

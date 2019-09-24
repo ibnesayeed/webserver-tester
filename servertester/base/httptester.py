@@ -17,6 +17,11 @@ class HTTPTester():
 
         # Directory where sample HTTP Message files are stored
         self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages")
+        self.USERAGENT = "HTTP Tester"
+
+        # Sources of noise in tests
+        self.EPOCH = str(int(time.time()))
+        self.RANDOMINT = str(random.randint(100, 10000))
 
         # Socket timeouts
         self.CONNECTION_TIMEOUT = 0.2
@@ -137,8 +142,9 @@ class HTTPTester():
             "<HOST>": self.host,
             "<PORT>": str(self.port),
             "<HOSTPORT>": self.hostport,
-            "<EPOCH>": str(int(time.time())),
-            "<RANDOMINT>": str(random.randint(100, 10000))
+            "<EPOCH>": self.EPOCH,
+            "<RANDOMINT>": self.RANDOMINT,
+            "<USERAGENT>": self.USERAGENT
         }
         for k, v in kwargs.items():
             replacements[f"<{k}>"] = v

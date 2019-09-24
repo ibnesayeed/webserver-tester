@@ -1,10 +1,14 @@
-import time
-
 from ..base.httptester import HTTPTester
 
 
 class Example(HTTPTester):
     """Example HTTPTester contains some sample test cases"""
+
+
+    def __init__(self, hostport="localhost:80"):
+        super().__init__(hostport=hostport)
+        self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "example")
+        self.USERAGENT = f"Example Tester/{self.EPOCH}"
 
 
     @HTTPTester.request("get-root.http")
