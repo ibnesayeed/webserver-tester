@@ -68,10 +68,12 @@ def get_member_repo(csid):
     return f"{member['ghid']}/{member['repo']}"
 
 
-def get_authorized_repo_url(repo):
+def get_authorized_repo_url(repo, api=False):
     if repo is None:
         return None
     cred = CREDENTIALS + "@" if CREDENTIALS else ""
+    if api:
+        return f"https://{cred}api.github.com/repos/{repo}"
     return f"https://{cred}github.com/{repo}.git"
 
 
@@ -111,7 +113,21 @@ def deploy_server(csid, gitref):
 
     if buildimg:
         try:
-            msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref if gitref else 'master'}` branch/tag out")
+            gitref = gitref or "master"
+            msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref}` branch/tag out")
+            api_url = get_authorized_repo_url(repo, api=True)
+            res = requests.get("{api_url}/branches/{gitref}")
+            if res.status_code == 200:
+                commit_time = res.json()["commit"]["commit"]["author"]["date"]
+                msgs.append(f"Last commit at: {commit_time}")
+            else:
+                res = requests.get("{api_url}/releases/tags/{gitref}")
+                if res.status_code == 200:
+                    release_time = res.json()["published_at"]
+                    msgs.append(f"Released at: {release_time}")
+        except Exception as e:
+            msgs.append(f"Failed to fetch last commit/release time")
+        try:
             img, logs = client.images.build(path=repo_url, tag=imgname, forcerm=True)
             msgs.append("".join([l.get("stream", "") for l in logs]))
         except Exception as e:
