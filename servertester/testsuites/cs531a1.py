@@ -174,7 +174,7 @@ class CS531A1(HTTPTester):
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/plain")
         self.check_payload_not_empty(report)
-        line = random.choice(report["res"]["payload"].split("\n"))
+        line = random.choice(report["res"]["payload"].split(b"\n"))
         m = self.clpattern.match(line)
         assert m, f"Log entry `{line}` is not in Common Log format"
         report["notes"].append(f"Selected log entry `{line}`")
