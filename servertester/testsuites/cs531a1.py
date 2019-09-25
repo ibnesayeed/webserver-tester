@@ -13,7 +13,7 @@ class CS531A1(HTTPTester):
         self.MSGDIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "..", "messages", "cs531")
         self.USERAGENT = f"CS531 Assignment 1 Tester/{self.EPOCH}"
         self.clpattern = re.compile(r'^(?P<host>\S+)\s+(?P<identity>\S+)\s+(?P<user>\S+)\s+\[(?P<time>.+)\]\s+"(?P<request>.*)"\s+(?P<status>[0-9]+)\s+(?P<size>\S+)\s*$')
-        self.ippattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\$')
+        self.ippattern = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
         self.tmpattern = re.compile(r'^\d{2}\/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\/\d{4}:\d{2}:\d{2}:\d{2}\s(\+|\-)\d{4}$')
         self.stpattern = re.compile(r'^[1-5]\d{2}$')
         self.dgpattern = re.compile(r'^\d+$')
