@@ -174,13 +174,15 @@ class CS531A1(HTTPTester):
         self.check_status_is(report, 200)
         self.check_mime_is(report, "text/plain")
         self.check_payload_not_empty(report)
-        line = random.choice(report["res"]["payload"].strip().decode().split("\n"))
+        line = random.choice(report["res"]["payload"].strip().decode().split("\n")).replace("\r", "")
         m = self.clpattern.match(line)
         assert m, f"Log entry `{line}` is not in Common Log format"
         report["notes"].append(f"Selected log entry `{line}`")
         record = m.groupdict()
         assert self.ippattern.match(record["host"]), f"`{record['host']}` is not a valid IP address"
         report["notes"].append(f"`{record['host']}` is a valid IP address")
+        assert record["host"] != "0.0.0.0", f"`0.0.0.0` is not the IP address of the client"
+        report["notes"].append(f"`{record['host']}` is potentially the IP address of a client")
         assert self.tmpattern.match(record["time"]), f"`{record['time']}` is not formatted as `%d/%b/%Y:%H:%M:%S %z`"
         report["notes"].append(f"`{record['time']}` is formatted correctly")
         assert self.stpattern.match(record["status"]), f"`{record['status']}` is not a valid status code"
