@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
+# To evaluate Assignment 1, run the following command in the deployer container
+# curl -s https://cs531-f19.github.io/discussions/members.csv | ./evaluator.sh cs531a1
+
 # export TZ="America/New_York"
 export TZ="UTC"
 
 suite=${1:-example}
-tag=$suite
+tag=${suite#cs531}
 if [[ "$suite" == "echo" ]] || [[ "$suite" == "example" ]]
 then
     tag="master"
