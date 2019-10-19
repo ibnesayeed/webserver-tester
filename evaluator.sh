@@ -25,7 +25,7 @@ do
     dtz=`date +"%Z"`
     userdir="$outdir/$csid"
     mkdir -p $userdir
-    outfile="$userdir/$csid-$suite-$dt"
+    outfile="$userdir/$csid-$tag-$suite-$dt"
     report="$outfile-report.txt"
     code="$outfile-code.tar.gz"
 
