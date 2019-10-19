@@ -4,6 +4,7 @@ LABEL   maintainer="Sawood Alam <@ibnesayeed>"
 RUN     apt update && apt install -y \
           netcat \
           telnet \
+          tree \
         && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
