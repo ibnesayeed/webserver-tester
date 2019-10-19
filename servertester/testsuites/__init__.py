@@ -7,7 +7,7 @@ from inspect import isclass
 from servertester.base.httptester import HTTPTester
 
 def _import_all_modules():
-    """Dynamically import all test suit classes from all modules in this package"""
+    """Dynamically import all test suite classes from all modules in this package"""
     global __all__
     __all__ = []
     globals_, locals_ = globals(), locals()
