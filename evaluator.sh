@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 
 # To evaluate Assignment 1, run the following command in the deployer container
-# curl -s https://cs531-f19.github.io/discussions/members.csv | ./evaluator.sh cs531a1
+# curl -s https://cs531-f19.github.io/discussions/members.csv | ./evaluator.sh cs531a1 a1
 
 # export TZ="America/New_York"
 export TZ="UTC"
 
 suite=${1:-example}
-tag=${suite#cs531}
-if [[ "$suite" == "echo" ]] || [[ "$suite" == "example" ]]
-then
-    tag="master"
-fi
+tag=${2:-master}
+outdir=${3:-reports}
 
-outdir=${2:-reports}
+if [[ -z $2 ]] && [[ $suite == cs531* ]]
+then
+    tag=${suite#cs531}
+fi
 
 while IFS=, read -r csid name ghid repo
 do
-    if [[ "$csid" == "csid" ]]
+    if [[ $csid == "csid" ]]
     then
         continue
     fi
