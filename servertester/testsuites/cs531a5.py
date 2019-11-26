@@ -287,7 +287,7 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_absent(report, "ETag")
-        self.check_payload_contains(report, "QUERY_STRING = var1=foo&var2=bar", "HTTP_USER_AGENT = CS 531-F18 A5 automated Checker")
+        self.check_payload_contains(report, "QUERY_STRING = var1=foo&var2=bar", "HTTP_USER_AGENT = {}".format(self.USERAGENT))
 
 
     @HTTPTester.request("get-path.http", PATH="/a5-test/limited3/env.cgi?var1=foo&var2=bar")
