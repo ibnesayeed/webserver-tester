@@ -316,4 +316,4 @@ class CS531A5(HTTPTester):
         self.check_mime_is(report, "text/html")
         self.check_header_is(report, "Transfer-Encoding", "chunked")
         self.check_header_absent(report, "ETag")
-        self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "var1=foo&var2=bar", "userinput", "test 1 2 3")
+        self.check_payload_contains(report, "REQUEST_METHOD = POST", "REMOTE_USER = bda", "userinput", "test 1 2 3", "domain", "cs.odu.edu")
