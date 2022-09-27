@@ -85,7 +85,7 @@ def home():
     return render_template("index.html", test_batches=testsuites.keys(), allowed_members=allowed_members, show_deployer=DEPLOYER, courseid=COURCEID)
 
 
-@app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": ""})
+@app.route("/servers/deploy/<csid>", strict_slashes=False, defaults={"gitref": "main"})
 @app.route("/servers/deploy/<csid>/<gitref>")
 def deploy_server(csid, gitref):
     csid = csid.strip()
@@ -95,11 +95,8 @@ def deploy_server(csid, gitref):
 
     msgs = []
     contname = f"{COURCEID}-{csid}"
-    imgname = f"{COURCEID}/{csid}"
-    repo_url = get_authorized_repo_url(repo)
-    if gitref:
-        imgname += f":{gitref}"
-        repo_url += f"#{gitref}"
+    imgname = f"{COURCEID}/{csid}:{gitref}"
+    repo_url = f"{get_authorized_repo_url(repo)}#{gitref}"
 
     buildimg = True
     if request.args.get("rebuild") == "skip":
