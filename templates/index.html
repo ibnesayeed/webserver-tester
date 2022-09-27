@@ -170,9 +170,9 @@
           <option value="{{ k }}">{{ v["name"] }} @{{ v["ghid"] }}</option>
           {%- endfor %}
         </datalist>
-        <input type="search" id="gitref" class="text-input" value="" list="gitrefs" placeholder="Version">
+        <input type="search" id="gitref" class="text-input" value="" list="gitrefs" placeholder="Branch/Tag (main)">
         <datalist id="gitrefs">
-          <option value="master">Latest</option>
+          <option value="main">Latest</option>
           {%- for batch in test_batches %}
           {%- if batch.startswith("cs531") %}
           <option value="{{ batch[5:] }}">Assignment {{ batch[6:] }}</option>

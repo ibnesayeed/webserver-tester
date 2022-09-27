@@ -7,7 +7,7 @@
 export TZ="UTC"
 
 suite=${1:-example}
-tag=${2:-master}
+tag=${2:-main}
 outdir=${3:-reports}
 
 if [[ -z $2 ]] && [[ $suite == cs531* ]]

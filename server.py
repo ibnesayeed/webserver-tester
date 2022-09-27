@@ -111,7 +111,7 @@ def deploy_server(csid, gitref):
 
     if buildimg:
         try:
-            gitref = gitref or "master"
+            gitref = gitref or "main"
             msgs.append(f"Cloning the `https://github.com/{repo}.git` repo and checking the `{gitref}` branch/tag out")
             res = requests.get(f"https://api.github.com/repos/{repo}/branches/{gitref}", auth=(CREDENTIALS, ""))
             if res.status_code == 200:
