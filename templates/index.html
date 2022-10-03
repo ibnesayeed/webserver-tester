@@ -434,7 +434,7 @@
           let pld = r.res.payload_size ? ['text', 'message'].includes(ctype.split('/')[0]) ? atob(r.res.payload).replace(/[&<>"']/g, m => htmlEscapes[m]) : `<object data="data:${ctype};base64,${r.res.payload}">[<a href="data:${ctype};base64,${r.res.payload}" target="_blank">Download ${ctype} payload</a>]</object>` : '';
           markup += `
           <h4>Original Response <span class="description">(Payload: ${r.res.payload_size} bytes, Connection: ${r.res.connection})</span></h4>
-          <pre><code>${r.res.raw_headers.replace(/[&<>"']/g, m => htmlEscapes[m])}\r\n\r\n${pld}</code></pre>`;
+          <pre><code>${r.res.raw_headers.replace(/[&<>"']/g, m => htmlEscapes[m])}${r.errors.includes('Missing empty line after headers') ? '\r\n' : '\r\n\r\n'}${pld}</code></pre>`;
         }
         document.getElementById(`result-${r.suite}-${r.id}`).innerHTML = markup;
       }
