@@ -205,13 +205,19 @@ class HTTPTester():
             report["errors"].append("Empty response")
             return
         hdrs, sep, pld = self.split_http_message(msg)
-        report["res"]["payload"] = pld
-        report["res"]["payload_size"] = len(pld)
+        try:
+            hdrs = hdrs.decode()
+        except UnicodeDecodeError as e:
+            pld = hdrs[e.start:] + sep + pld
+            hdrs = hdrs[:e.start].decode().rstrip("\n")
+            sep = b""
+            report["errors"].append("Non-UTF-8 data in headers")
         if not sep:
             report["errors"].append("Missing empty line after headers")
         if sep == b"\n\n":
             report["errors"].append("Using `LF` as header separator instead of `CRLF`")
-        hdrs = hdrs.decode()
+        report["res"]["payload"] = pld
+        report["res"]["payload_size"] = len(pld)
         report["res"]["raw_headers"] = hdrs
         hdrs = hdrs.replace("\r", "").replace("\n\t", "\t").replace("\n ", " ")
         lines = hdrs.split("\n")
