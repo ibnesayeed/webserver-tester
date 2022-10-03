@@ -76,7 +76,8 @@ if __name__ == "__main__":
         if result["res"]["raw_headers"]:
             print("< " + result["res"]["raw_headers"].replace("\n", "\n< "))
         if result["res"]["payload"]:
-            print("< ")
+            if "Missing empty line after headers" not in result["errors"]:
+                print("< ")
             if print_text_payload and result["res"]["headers"].get("content-type", "text/plain").split('/')[0] in ["text", "message"]:
                 print(result["res"]["payload"].decode())
             else:
